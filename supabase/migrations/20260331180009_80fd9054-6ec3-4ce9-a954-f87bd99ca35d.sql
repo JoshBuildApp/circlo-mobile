@@ -1,0 +1,1 @@
+ALTER TABLE public.availability ADD COLUMN template_id uuid REFERENCES public.training_templates(id) ON DELETE SET NULL;

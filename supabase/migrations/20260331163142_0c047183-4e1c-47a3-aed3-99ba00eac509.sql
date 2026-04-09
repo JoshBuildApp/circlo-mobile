@@ -1,0 +1,1 @@
+DROP POLICY "Anyone can update session booking counts" ON public.training_sessions;

@@ -1,0 +1,1 @@
+ALTER TABLE public.training_sessions ADD COLUMN IF NOT EXISTS is_public boolean NOT NULL DEFAULT true;

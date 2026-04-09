@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Circlo" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#1A1A2E" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <!-- Prevent iOS Safari from auto-detecting / linkifying content. -->
+    <meta name="color-scheme" content="dark light" />
+    <!-- Tight Content-Security-Policy is set per-platform in capacitor.config + native manifests. -->
+    <link rel="preconnect" href="https://rsevfeogormnorvcvxio.supabase.co" />
+    <link rel="dns-prefetch" href="https://rsevfeogormnorvcvxio.supabase.co" />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="dns-prefetch" href="https://images.unsplash.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <title>Circlo — Find Your Circle</title>
+    <meta
+      name="description"
+      content="Circlo — the sports coaching marketplace. Discover coaches, book sessions, train with your circle. iOS + Android."
+    />
+    <meta name="author" content="Circlo" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' rx='12' fill='%231A1A2E'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300D4AA'/%3E%3Cstop offset='50%25' stop-color='%235BA88A'/%3E%3Cstop offset='100%25' stop-color='%23FF6B2C'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='28' cy='28' r='18' fill='none' stroke='url(%23g)' stroke-width='5.5' stroke-linecap='round' stroke-dasharray='94 19'/%3E%3Ccircle cx='42' cy='15' r='3.5' fill='%23FF6B2C'/%3E%3C/svg%3E"
+    />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <style>
+      html,
+      body,
+      #root {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background-color: #1a1a2e;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* Initial paint color while the React bundle is parsing. */
+      #root:empty::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+          circle at 50% 40%,
+          #1a1a2e 0%,
+          #0f0f1e 100%
+        );
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,61 @@
+/*
+ * Circlo Mobile — native shell styles
+ * --------------------------------------------------------------
+ * Only the bits needed to make the web UI feel at home inside a
+ * Capacitor webview. Everything here is additive to the existing
+ * Tailwind build — nothing here overrides web layout.
+ */
+
+/* Safe-area variables exposed as Tailwind-friendly custom props.
+ * Use in Tailwind with arbitrary values, e.g. `pt-[var(--safe-top)]`. */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* When running in the native shell, pad the app shell to respect the
+ * notch / Dynamic Island / gesture bar. */
+html.is-native,
+html.is-native body {
+  /* Prevent rubber-band scroll bleeding past the layout. */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+html.is-native body {
+  /* Lock the background so pull-to-refresh never shows white. */
+  background-color: #1a1a2e;
+}
+
+/* Disable iOS text selection on non-input UI chrome. Forms stay selectable. */
+html.is-native * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+html.is-native input,
+html.is-native textarea,
+html.is-native [contenteditable="true"],
+html.is-native .select-text,
+html.is-native .select-text * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Bottom nav on the web sits flush — on native it needs to clear the
+ * home indicator. AppShell can opt-in with the `.app-bottom-nav` class. */
+html.is-native .app-bottom-nav {
+  padding-bottom: calc(var(--safe-bottom) + 8px);
+}
+
+/* Top header respects the notch. */
+html.is-native .app-top-nav {
+  padding-top: var(--safe-top);
+}
+
+/* Smooth momentum scrolling on iOS for any internal scrollers. */
+html.is-native .app-scroll {
+  -webkit-overflow-scrolling: touch;
+}
