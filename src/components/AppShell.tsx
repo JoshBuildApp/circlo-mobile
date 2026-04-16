@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AnimatedOutlet } from "@/components/AnimatedOutlet";
 import {
   Home, Search, CalendarDays, User, MessageSquare, Users, Play, Plus,
   UserPlus, Shield, Video, ArrowLeft, Palette, Bell, Zap, ChevronDown,
   LogOut, Settings, Bookmark, Menu, X, LayoutDashboard, Compass,
-  Rss, BookOpen, Clock,
+  Clock, Crown, Dumbbell, Trophy,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import CircloLogo from "@/components/CircloLogo";
@@ -14,38 +16,43 @@ import { CoachSearchAutocomplete } from "@/components/CoachSearchAutocomplete";
 import { useMobile } from "@/hooks/use-mobile";
 import { useUnreadCount } from "@/hooks/use-unread-count";
 import DevModeToggle from "@/components/DevModeToggle";
-import { useDevGate } from "@/contexts/DevGateContext";
 import { useActivity } from "@/hooks/use-activity";
+import { usePresenceHeartbeat } from "@/hooks/use-presence-heartbeat";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { CoachAvatar } from "@/components/ui/coach-avatar";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Footer from "@/components/Footer";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const NewContentCreator = lazy(() => import("@/components/NewContentCreator"));
 const InviteModal = lazy(() => import("@/components/InviteModal"));
 const PostSessionReviewPrompt = lazy(() => import("@/components/PostSessionReviewPrompt"));
+const GuestAuthSheet = lazy(() => import("@/components/GuestAuthSheet"));
+const PWAInstallPrompt = lazy(() =>
+  import("@/components/PWAInstallPrompt").then((m) => ({ default: m.PWAInstallPrompt }))
+);
 
 const coachTabs = [
-  { path: "/home", label: "Home", icon: Home },
-  { path: "/discover", label: "Discover", icon: Search },
-  { path: "/book", label: "Book", icon: Zap, isCenter: true },
-  { path: "/schedule", label: "Schedule", icon: CalendarDays },
-  { path: "/profile", label: "Profile", icon: User },
+  { path: "/home", labelKey: "nav.home", icon: Home },
+  { path: "/discover", labelKey: "nav.discover", icon: Search },
+  { path: "/book", labelKey: "nav.book", icon: Zap, isCenter: true },
+  { path: "/schedule", labelKey: "nav.schedule", icon: CalendarDays },
+  { path: "/profile", labelKey: "nav.profile", icon: User },
 ];
 
 const playerTabs = [
-  { path: "/home", label: "Home", icon: Home },
-  { path: "/discover", label: "Discover", icon: Search },
-  { path: "/book", label: "Book", icon: Zap, isCenter: true },
-  { path: "/schedule", label: "Bookings", icon: CalendarDays },
-  { path: "/profile", label: "Profile", icon: User },
+  { path: "/home", labelKey: "nav.home", icon: Home },
+  { path: "/discover", labelKey: "nav.discover", icon: Search },
+  { path: "/book", labelKey: "nav.book", icon: Zap, isCenter: true },
+  { path: "/schedule", labelKey: "nav.bookings", icon: CalendarDays },
+  { path: "/profile", labelKey: "nav.profile", icon: User },
 ];
 
 // Sidebar navigation items
 const sidebarItems = [
   { path: "/home", label: "Home", icon: Home },
   { path: "/discover", label: "Discover", icon: Compass },
-  { path: "/feed", label: "Feed", icon: Rss },
   { path: "/inbox", label: "Inbox", icon: MessageSquare },
   { path: "/book", label: "Book", icon: Zap },
   { path: "/plays", label: "Plays", icon: Play },
@@ -56,59 +63,73 @@ const sidebarItems = [
 
 // Desktop nav links (center)
 const desktopLinks = [
-  { path: "/home", label: "Home" },
-  { path: "/discover", label: "Discover" },
-  { path: "/book", label: "Book" },
-  { path: "/community", label: "Community" },
-  { path: "/plays", label: "Plays" },
+  { path: "/home", labelKey: "nav.home" },
+  { path: "/discover", labelKey: "nav.discover" },
+  { path: "/book", labelKey: "nav.book" },
+  { path: "/community", labelKey: "nav.community" },
+  { path: "/plays", labelKey: "nav.plays" },
 ];
 
-const TAB_PATHS = ["/home", "/discover", "/plays", "/schedule", "/profile", "/feed", "/community", "/book"];
-
-const DASHBOARD_URL = "http://localhost:8080";
+const TAB_PATHS = ["/home", "/discover", "/plays", "/schedule", "/profile", "/community", "/book"];
 
 const AppShell = () => {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, profile, role, isAdmin, signOut } = useAuth();
   useActivity();
+  usePresenceHeartbeat();
   const isCoach = role === "coach" || isAdmin;
   const tabs = isCoach ? coachTabs : playerTabs;
   const [createOpen, setCreateOpen] = useState(false);
   const [createInitialType, setCreateInitialType] = useState<string | undefined>();
   const [inviteOpen, setInviteOpen] = useState(false);
   const isMobile = useMobile();
-  const { showGate } = useDevGate();
   const unreadCount = useUnreadCount();
-  const logoTapCount = useRef(0);
-  const logoTapTimer = useRef<ReturnType<typeof setTimeout>>();
-  const [showDevMenu, setShowDevMenu] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    // Start expanded on desktop (md+), collapsed on tablet
+    if (typeof window !== "undefined") return window.innerWidth < 1024;
+    return true;
+  });
   const [searchOpen, setSearchOpen] = useState(false);
+  const [topBarCollapsed, setTopBarCollapsed] = useState(false);
+  const [notifBannerDismissed, setNotifBannerDismissed] = useState(() =>
+    localStorage.getItem("notif-banner-dismissed") === "1"
+  );
+  const { isSupported: pushSupported, permission: pushPermission, subscribe: subscribePush } = usePushNotifications();
 
-  const handleLogoTap = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (showDevMenu) {
-      setShowDevMenu(false);
-      logoTapCount.current = 0;
-      return;
+  // Auto-subscribe when user is authenticated and permission already granted
+  useEffect(() => {
+    if (user && pushSupported && pushPermission === "granted") {
+      subscribePush();
     }
-    logoTapCount.current += 1;
-    clearTimeout(logoTapTimer.current);
-    if (logoTapCount.current >= 5) {
-      logoTapCount.current = 0;
-      setShowDevMenu(true);
-    } else {
-      logoTapTimer.current = setTimeout(() => { logoTapCount.current = 0; }, 1500);
-    }
+  }, [user, pushSupported, pushPermission, subscribePush]);
+
+  const handleEnableNotifications = async () => {
+    await subscribePush();
+    setNotifBannerDismissed(true);
+    localStorage.setItem("notif-banner-dismissed", "1");
+  };
+
+  const handleDismissBanner = () => {
+    setNotifBannerDismissed(true);
+    localStorage.setItem("notif-banner-dismissed", "1");
   };
 
   const navDepth = useRef(0);
   useEffect(() => {
     navDepth.current += 1;
     document.body.style.overflow = "";
+    // Reset scroll of the route container on path change so a new page starts at the top.
+    // Delay one frame so AnimatedOutlet's enter transition isn't fighting us.
+    const raf = requestAnimationFrame(() => {
+      const scroller = document.querySelector<HTMLElement>("[data-route-scroll]");
+      if (scroller) scroller.scrollTop = 0;
+      window.scrollTo(0, 0);
+    });
+    return () => cancelAnimationFrame(raf);
   }, [pathname]);
 
   const isTabRoute = TAB_PATHS.some(p => p === pathname);
@@ -142,7 +163,7 @@ const AppShell = () => {
   const hideChrome = ["/login", "/signup", "/forgot-password", "/reset-password"].some((p) =>
     pathname.startsWith(p)
   );
-  const isImmersive = false; // Nav always visible on all screens
+  const isImmersive = pathname === "/reels" || pathname === "/plays";
   const isChat = pathname.startsWith("/chat/");
 
   const isActive = (path: string) => {
@@ -151,227 +172,222 @@ const AppShell = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background select-none touch-action-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div className="flex h-[100dvh] w-full flex-col bg-background select-none touch-action-pan-y overflow-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Skip to main content — WCAG 2.1 AA */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-agent-teal focus:text-white focus:rounded-lg focus:outline-none"
       >
-        Skip to main content
+        {t("nav.skipToContent")}
       </a>
 
-      {/* ═══ DESKTOP TOP NAV (md+) ═══ */}
+      {/* ═══ TOP BAR — slim utility bar (logo + search + user) ═══ */}
       {!hideChrome && !isImmersive && !isChat && (
-        <header className="app-top-nav sticky top-0 z-50 w-full bg-card/70 backdrop-blur-2xl backdrop-saturate-150 border-b border-border/15 transition-colors duration-300">
-          <div className="flex h-[60px] w-full max-w-[1200px] mx-auto items-center justify-between px-4 md:px-8 lg:px-12">
-            {/* LEFT — Hamburger + Logo + back */}
-            <div className="flex shrink-0 items-center gap-2.5">
-              {/* Mobile hamburger */}
-              {!showBack && (
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  className="md:hidden h-8 w-8 -ml-1 rounded-full flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 active:scale-90 transition-all duration-200"
-                  aria-label="Open menu"
-                >
-                  <Menu className="h-[18px] w-[18px]" strokeWidth={2} />
-                </button>
-              )}
-              {/* Desktop sidebar toggle */}
-              <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="hidden md:flex h-8 w-8 -ml-1 rounded-full items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 active:scale-90 transition-all duration-200"
-                aria-label="Toggle sidebar"
-              >
-                <Menu className="h-[18px] w-[18px]" strokeWidth={2} />
-              </button>
-              {showBack && (
-                <button
-                  onClick={handleBack}
-                  className="h-8 w-8 -ml-1 rounded-full flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 active:scale-90 transition-all duration-200"
-                  aria-label="Go back"
-                >
-                  <ArrowLeft className="h-[18px] w-[18px]" strokeWidth={2} />
-                </button>
-              )}
-              <Link to="/home" className="flex items-center gap-2 group" onClick={handleLogoTap}>
-                <CircloLogo variant="full" size="md" theme="light" className="transition-transform duration-200 group-hover:scale-[1.03] group-active:scale-95" />
-              </Link>
-              <span className="hidden sm:inline-flex px-1.5 py-[3px] rounded-md bg-primary/8 text-primary text-[9px] font-bold uppercase tracking-[0.15em] leading-none">Beta</span>
-              <DevModeToggle />
-            </div>
+        <AnimatePresence initial={false}>
+          {!topBarCollapsed && (
+            <motion.header
+              key="topbar"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: "easeInOut" }}
+              className="app-top-nav sticky top-0 z-50 w-full bg-card/80 backdrop-blur-2xl border-b border-border/20 overflow-hidden shrink-0"
+            >
+              {/* Brand accent line */}
+              <div className="h-[2px] bg-brand-gradient w-full" />
+              <div className="flex h-12 w-full items-center justify-between gap-4 px-4 md:px-6">
 
-            {/* CENTER — Desktop nav links */}
-            <nav aria-label="Main navigation" className="hidden md:flex items-center gap-0.5 bg-secondary/40 rounded-full px-1.5 py-1">
-              {desktopLinks.map(({ path, label }) => (
-                <Link
-                  key={path}
-                  to={path}
-                  aria-current={isActive(path) ? "page" : undefined}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200",
-                    isActive(path)
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {label}
-                </Link>
-              ))}
-
-              {user && isAdmin && (
-                <Link
-                  to="/admin"
-                  aria-current={pathname === "/admin" ? "page" : undefined}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200",
-                    pathname === "/admin"
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Admin
-                </Link>
-              )}
-
-              {user && (role === "coach" || isAdmin) && (
-                <Link
-                  to="/coach-dashboard"
-                  aria-current={pathname === "/coach-dashboard" ? "page" : undefined}
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-200",
-                    pathname === "/coach-dashboard"
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Dashboard
-                </Link>
-              )}
-            </nav>
-
-            {/* CENTER-RIGHT — Global Search */}
-            <div className="hidden md:block w-full max-w-[260px] lg:max-w-[320px] mx-3">
-              <CoachSearchAutocomplete
-                placeholder="Search coaches..."
-                compact
-                onSearchSubmit={(q) => navigate(`/discover?q=${encodeURIComponent(q)}`)}
-              />
-            </div>
-
-            {/* RIGHT — Actions */}
-            <div className="flex shrink-0 items-center gap-0.5">
-
-              {/* Mobile search toggle */}
-              <button
-                onClick={() => setSearchOpen(!searchOpen)}
-                className="md:hidden h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all duration-200"
-                aria-label="Search"
-              >
-                {searchOpen ? <X className="h-[17px] w-[17px]" strokeWidth={1.8} /> : <Search className="h-[17px] w-[17px]" strokeWidth={1.8} />}
-              </button>
-
-              {user && (
-                <button
-                  onClick={() => setCreateOpen(true)}
-                  className="hidden md:flex h-9 items-center gap-1.5 px-3.5 rounded-full text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all duration-200"
-                  aria-label="Create content"
-                >
-                  <Plus className="h-4 w-4" strokeWidth={2.2} />
-                  <span className="hidden lg:inline">Create</span>
-                </button>
-              )}
-
-              <Link
-                to="/inbox"
-                className="h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all duration-200 relative"
-                aria-label="Inbox"
-              >
-                <MessageSquare className="h-[17px] w-[17px]" strokeWidth={1.8} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1 ring-2 ring-background">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </Link>
-
-              {/* User avatar dropdown (desktop) */}
-              {user ? (
-                <Popover open={userMenuOpen} onOpenChange={setUserMenuOpen}>
-                  <PopoverTrigger asChild>
-                    <button aria-label="User menu" className="hidden md:flex items-center gap-1.5 ml-1 h-9 pl-1 pr-2 rounded-full hover:bg-foreground/5 transition-all duration-200">
-                      <CoachAvatar src={profile?.avatar_url} name={profile?.username} size="xs" className="ring-[1.5px] ring-border/50" />
-                      <ChevronDown className="h-3 w-3 text-muted-foreground/60" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56 p-1.5 rounded-2xl border-border/20 shadow-xl" align="end" sideOffset={8}>
-                    <div className="px-3 py-2.5 border-b border-border/20 mb-1">
-                      <p className="text-sm font-semibold text-foreground truncate">{profile?.username || "User"}</p>
-                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">{user.email}</p>
-                    </div>
-                    <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-foreground hover:bg-foreground/5 transition-colors">
-                      <User className="h-4 w-4 text-muted-foreground/60" /> Profile
-                    </Link>
-                    <Link to="/schedule" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-foreground hover:bg-foreground/5 transition-colors">
-                      <CalendarDays className="h-4 w-4 text-muted-foreground/60" /> My Schedule
-                    </Link>
-                    <Link to="/saved" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-foreground hover:bg-foreground/5 transition-colors">
-                      <Bookmark className="h-4 w-4 text-muted-foreground/60" /> Saved
-                    </Link>
+                {/* LEFT — sidebar toggle + logo + back */}
+                <div className="flex shrink-0 items-center gap-2">
+                  {/* Mobile hamburger */}
+                  {!showBack && (
                     <button
-                      onClick={() => { setInviteOpen(true); setUserMenuOpen(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-foreground hover:bg-foreground/5 transition-colors"
+                      onClick={() => setSidebarOpen(true)}
+                      className="md:hidden h-8 w-8 -ml-1 rounded-full flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 active:scale-90 transition-all"
+                      aria-label={t("nav.openMenu")}
                     >
-                      <UserPlus className="h-4 w-4 text-muted-foreground/60" /> Invite a Coach
+                      <Menu className="h-[18px] w-[18px]" strokeWidth={2} />
                     </button>
-                    <div className="border-t border-border/20 mt-1 pt-1 px-3 py-2">
-                      <p className="text-[11px] font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
-                        <Palette className="h-3.5 w-3.5" /> Appearance
-                      </p>
-                      <ThemeSwitcher layout="grid" />
-                    </div>
-                    <div className="border-t border-border/20 mt-1 pt-1">
-                      <button
-                        onClick={() => { signOut(); setUserMenuOpen(false); }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-destructive hover:bg-destructive/5 transition-colors"
-                      >
-                        <LogOut className="h-4 w-4" /> Sign Out
-                      </button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              ) : (
-                <div className="hidden md:flex items-center gap-2 ml-2">
-                  <Link to="/login" className="flex items-center h-8 px-4 rounded-full text-[13px] font-medium text-muted-foreground hover:text-foreground transition-all duration-200">
-                    Log In
+                  )}
+                  {/* Desktop: sidebar collapse toggle */}
+                  <button
+                    onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                    className="hidden md:flex h-8 w-8 -ml-1 rounded-full items-center justify-center text-foreground/60 hover:text-foreground hover:bg-foreground/5 active:scale-90 transition-all"
+                    aria-label={t("nav.toggleSidebar")}
+                  >
+                    <Menu className="h-[18px] w-[18px]" strokeWidth={2} />
+                  </button>
+                  {showBack && (
+                    <button
+                      onClick={handleBack}
+                      className="h-8 w-8 -ml-1 rounded-full flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 active:scale-90 transition-all"
+                      aria-label={t("common.back")}
+                    >
+                      <ArrowLeft className="h-[18px] w-[18px]" strokeWidth={2} />
+                    </button>
+                  )}
+                  <Link to="/home" className="flex shrink-0 items-center gap-2 group min-w-0">
+                    <CircloLogo variant="icon" size="md" theme="light" className="md:hidden transition-transform duration-200 group-hover:scale-[1.03] group-active:scale-95" />
+                    <CircloLogo variant="full" size="md" theme="light" className="hidden md:block transition-transform duration-200 group-hover:scale-[1.03] group-active:scale-95" />
                   </Link>
-                  <Link to="/signup" className="flex items-center h-8 px-5 rounded-full bg-foreground text-background text-[13px] font-semibold hover:opacity-90 active:scale-95 transition-all duration-200">
-                    Sign Up
-                  </Link>
+                  <div className="hidden md:block">
+                    <DevModeToggle />
+                  </div>
                 </div>
-              )}
 
-              {/* Mobile-only: create + invite buttons */}
-              {user && (
-                <button
-                  onClick={() => setInviteOpen(true)}
-                  className="md:hidden h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
-                  aria-label="Invite"
-                >
-                  <UserPlus className="h-[17px] w-[17px]" strokeWidth={1.8} />
-                </button>
-              )}
-              {user && (
-                <button
-                  onClick={() => setCreateOpen(true)}
-                  className="md:hidden h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
-                  aria-label="Create content"
-                >
-                  <Plus className="h-[17px] w-[17px]" strokeWidth={2.2} />
-                </button>
-              )}
-            </div>
-          </div>
-        </header>
+                {/* CENTER — Search (desktop only) */}
+                <div className="hidden md:flex flex-1 max-w-sm mx-4">
+                  <CoachSearchAutocomplete
+                    placeholder={t("nav.searchCoachesPlaceholder")}
+                    compact
+                    onSearchSubmit={(q) => navigate(`/discover?q=${encodeURIComponent(q)}`)}
+                  />
+                </div>
+
+                {/* RIGHT — actions */}
+                <div className="flex shrink-0 items-center gap-1">
+                  {/* Mobile search toggle */}
+                  <button
+                    onClick={() => setSearchOpen(!searchOpen)}
+                    className="md:hidden h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all"
+                    aria-label={t("common.search")}
+                  >
+                    {searchOpen ? <X className="h-[17px] w-[17px]" strokeWidth={1.8} /> : <Search className="h-[17px] w-[17px]" strokeWidth={1.8} />}
+                  </button>
+
+                  {/* Language switcher */}
+                  <LanguageSwitcher />
+
+                  {/* Collapse top bar (desktop) */}
+                  <button
+                    onClick={() => setTopBarCollapsed(true)}
+                    className="hidden md:flex h-8 w-8 rounded-full items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-foreground/5 transition-all"
+                    aria-label={t("nav.collapseTopBar")}
+                    title={t("nav.collapseTopBar")}
+                  >
+                    <ChevronDown className="h-4 w-4" strokeWidth={1.8} />
+                  </button>
+
+                  {user && (
+                    <button
+                      onClick={() => setCreateOpen(true)}
+                      className="hidden md:flex h-8 items-center gap-1.5 px-3 rounded-full text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all"
+                    >
+                      <Plus className="h-4 w-4" strokeWidth={2.2} />
+                      <span className="hidden lg:inline text-sm">{t("nav.create")}</span>
+                    </button>
+                  )}
+
+                  {/* Inbox — logged-in users only. Guests see no messaging affordance. */}
+                  {user && (
+                    <Link
+                      to="/inbox"
+                      className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all relative"
+                      aria-label={t("nav.inbox")}
+                    >
+                      <MessageSquare className="h-[17px] w-[17px]" strokeWidth={1.8} />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold px-1 ring-2 ring-background">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+
+                  {/* User avatar dropdown */}
+                  {user ? (
+                    <Popover open={userMenuOpen} onOpenChange={setUserMenuOpen}>
+                      <PopoverTrigger asChild>
+                        <button aria-label={t("nav.userMenu")} className="flex items-center gap-1.5 ml-0.5 h-8 pl-1 pr-1.5 rounded-full hover:bg-foreground/5 transition-all">
+                          <CoachAvatar src={profile?.avatar_url} name={profile?.username} size="xs" className="ring-[1.5px] ring-border/50" />
+                          <ChevronDown className="h-3 w-3 text-muted-foreground/60 hidden md:block" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-1.5 rounded-2xl border-border/20 shadow-xl" align="end" sideOffset={8}>
+                        <div className="px-3 py-2.5 border-b border-border/20 mb-1">
+                          <p className="text-sm font-semibold text-foreground truncate">{profile?.username || t("common.user")}</p>
+                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">{user.email}</p>
+                        </div>
+                        <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-foreground hover:bg-foreground/5 transition-colors">
+                          <User className="h-4 w-4 text-muted-foreground/60" /> {t("nav.profile")}
+                        </Link>
+                        <Link to="/schedule" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-foreground hover:bg-foreground/5 transition-colors">
+                          <CalendarDays className="h-4 w-4 text-muted-foreground/60" /> {t("nav.mySchedule")}
+                        </Link>
+                        <Link to="/saved" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-foreground hover:bg-foreground/5 transition-colors">
+                          <Bookmark className="h-4 w-4 text-muted-foreground/60" /> {t("nav.saved")}
+                        </Link>
+                        <button
+                          onClick={() => { setInviteOpen(true); setUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-foreground hover:bg-foreground/5 transition-colors"
+                        >
+                          <UserPlus className="h-4 w-4 text-muted-foreground/60" /> {t("nav.inviteCoach")}
+                        </button>
+                        <div className="border-t border-border/20 mt-1 pt-1 px-3 py-2">
+                          <p className="text-[11px] font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+                            <Palette className="h-3.5 w-3.5" /> {t("nav.appearance")}
+                          </p>
+                          <ThemeSwitcher layout="grid" />
+                        </div>
+                        <div className="border-t border-border/20 mt-1 pt-1">
+                          <button
+                            onClick={() => { signOut(); setUserMenuOpen(false); }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] text-destructive hover:bg-destructive/5 transition-colors"
+                          >
+                            <LogOut className="h-4 w-4" /> {t("nav.signOut")}
+                          </button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <>
+                      {/* Desktop: full log-in + sign-up buttons */}
+                      <div className="hidden md:flex items-center gap-2 ml-1">
+                        <Link to="/login" className="flex items-center h-8 px-3 rounded-full text-[13px] font-medium text-muted-foreground hover:text-foreground transition-all">
+                          {t("nav.logIn")}
+                        </Link>
+                        <Link to="/signup" className="flex items-center h-8 px-4 rounded-full bg-brand-gradient text-white text-[13px] font-semibold hover:brightness-110 active:scale-95 transition-all shadow-sm shadow-primary/20">
+                          {t("nav.signUp")}
+                        </Link>
+                      </div>
+                      {/* Mobile: compact gradient "Log in" pill — the only nav affordance a guest sees */}
+                      <Link
+                        to="/login"
+                        className="md:hidden flex items-center h-8 px-3 rounded-full bg-brand-gradient text-white text-[12px] font-semibold shadow-sm shadow-primary/20 active:scale-95 transition-all ml-1"
+                        aria-label={t("nav.logIn")}
+                      >
+                        {t("nav.logIn")}
+                      </Link>
+                    </>
+                  )}
+
+                  {/* Create/Invite are reachable from the user menu on mobile — kept off the top bar to save space. */}
+                  {user && (
+                    <button onClick={() => setInviteOpen(true)} className="hidden h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-all" aria-label={t("nav.inviteCoach")}>
+                      <UserPlus className="h-[17px] w-[17px]" strokeWidth={1.8} />
+                    </button>
+                  )}
+                  {user && (
+                    <button onClick={() => setCreateOpen(true)} className="hidden h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-all" aria-label={t("nav.create")}>
+                      <Plus className="h-[17px] w-[17px]" strokeWidth={2.2} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.header>
+          )}
+        </AnimatePresence>
+      )}
+
+      {/* Collapsed top bar restore button (desktop only) */}
+      {!hideChrome && !isImmersive && !isChat && topBarCollapsed && (
+        <button
+          onClick={() => setTopBarCollapsed(false)}
+          className="hidden md:flex fixed top-2 left-1/2 -translate-x-1/2 z-50 items-center gap-1.5 h-7 px-3 rounded-full bg-card/90 backdrop-blur border border-border/30 shadow-sm text-[12px] text-muted-foreground hover:text-foreground transition-all"
+        >
+          <ChevronDown className="h-3.5 w-3.5 rotate-180" strokeWidth={1.8} />
+          {t("nav.showBar")}
+        </button>
       )}
 
       {/* Mobile search dropdown */}
@@ -382,11 +398,11 @@ const AppShell = () => {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden sticky top-[60px] z-40 bg-card/95 backdrop-blur-xl border-b border-border/15 overflow-hidden"
+            className="md:hidden sticky top-16 z-40 bg-card/95 backdrop-blur-xl border-b border-border/15 overflow-hidden"
           >
             <div className="px-4 py-3">
               <CoachSearchAutocomplete
-                placeholder="Search coaches, sports..."
+                placeholder={t("nav.searchCoachesSportsPlaceholder")}
                 compact
                 onSearchSubmit={(q) => {
                   navigate(`/discover?q=${encodeURIComponent(q)}`);
@@ -402,19 +418,44 @@ const AppShell = () => {
         )}
       </AnimatePresence>
 
+      {/* Push notification permission banner — full-width, above sidebar+content */}
+      {user && pushSupported && pushPermission === "default" && !notifBannerDismissed && (
+        <div className="w-full bg-primary/10 border-b border-primary/20 px-4 py-2 flex items-center justify-between gap-3 text-sm shrink-0">
+          <div className="flex items-center gap-2 text-foreground/80">
+            <Bell className="h-4 w-4 text-primary shrink-0" />
+            <span>{t("nav.notifBanner")}</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleEnableNotifications}
+              className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors active:scale-95"
+            >
+              {t("nav.enable")}
+            </button>
+            <button
+              onClick={handleDismissBanner}
+              className="h-6 w-6 flex items-center justify-center rounded-full text-foreground/50 hover:text-foreground hover:bg-foreground/10 transition-colors"
+              aria-label={t("nav.dismiss")}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Desktop sidebar + Main content */}
-      <div className="flex flex-1 w-full min-w-0 overflow-hidden">
+      <div className="flex flex-1 w-full min-w-0 overflow-hidden h-0">
         {/* ═══ DESKTOP SIDEBAR (md+) ═══ */}
         {!hideChrome && !isImmersive && !isChat && (
           <motion.aside
-            animate={{ width: sidebarCollapsed ? 64 : 240 }}
+            animate={{ width: sidebarCollapsed ? 64 : 260 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="hidden md:flex flex-col flex-shrink-0 bg-card/50 border-r border-border/15 overflow-hidden h-[calc(100vh-60px)] sticky top-[60px]"
+            className="hidden md:flex flex-col flex-shrink-0 bg-card border-r border-border/30 overflow-hidden h-full"
           >
             {/* User info */}
             {user && (
               <div className={cn("flex items-center gap-3 px-3 py-4 border-b border-border/15", sidebarCollapsed && "justify-center")}>
-                <CoachAvatar src={profile?.avatar_url} name={profile?.username} size="sm" className="ring-[1.5px] ring-border/50 shrink-0" />
+                <CoachAvatar src={profile?.avatar_url} name={profile?.username} size="sm" className="ring-2 ring-primary/20 shrink-0" />
                 <AnimatePresence>
                   {!sidebarCollapsed && (
                     <motion.div
@@ -424,7 +465,7 @@ const AppShell = () => {
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <p className="text-sm font-semibold text-foreground truncate">{profile?.username || "User"}</p>
+                      <p className="text-sm font-semibold text-foreground truncate mb-1">{profile?.username || t("common.user")}</p>
                       <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
                     </motion.div>
                   )}
@@ -432,9 +473,33 @@ const AppShell = () => {
               </div>
             )}
 
-            {/* Nav items */}
-            <nav aria-label="Sidebar navigation" className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
-              {sidebarItems.map(({ path, label, icon: Icon }) => {
+            {/* Nav items — logged-in users only. Guests see a single Log in / Sign up CTA. */}
+            <nav aria-label={t("nav.openMenu")} className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto">
+              {!user ? (
+                <div className={cn("flex flex-col gap-2", sidebarCollapsed ? "items-center px-0" : "px-1 pt-2")}>
+                  <Link
+                    to="/login"
+                    title={sidebarCollapsed ? t("nav.logIn") : undefined}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl bg-brand-gradient text-white text-sm font-semibold shadow-sm shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all",
+                      sidebarCollapsed ? "h-10 w-10 justify-center p-0" : "px-3 py-3"
+                    )}
+                  >
+                    <User className="h-5 w-5 shrink-0" strokeWidth={2} />
+                    {!sidebarCollapsed && <span className="truncate">{t("nav.logIn")}</span>}
+                  </Link>
+                  {!sidebarCollapsed && (
+                    <Link
+                      to="/signup"
+                      className="flex items-center gap-3 rounded-xl border border-border/40 px-3 py-3 text-sm font-medium text-foreground hover:bg-foreground/5 transition-all"
+                    >
+                      <UserPlus className="h-5 w-5 shrink-0 text-primary" strokeWidth={1.8} />
+                      <span className="truncate">{t("nav.signUp")}</span>
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                sidebarItems.map(({ path, label, icon: Icon }) => {
                 const active = isActive(path);
                 return (
                   <Link
@@ -442,10 +507,10 @@ const AppShell = () => {
                     to={path}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 group",
+                      "relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
                       active
-                        ? "bg-gradient-to-r from-[#00D4AA]/15 to-[#00D4AA]/5 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-foreground/5",
+                        ? "bg-primary/10 text-primary font-semibold shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary",
                       sidebarCollapsed && "justify-center px-0"
                     )}
                     title={sidebarCollapsed ? label : undefined}
@@ -467,28 +532,29 @@ const AppShell = () => {
                     {active && <div className="absolute left-0 w-[3px] h-5 rounded-r-full bg-primary" />}
                   </Link>
                 );
-              })}
+              })
+              )}
 
               {/* Role-specific items */}
               {user && (role === "coach" || isAdmin) && (
                 <Link
                   to="/coach-dashboard"
-                  aria-label="Dashboard"
+                  aria-label={t("nav.dashboard")}
                   aria-current={isActive("/coach-dashboard") ? "page" : undefined}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
+                    "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                     isActive("/coach-dashboard")
-                      ? "bg-gradient-to-r from-[#00D4AA]/15 to-[#00D4AA]/5 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-foreground/5",
+                      ? "bg-primary/10 text-primary font-semibold shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary",
                     sidebarCollapsed && "justify-center px-0"
                   )}
-                  title={sidebarCollapsed ? "Dashboard" : undefined}
+                  title={sidebarCollapsed ? t("nav.dashboard") : undefined}
                 >
                   <LayoutDashboard className="h-5 w-5 shrink-0" strokeWidth={isActive("/coach-dashboard") ? 2.2 : 1.5} />
                   <AnimatePresence>
                     {!sidebarCollapsed && (
                       <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.2 }} className="truncate">
-                        Dashboard
+                        {t("nav.dashboard")}
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -498,48 +564,74 @@ const AppShell = () => {
               {user && isAdmin && (
                 <Link
                   to="/admin"
-                  aria-label="Admin"
+                  aria-label={t("nav.admin")}
                   aria-current={isActive("/admin") ? "page" : undefined}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
+                    "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                     isActive("/admin")
-                      ? "bg-gradient-to-r from-[#00D4AA]/15 to-[#00D4AA]/5 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-foreground/5",
+                      ? "bg-primary/10 text-primary font-semibold shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary",
                     sidebarCollapsed && "justify-center px-0"
                   )}
-                  title={sidebarCollapsed ? "Admin" : undefined}
+                  title={sidebarCollapsed ? t("nav.admin") : undefined}
                 >
                   <Shield className="h-5 w-5 shrink-0" strokeWidth={isActive("/admin") ? 2.2 : 1.5} />
                   <AnimatePresence>
                     {!sidebarCollapsed && (
                       <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.2 }} className="truncate">
-                        Admin
+                        {t("nav.admin")}
                       </motion.span>
                     )}
                   </AnimatePresence>
                 </Link>
               )}
+
             </nav>
 
-            {/* Settings at bottom */}
-            <div className="px-2 py-3 border-t border-border/15">
-              <Link
-                to="/edit-profile"
+            {/* Collapse toggle + Settings (logged-in only) at bottom */}
+            <div className="px-2 py-4 border-t border-border/15 space-y-0.5">
+              {user && (
+                <Link
+                  to="/edit-profile"
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200",
+                    sidebarCollapsed && "justify-center px-0"
+                  )}
+                  title={sidebarCollapsed ? t("nav.settings") : undefined}
+                >
+                  <Settings className="h-5 w-5 shrink-0" strokeWidth={1.5} />
+                  <AnimatePresence>
+                    {!sidebarCollapsed && (
+                      <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.2 }} className="truncate">
+                        {t("nav.settings")}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </Link>
+              )}
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all duration-200",
+                  "flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200",
                   sidebarCollapsed && "justify-center px-0"
                 )}
-                title={sidebarCollapsed ? "Settings" : undefined}
+                title={sidebarCollapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
+                aria-label={sidebarCollapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
               >
-                <Settings className="h-5 w-5 shrink-0" strokeWidth={1.5} />
+                <motion.div
+                  animate={{ rotate: sidebarCollapsed ? 0 : 180 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <ChevronDown className="h-5 w-5 shrink-0 -rotate-90" strokeWidth={1.5} />
+                </motion.div>
                 <AnimatePresence>
                   {!sidebarCollapsed && (
                     <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.2 }} className="truncate">
-                      Settings
+                      {t("nav.collapse")}
                     </motion.span>
                   )}
                 </AnimatePresence>
-              </Link>
+              </button>
             </div>
           </motion.aside>
         )}
@@ -554,20 +646,16 @@ const AppShell = () => {
           )}
           style={{ WebkitOverflowScrolling: 'touch' }}>
 
-          <div
-            key={pathname}
+          <AnimatedOutlet
             className={cn(
-              "animate-page-enter w-full min-w-0",
-              isImmersive ? "h-full max-w-none" : "min-h-full max-w-[1200px] mx-auto px-0 md:px-8 lg:px-12",
+              "min-w-0",
+              isImmersive ? "h-full max-w-none" : "min-h-full w-full px-0 md:px-4 lg:px-6",
             )}
-          >
-            <Outlet />
-          </div>
+          />
+          {/* Footer inside scroll area so it appears at the bottom of content */}
+          {!hideChrome && !isImmersive && !isChat && <Footer />}
         </main>
       </div>
-
-      {/* Footer */}
-      {!hideChrome && !isImmersive && !isChat && <Footer />}
 
       {/* Content Creator + Invite modals */}
       <Suspense fallback={null}>
@@ -575,11 +663,30 @@ const AppShell = () => {
         {inviteOpen && <InviteModal open={inviteOpen} onClose={() => setInviteOpen(false)} />}
       </Suspense>
 
-      {/* ═══ MOBILE BOTTOM TABS (< md) ═══ */}
-      {!hideChrome && !isChat && !isImmersive && (
+      {/* ═══ MOBILE BOTTOM TABS (< md) — guest mode shows a single Log in / Sign up bar ═══ */}
+      {!hideChrome && !isChat && !isImmersive && !user && (
+        <nav role="navigation" aria-label="Authentication" className="app-bottom-nav fixed bottom-0 left-0 right-0 z-[9999] border-t safe-area-bottom glass border-border/20 shadow-nav md:hidden">
+          <div className="flex items-center gap-2 h-[56px] max-w-lg mx-auto px-3">
+            <Link
+              to="/login"
+              className="flex-1 h-10 flex items-center justify-center rounded-full border border-border/40 text-sm font-semibold text-foreground hover:bg-foreground/5 active:scale-[0.98] transition-all"
+            >
+              {t("nav.logIn")}
+            </Link>
+            <Link
+              to="/signup"
+              className="flex-1 h-10 flex items-center justify-center rounded-full bg-brand-gradient text-white text-sm font-semibold shadow-sm shadow-primary/20 active:scale-[0.98] transition-all"
+            >
+              {t("nav.signUp")}
+            </Link>
+          </div>
+        </nav>
+      )}
+      {!hideChrome && !isChat && !isImmersive && user && (
         <nav role="navigation" aria-label="Main navigation" className="app-bottom-nav fixed bottom-0 left-0 right-0 z-[9999] border-t safe-area-bottom glass border-border/20 shadow-nav md:hidden">
           <div className="flex items-center justify-around h-[56px] max-w-lg mx-auto px-1">
-            {tabs.map(({ path, label, icon: Icon, isCenter }) => {
+            {tabs.map(({ path, labelKey, icon: Icon, isCenter }) => {
+              const label = t(labelKey);
               const active = isActive(path);
               if (isCenter) {
                 return (
@@ -592,8 +699,8 @@ const AppShell = () => {
                   >
                     <div className={cn(
                       "h-12 w-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 active:scale-90",
-                      "bg-gradient-to-br from-[#00D4AA] to-[#00B894] shadow-[0_4px_15px_rgba(0,212,170,0.4)]",
-                      active && "shadow-[0_4px_20px_rgba(0,212,170,0.6)] scale-105"
+                      "bg-brand-gradient shadow-[0_4px_15px_hsl(var(--primary)/0.4)]",
+                      active && "shadow-[0_4px_20px_hsl(var(--primary)/0.6)] scale-105"
                     )}>
                       <Icon className="h-5 w-5 text-white fill-current" strokeWidth={2.2} />
                     </div>
@@ -652,7 +759,7 @@ const AppShell = () => {
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="h-8 w-8 rounded-full flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all"
-                  aria-label="Close menu"
+                  aria-label={t("nav.closeMenu")}
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -663,15 +770,35 @@ const AppShell = () => {
                 <div className="flex items-center gap-3 px-4 py-4 border-b border-border/15">
                   <CoachAvatar src={profile?.avatar_url} name={profile?.username} size="sm" className="ring-[1.5px] ring-border/50" />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">{profile?.username || "User"}</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{profile?.username || t("common.user")}</p>
                     <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
                   </div>
                 </div>
               )}
 
-              {/* Nav items */}
-              <nav aria-label="Mobile navigation" className="flex-1 py-3 px-3 space-y-0.5 overflow-y-auto">
-                {sidebarItems.map(({ path, label, icon: Icon }) => {
+              {/* Nav items — logged-in users only. Guests see login/signup CTA. */}
+              <nav aria-label={t("nav.openMenu")} className="flex-1 py-3 px-3 space-y-0.5 overflow-y-auto">
+                {!user && (
+                  <div className="flex flex-col gap-2 pt-2">
+                    <Link
+                      to="/login"
+                      onClick={() => setSidebarOpen(false)}
+                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-full bg-brand-gradient text-white text-sm font-semibold shadow-sm shadow-primary/20 active:scale-[0.98] transition-all"
+                    >
+                      <User className="h-4 w-4" strokeWidth={2.2} />
+                      {t("nav.logIn")}
+                    </Link>
+                    <Link
+                      to="/signup"
+                      onClick={() => setSidebarOpen(false)}
+                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-border/40 text-sm font-semibold text-foreground hover:bg-foreground/5 active:scale-[0.98] transition-all"
+                    >
+                      <UserPlus className="h-4 w-4 text-primary" strokeWidth={2} />
+                      {t("nav.signUp")}
+                    </Link>
+                  </div>
+                )}
+                {user && sidebarItems.map(({ path, label, icon: Icon }) => {
                   const active = isActive(path);
                   return (
                     <Link
@@ -682,7 +809,7 @@ const AppShell = () => {
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200",
                         active
-                          ? "bg-gradient-to-r from-[#00D4AA]/15 to-[#00D4AA]/5 text-primary"
+                          ? "bg-primary/8 text-primary font-semibold"
                           : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
                       )}
                     >
@@ -707,12 +834,12 @@ const AppShell = () => {
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200",
                       isActive("/coach-dashboard")
-                        ? "bg-gradient-to-r from-[#00D4AA]/15 to-[#00D4AA]/5 text-primary"
+                        ? "bg-primary/8 text-primary font-semibold"
                         : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
                     )}
                   >
                     <LayoutDashboard className="h-5 w-5 shrink-0" strokeWidth={1.5} />
-                    <span>Coach Dashboard</span>
+                    <span>{t("nav.coachDashboard")}</span>
                   </Link>
                 )}
 
@@ -724,33 +851,35 @@ const AppShell = () => {
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200",
                       isActive("/admin")
-                        ? "bg-gradient-to-r from-[#00D4AA]/15 to-[#00D4AA]/5 text-primary"
+                        ? "bg-primary/8 text-primary font-semibold"
                         : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
                     )}
                   >
                     <Shield className="h-5 w-5 shrink-0" strokeWidth={1.5} />
-                    <span>Admin</span>
+                    <span>{t("nav.admin")}</span>
                   </Link>
                 )}
               </nav>
 
               {/* Bottom actions */}
               <div className="px-3 py-3 border-t border-border/15 space-y-0.5">
-                <Link
-                  to="/edit-profile"
-                  onClick={() => setSidebarOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all"
-                >
-                  <Settings className="h-5 w-5 shrink-0" strokeWidth={1.5} />
-                  <span>Settings</span>
-                </Link>
+                {user && (
+                  <Link
+                    to="/edit-profile"
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all"
+                  >
+                    <Settings className="h-5 w-5 shrink-0" strokeWidth={1.5} />
+                    <span>{t("nav.settings")}</span>
+                  </Link>
+                )}
                 {user && (
                   <button
                     onClick={() => { signOut(); setSidebarOpen(false); }}
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-destructive hover:bg-destructive/5 transition-all"
                   >
                     <LogOut className="h-5 w-5 shrink-0" strokeWidth={1.5} />
-                    <span>Sign Out</span>
+                    <span>{t("nav.signOut")}</span>
                   </button>
                 )}
               </div>
@@ -759,64 +888,18 @@ const AppShell = () => {
         )}
       </AnimatePresence>
 
-      {/* Dev Menu — appears after 5 logo taps */}
-      {showDevMenu && (
-        <div
-          className="fixed inset-0 z-[99999] flex items-center justify-center px-6"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
-          onClick={() => setShowDevMenu(false)}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl overflow-hidden"
-            style={{ background: "#1A1A2E", border: "1px solid rgba(255,255,255,0.1)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 pt-6 pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
-                  style={{ background: "linear-gradient(135deg, #00D4AA22, #FF6B2C22)", border: "1px solid rgba(0,212,170,0.3)" }}>
-                  🔐
-                </div>
-                <div>
-                  <h3 className="text-white font-bold text-sm">Developer Access</h3>
-                  <p className="text-xs" style={{ color: "#8B9CB8" }}>Choose your destination</p>
-                </div>
-              </div>
-            </div>
-            <div className="p-4 space-y-3">
-              <button
-                onClick={() => { setShowDevMenu(false); showGate(); }}
-                className="w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all hover:scale-[1.01] active:scale-[0.98]"
-                style={{ background: "rgba(255,107,44,0.1)", border: "1px solid rgba(255,107,44,0.2)" }}
-              >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0" style={{ background: "rgba(255,107,44,0.15)" }}>⚡</div>
-                <div>
-                  <div className="text-white font-semibold text-sm">Dev Mode</div>
-                  <div className="text-xs mt-0.5" style={{ color: "#8B9CB8" }}>Enter code to unlock developer access</div>
-                </div>
-                <div className="ml-auto text-white/30 text-lg">›</div>
-              </button>
-              <button
-                onClick={() => { setShowDevMenu(false); window.open(DASHBOARD_URL, "_blank"); }}
-                className="w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all hover:scale-[1.01] active:scale-[0.98]"
-                style={{ background: "rgba(0,212,170,0.1)", border: "1px solid rgba(0,212,170,0.2)" }}
-              >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0" style={{ background: "rgba(0,212,170,0.15)" }}>🦾</div>
-                <div>
-                  <div className="text-white font-semibold text-sm">Agent Dashboard</div>
-                  <div className="text-xs mt-0.5" style={{ color: "#8B9CB8" }}>Open Circlo Hub — manage agents & tasks</div>
-                </div>
-                <div className="ml-auto text-white/30 text-lg">›</div>
-              </button>
-            </div>
-            <div className="px-4 pb-4">
-              <button onClick={() => setShowDevMenu(false)} className="w-full py-2.5 rounded-xl text-sm transition-colors" style={{ color: "#8B9CB8", background: "rgba(255,255,255,0.05)" }}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* PWA Install Prompt */}
+      <Suspense fallback={null}>
+        <PWAInstallPrompt />
+      </Suspense>
+
+      {/* Guest auth gate — opens when a logged-out user taps a coach card,
+          Book, Message, etc. Mounted at shell level so it floats above the
+          bottom tab bar. */}
+      <Suspense fallback={null}>
+        <GuestAuthSheet />
+      </Suspense>
+
     </div>
   );
 };
