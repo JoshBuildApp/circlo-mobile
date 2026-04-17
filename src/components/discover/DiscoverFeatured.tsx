@@ -106,7 +106,7 @@ export function DiscoverFeatured({ videos, topCoaches }: DiscoverFeaturedProps) 
 
           {/* Top-left badges */}
           <div className="absolute top-4 md:top-6 left-4 md:left-7 flex items-center gap-2">
-            <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-primary text-[10px] uppercase tracking-[0.16em] font-bold text-primary-foreground shadow-[0_4px_14px_rgba(255,107,44,0.4)]">
+            <span className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-kinetic text-[10px] uppercase tracking-[0.16em] font-bold text-white shadow-[0_4px_14px_rgba(0,212,170,0.35)]">
               <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
               Featured
             </span>
