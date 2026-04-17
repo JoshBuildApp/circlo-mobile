@@ -2,58 +2,49 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Award,
   Bell,
   Bookmark,
   Calendar,
   Camera,
   CheckCircle2,
   ChevronRight,
-  Dumbbell,
   Edit3,
   Eye,
   Flame,
   Heart,
-  Image as ImageIcon,
   LayoutGrid,
   LogOut,
   MapPin,
   MessageSquare,
-  Play,
   Plus,
+  Rocket,
   Search,
   Share2,
+  Shield,
   Sparkles,
   Star,
   TrendingUp,
   Trophy,
   User,
-  UserPlus,
   Users,
   Video,
   Zap,
-  Shield,
-  CalendarDays,
+  Bolt,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PageSection, SECTION_OPTIONS, usePageSections } from "@/hooks/use-page-sections";
 import { useFollowerCount } from "@/hooks/use-follower-counts";
-import { useBookingRequests, BookingRequest } from "@/hooks/use-booking-requests";
+import { useBookingRequests } from "@/hooks/use-booking-requests";
 import { useSavedItems } from "@/hooks/use-saved-items";
 import { useTraineeProgress } from "@/hooks/use-trainee-progress";
 import FollowersModal from "@/components/FollowersModal";
 import TraineeProgressCard from "@/components/TraineeProgressCard";
-import TraineeProgressDashboard from "@/components/TraineeProgressDashboard";
-import CoachCommunity from "@/components/CoachCommunity";
 import PageLab from "@/components/PageLab";
 import ShareSheet from "@/components/ShareSheet";
-import ProfileStatsAndAchievements from "@/components/profile/ProfileStatsAndAchievements";
-import { cn } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════
    TYPES
@@ -86,13 +77,6 @@ interface CoachContent {
   views: number | null;
 }
 
-interface Review {
-  id: string;
-  rating: number;
-  comment: string | null;
-  user_name: string | null;
-}
-
 interface FollowedCoach {
   id: string;
   coach_name: string;
@@ -102,56 +86,6 @@ interface FollowedCoach {
   rating: number | null;
   is_verified: boolean;
 }
-
-interface SessionHistoryItem {
-  id: string;
-  coach_name: string;
-  date: string;
-  time_label: string;
-  training_type: string;
-  status: string;
-  price: number;
-}
-
-interface UserChallenge {
-  id: string;
-  progress: number;
-  created_at: string;
-  challenge: {
-    id: string;
-    title: string;
-    description: string | null;
-    duration_days: number;
-  };
-}
-
-/* ═══════════════════════════════════════════════════════
-   SPORT ICONS & COLORS
-   ═══════════════════════════════════════════════════════ */
-const SPORT_COLORS: Record<string, string> = {
-  padel: "#00D4AA", tennis: "#22C55E", boxing: "#EF4444", yoga: "#A855F7",
-  fitness: "#FF6B2C", soccer: "#3B82F6", basketball: "#F97316", swimming: "#06B6D4",
-  running: "#EAB308", mma: "#DC2626", crossfit: "#F59E0B", "martial arts": "#991B1B",
-};
-
-/* ═══════════════════════════════════════════════════════
-   ANIMATION PRESETS
-   ═══════════════════════════════════════════════════════ */
-const fadeUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -10 },
-  transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
-};
-
-const stagger = {
-  animate: { transition: { staggerChildren: 0.06 } },
-};
-
-const cardVariant = {
-  initial: { opacity: 0, y: 16, scale: 0.97 },
-  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
-};
 
 /* ═══════════════════════════════════════════════════════
    HELPERS
@@ -166,85 +100,35 @@ const fmt = (n: number) =>
 const sectionLabel = (type: string) =>
   SECTION_OPTIONS.find((o) => o.type === type)?.label || type;
 
-/* ═══════════════════════════════════════════════════════
-   PLAYER TAB TYPE
-   ═══════════════════════════════════════════════════════ */
-type PlayerTab = "activity" | "bookings" | "saved" | "following";
-
-const PLAYER_TABS: { key: PlayerTab; label: string; icon: React.ElementType }[] = [
-  { key: "activity", label: "Activity", icon: Zap },
-  { key: "bookings", label: "Bookings", icon: Calendar },
-  { key: "saved", label: "Saved", icon: Bookmark },
-  { key: "following", label: "Following", icon: Heart },
-];
-
-/* ═══════════════════════════════════════════════════════
-   HIGHLIGHT CIRCLE (Instagram stories style)
-   ═══════════════════════════════════════════════════════ */
-const HighlightCircle = ({ label, icon: Icon, color, delay }: { label: string; icon: React.ElementType; color: string; delay: number }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.7 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.4, delay }}
-    className="flex flex-col items-center gap-1.5 flex-shrink-0"
-  >
-    <div
-      className="h-16 w-16 rounded-full flex items-center justify-center ring-2 ring-offset-2 ring-offset-background"
-      style={{ backgroundColor: color + "20", borderColor: color }}
-    >
-      <Icon className="h-6 w-6" style={{ color }} />
-    </div>
-    <span className="text-[10px] text-muted-foreground font-medium text-center max-w-[64px] line-clamp-1">{label}</span>
-  </motion.div>
-);
-
-/* ═══════════════════════════════════════════════════════
-   STAT PILL
-   ═══════════════════════════════════════════════════════ */
-const StatPill = ({ value, label, icon: Icon, onClick, className: extraClass }: { value: string; label: string; icon?: React.ElementType; onClick?: () => void; className?: string }) => {
-  const Comp = onClick ? "button" : "div";
-  return (
-    <Comp onClick={onClick} className={cn("flex-1 text-center py-3.5 hover:bg-white/5 transition-colors first:rounded-l-2xl last:rounded-r-2xl", extraClass)}>
-      {Icon && <Icon className="h-3.5 w-3.5 text-primary mx-auto mb-1" />}
-      <p className="font-heading text-lg font-bold text-foreground leading-none">{value}</p>
-      <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">{label}</p>
-    </Comp>
-  );
+const fadeUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+  transition: { duration: 0.35 },
 };
 
 /* ═══════════════════════════════════════════════════════
-   SECTION CARD
+   PLAYER TAB
    ═══════════════════════════════════════════════════════ */
-const SectionCard = React.forwardRef<
-  HTMLElement,
-  { icon: React.ElementType; title: string; count?: number; children: React.ReactNode }
->(({ icon: Icon, title, count, children }, ref) => (
-  <section ref={ref} className="rounded-2xl border border-border/10 bg-card p-4 shadow-sm">
-    <div className="mb-3 flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-primary" />
-        <h2 className="font-heading text-sm font-bold text-foreground">{title}</h2>
-      </div>
-      {count !== undefined && (
-        <Badge className="rounded-full bg-secondary text-foreground border-0 text-xs">{count}</Badge>
-      )}
-    </div>
-    {children}
-  </section>
-));
-SectionCard.displayName = "SectionCard";
+type PlayerTab = "activity" | "bookings" | "saved" | "following";
+
+const PLAYER_TABS: { key: PlayerTab; label: string }[] = [
+  { key: "activity", label: "Activity" },
+  { key: "bookings", label: "Bookings" },
+  { key: "saved", label: "Saved" },
+  { key: "following", label: "Following" },
+];
 
 /* ═══════════════════════════════════════════════════════
    MAIN
    ═══════════════════════════════════════════════════════ */
 const UserProfile = () => {
   const navigate = useNavigate();
-  const { user, profile, loading, signOut, role, isDeveloper, activeRole, refreshProfile } = useAuth();
+  const { user, profile, loading, signOut, isDeveloper, activeRole, refreshProfile } = useAuth();
   const [coachProfile, setCoachProfile] = useState<CoachProfileData | null>(null);
   const [coachLoading, setCoachLoading] = useState(true);
   const [pageLabOpen, setPageLabOpen] = useState(false);
   const [content, setContent] = useState<CoachContent[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [followersModalOpen, setFollowersModalOpen] = useState(false);
   const [followersModalTab, setFollowersModalTab] = useState<"followers" | "following">("followers");
   const [shareOpen, setShareOpen] = useState(false);
@@ -255,15 +139,10 @@ const UserProfile = () => {
   const [followedCoaches, setFollowedCoaches] = useState<FollowedCoach[]>([]);
   const [followedLoading, setFollowedLoading] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
-  const [sessionHistory, setSessionHistory] = useState<SessionHistoryItem[]>([]);
-  const [sessionHistoryLoading, setSessionHistoryLoading] = useState(true);
-  const [userChallenges, setUserChallenges] = useState<UserChallenge[]>([]);
-  const [challengesLoading, setChallengesLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const isCoach = !!coachProfile;
 
-  // Hooks for player tabs
   const { requests: bookings, loading: bookingsLoading } = useBookingRequests();
   const { savedItems: savedItemsList } = useSavedItems();
   const savedItems = savedItemsList || [];
@@ -283,7 +162,6 @@ const UserProfile = () => {
 
   useEffect(() => { loadCoachProfile(); }, [loadCoachProfile]);
 
-  // Load bio for player view
   useEffect(() => {
     if (!user || bioLoaded) return;
     supabase.from("profiles").select("bio").eq("user_id", user.id).maybeSingle().then(({ data }) => {
@@ -292,7 +170,6 @@ const UserProfile = () => {
     });
   }, [user, bioLoaded]);
 
-  // Load followed coaches for player view
   useEffect(() => {
     if (!user) return;
     const loadFollowed = async () => {
@@ -318,61 +195,6 @@ const UserProfile = () => {
     loadFollowed();
   }, [user]);
 
-  // Load session history (completed/cancelled bookings)
-  useEffect(() => {
-    if (!user) { setSessionHistoryLoading(false); return; }
-    const loadHistory = async () => {
-      setSessionHistoryLoading(true);
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("id, coach_name, date, time_label, training_type, status, price")
-        .eq("user_id", user.id)
-        .in("status", ["completed", "cancelled"])
-        .order("date", { ascending: false })
-        .limit(20);
-      if (!error) setSessionHistory((data as SessionHistoryItem[]) || []);
-      setSessionHistoryLoading(false);
-    };
-    loadHistory();
-  }, [user]);
-
-  // Load user's challenge participations
-  useEffect(() => {
-    if (!user) { setChallengesLoading(false); return; }
-    const loadChallenges = async () => {
-      setChallengesLoading(true);
-      const { data, error } = await supabase
-        .from("challenge_participants")
-        .select("id, progress, created_at, challenge_id")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (error || !data || data.length === 0) {
-        setUserChallenges([]);
-        setChallengesLoading(false);
-        return;
-      }
-      const challengeIds = [...new Set(data.map((d: any) => d.challenge_id))];
-      const { data: challenges } = await supabase
-        .from("challenges")
-        .select("id, title, description, duration_days")
-        .in("id", challengeIds);
-      const challengeMap = new Map((challenges || []).map((c: any) => [c.id, c]));
-      setUserChallenges(
-        data
-          .map((d: any) => ({
-            id: d.id,
-            progress: d.progress,
-            created_at: d.created_at,
-            challenge: challengeMap.get(d.challenge_id),
-          }))
-          .filter((d: any) => d.challenge) as UserChallenge[]
-      );
-      setChallengesLoading(false);
-    };
-    loadChallenges();
-  }, [user]);
-
-  // Re-fetch on profile update
   useEffect(() => {
     const handler = () => { loadCoachProfile(); setBioLoaded(false); };
     window.addEventListener("profile-updated", handler);
@@ -385,69 +207,29 @@ const UserProfile = () => {
   const { sections, loading: sectionsLoading, hasCustomLayout, loadSections } = usePageSections(coachProfile?.id);
 
   useEffect(() => {
-    if (!coachProfile?.id) { setContent([]); setReviews([]); return; }
+    if (!coachProfile?.id) { setContent([]); return; }
     const load = async () => {
-      const [{ data: videoRows }, { data: reviewRows }] = await Promise.all([
-        supabase.from("coach_videos").select("id, title, description, media_url, thumbnail_url, media_type, likes_count, views, created_at").eq("coach_id", coachProfile.id).order("created_at", { ascending: false }),
-        supabase.from("reviews").select("id, rating, comment, user_name").eq("coach_id", coachProfile.id).order("created_at", { ascending: false }),
-      ]);
+      const { data: videoRows } = await supabase
+        .from("coach_videos")
+        .select("id, title, description, media_url, thumbnail_url, media_type, likes_count, views, created_at")
+        .eq("coach_id", coachProfile.id)
+        .order("created_at", { ascending: false });
       setContent((videoRows as CoachContent[] | null) ?? []);
-      setReviews((reviewRows as Review[] | null) ?? []);
     };
     load();
-    // Refresh content when a new post is created via NewContentCreator
     const onUploaded = () => load();
     window.addEventListener("content-uploaded", onUploaded);
     return () => window.removeEventListener("content-uploaded", onUploaded);
   }, [coachProfile?.id]);
 
-  const clips = useMemo(() => content.filter((i) => i.media_type === "video" || /\.(mp4|mov|webm|m4v|ogv)(\?|$)/i.test(i.media_url)), [content]);
-  const posts = useMemo(() => content.filter((i) => i.media_type !== "video" && !/\.(mp4|mov|webm|m4v|ogv)(\?|$)/i.test(i.media_url)), [content]);
-  const visibleSections = useMemo(() => (hasCustomLayout ? sections.filter((s) => s.is_visible) : []), [hasCustomLayout, sections]);
-
-  const avgRating = useMemo(() => {
-    if (reviews.length === 0) return coachProfile?.rating?.toFixed(1) ?? "5.0";
-    return (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
-  }, [reviews, coachProfile?.rating]);
-
-  // Separate bookings
   const upcomingBookings = useMemo(() => bookings.filter((b) => b.status === "upcoming" || b.status === "confirmed"), [bookings]);
   const pastBookings = useMemo(() => bookings.filter((b) => b.status === "completed" || b.status === "cancelled"), [bookings]);
-
-  // Build player highlights
-  const playerHighlights = useMemo(() => {
-    const items: { label: string; icon: React.ElementType; color: string }[] = [];
-    // Favorite sports from interests
-    if (profile?.interests) {
-      profile.interests.slice(0, 3).forEach((sport: string) => {
-        items.push({ label: sport, icon: Dumbbell, color: SPORT_COLORS[sport.toLowerCase()] || "#00D4AA" });
-      });
-    }
-    // Achievements
-    if (progress && progress.level > 1) {
-      items.push({ label: `Level ${progress.level}`, icon: Trophy, color: "#F59E0B" });
-    }
-    if (progress && progress.streak_days > 0) {
-      items.push({ label: `${progress.streak_days}d Streak`, icon: Flame, color: "#EF4444" });
-    }
-    // Recent activity
-    if (upcomingBookings.length > 0) {
-      items.push({ label: "Upcoming", icon: Calendar, color: "#3B82F6" });
-    }
-    if (followedCoaches.length > 0) {
-      items.push({ label: `${followedCoaches.length} Coaches`, icon: Users, color: "#A855F7" });
-    }
-    return items;
-  }, [profile?.interests, progress, upcomingBookings, followedCoaches]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     setAvatarUploading(true);
     const ext = file.name.split(".").pop();
-    // Path must start with the user's UUID folder — the coach-videos bucket
-    // has RLS requiring `(storage.foldername(name))[1] = auth.uid()::text`
-    // (see 20260414000003_coach_videos_bucket_scope.sql).
     const path = `${user.id}/avatar.${ext}`;
     const { error: uploadError } = await supabase.storage.from("coach-videos").upload(path, file, { upsert: true });
     if (uploadError) { toast.error("Upload failed"); setAvatarUploading(false); return; }
@@ -462,168 +244,19 @@ const UserProfile = () => {
     setAvatarUploading(false);
   };
 
-  /* ─── Section renderer (coach only) ─── */
-  const renderSection = (section: PageSection) => {
-    switch (section.section_type) {
-      case "media":
-        return (
-          <SectionCard icon={Video} title="Media" count={content.length}>
-            {content.length === 0 ? (
-              <div className="text-center py-8">
-                <Video className="h-10 w-10 text-muted-foreground/20 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No content yet</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {clips.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Clips</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {clips.slice(0, 4).map((c) => (
-                        <div key={c.id} className="relative overflow-hidden rounded-2xl bg-secondary group">
-                          <video src={c.media_url} className="aspect-[3/4] w-full object-cover" muted playsInline preload="metadata" />
-                          <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                            <Play className="h-2.5 w-2.5 text-white fill-white ml-[1px]" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {posts.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Posts</p>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {posts.slice(0, 6).map((p) => (
-                        <img key={p.id} src={p.thumbnail_url || p.media_url} alt={p.title} className="aspect-square w-full rounded-xl object-cover" loading="lazy" />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </SectionCard>
-        );
-      case "about":
-        return (
-          <SectionCard icon={Star} title="About">
-            <div className="space-y-3 text-sm text-muted-foreground">
-              {coachProfile?.bio ? <p className="whitespace-pre-wrap leading-relaxed">{coachProfile.bio}</p> : <p className="italic">No bio yet</p>}
-              {coachProfile?.specialties && coachProfile.specialties.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {coachProfile.specialties.map((s: string) => (
-                    <span key={s} className="px-2.5 py-1 rounded-full text-[11px] bg-primary/10 text-primary font-semibold border border-primary/20">{s}</span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </SectionCard>
-        );
-      case "schedule":
-        return (
-          <SectionCard icon={CalendarDays} title="Schedule">
-            <p className="text-sm text-muted-foreground">Your weekly availability is managed from the coach dashboard → Schedule tab.</p>
-          </SectionCard>
-        );
-      case "packages":
-        return null; // Packages render in their own section elsewhere
-      case "store":
-        return null; // Store render in its own section elsewhere
-      case "clips":
-        return (
-          <SectionCard icon={Video} title="Clips" count={clips.length}>
-            {clips.length === 0 ? (
-              <div className="text-center py-8"><Video className="h-10 w-10 text-muted-foreground/20 mx-auto mb-2" /><p className="text-sm text-muted-foreground">No videos yet</p></div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {clips.slice(0, section.layout_size === "half" ? 2 : 4).map((c) => (
-                  <div key={c.id} className="relative overflow-hidden rounded-2xl bg-secondary group">
-                    <video src={c.media_url} className="aspect-[3/4] w-full object-cover" muted playsInline preload="metadata" />
-                    <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                      <Play className="h-2.5 w-2.5 text-white fill-white ml-[1px]" />
-                    </div>
-                    {c.views !== null && c.views > 0 && (
-                      <div className="absolute bottom-2 left-2 flex items-center gap-1 text-[10px] text-white/80"><Eye className="h-3 w-3" />{fmt(c.views)}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </SectionCard>
-        );
-      case "posts":
-        return (
-          <SectionCard icon={ImageIcon} title="Posts" count={posts.length}>
-            {posts.length === 0 ? (
-              <div className="text-center py-8"><ImageIcon className="h-10 w-10 text-muted-foreground/20 mx-auto mb-2" /><p className="text-sm text-muted-foreground">No posts yet</p></div>
-            ) : (
-              <div className="grid grid-cols-3 gap-1.5">
-                {posts.slice(0, section.layout_size === "half" ? 3 : 6).map((p) => (
-                  <img key={p.id} src={p.thumbnail_url || p.media_url} alt={p.title} className="aspect-square w-full rounded-xl object-cover" loading="lazy" />
-                ))}
-              </div>
-            )}
-          </SectionCard>
-        );
-      case "community":
-        return <SectionCard icon={Users} title="Community"><CoachCommunity coachId={coachProfile!.id} coachName={coachProfile!.coach_name} /></SectionCard>;
-      case "reviews":
-        return (
-          <SectionCard icon={Star} title="Reviews" count={reviews.length}>
-            {reviews.length === 0 ? (
-              <div className="text-center py-8"><Star className="h-10 w-10 text-muted-foreground/20 mx-auto mb-2" /><p className="text-sm text-muted-foreground">No reviews yet</p></div>
-            ) : (
-              <div className="space-y-3">
-                {reviews.slice(0, section.layout_size === "half" ? 2 : 3).map((r) => (
-                  <div key={r.id} className="rounded-2xl bg-secondary/40 p-3">
-                    <div className="mb-1 flex items-center justify-between gap-3">
-                      <p className="text-sm font-semibold text-foreground">{r.user_name || "Member"}</p>
-                      <div className="flex items-center gap-0.5">
-                        {Array.from({ length: 5 }).map((_, j) => (
-                          <Star key={j} className={`h-3 w-3 ${j < r.rating ? "text-accent fill-accent" : "text-border"}`} />
-                        ))}
-                      </div>
-                    </div>
-                    {r.comment && <p className="text-sm text-muted-foreground">{r.comment}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </SectionCard>
-        );
-      case "progress":
-        return <SectionCard icon={Trophy} title="Training Progress"><TraineeProgressDashboard userId={user?.id} /></SectionCard>;
-      default:
-        return <SectionCard icon={LayoutGrid} title={sectionLabel(section.section_type)}><p className="text-sm text-muted-foreground">Part of your saved Page Lab layout.</p></SectionCard>;
-    }
-  };
-
   /* ─── Loading ─── */
   if (loading || coachLoading) {
     return (
-      <div className="h-full overflow-y-auto bg-background pb-24">
-        <div className="h-52 bg-white/5 animate-pulse" />
-        <div className="px-5 -mt-16 relative z-10">
-          <div className="flex items-end gap-4">
-            <Skeleton className="h-28 w-28 rounded-full flex-shrink-0" />
-            <div className="flex-1 pb-1 space-y-2">
-              <Skeleton className="h-6 w-36" />
-              <Skeleton className="h-3 w-24" />
-            </div>
-          </div>
+      <div className="min-h-screen bg-background pt-20 pb-24 px-6">
+        <div className="flex flex-col items-center mb-10">
+          <Skeleton className="h-32 w-32 rounded-full mb-6" />
+          <Skeleton className="h-7 w-40 mb-2" />
+          <Skeleton className="h-3 w-24" />
         </div>
-        <div className="px-5 mt-5 space-y-4">
-          <Skeleton className="h-20 w-full rounded-2xl" />
-          <div className="flex gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex flex-col items-center gap-1.5">
-                <Skeleton className="h-16 w-16 rounded-full" />
-                <Skeleton className="h-3 w-12" />
-              </div>
-            ))}
-          </div>
-          <Skeleton className="h-12 w-full rounded-2xl" />
-          <Skeleton className="h-32 w-full rounded-2xl" />
+        <div className="grid grid-cols-2 gap-4 mb-10">
+          <Skeleton className="col-span-2 h-28 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
+          <Skeleton className="h-24 rounded-lg" />
         </div>
       </div>
     );
@@ -634,631 +267,509 @@ const UserProfile = () => {
     return (
       <div className="h-full flex flex-col items-center justify-center gap-4 px-6 bg-background">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-4">
-          <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-            <User className="h-10 w-10 text-primary" />
+          <div className="h-20 w-20 rounded-full bg-[#46f1c5]/10 flex items-center justify-center mx-auto">
+            <User className="h-10 w-10 text-[#46f1c5]" />
           </div>
-          <p className="text-muted-foreground text-sm">Log in to see your profile.</p>
-          <Link to="/login" className="px-8 py-3 rounded-full bg-gradient-to-r from-primary to-[#00B894] text-white font-heading font-bold text-sm inline-block">Log in</Link>
+          <p className="text-white/60 text-sm">Log in to see your profile.</p>
+          <Link to="/login" className="px-8 py-3 rounded-lg bg-gradient-kinetic text-white font-black uppercase tracking-[0.15em] text-xs inline-block">Log in</Link>
         </motion.div>
       </div>
     );
   }
 
-  /* ─── Dev user in admin mode → redirect ─── */
   if (isDeveloper && activeRole === "admin") {
     navigate("/admin", { replace: true });
     return null;
   }
 
   /* ═══════════════════════════════════════════════════════
-     UNIFIED PROFILE
+     DERIVED
      ═══════════════════════════════════════════════════════ */
-  const displayName = isCoach ? coachProfile!.coach_name : profile.username;
+  const displayName = isCoach ? coachProfile!.coach_name : (profile.username || "Athlete");
   const avatarUrl = isCoach ? coachProfile!.image_url : profile.avatar_url;
   const initial = displayName?.charAt(0)?.toUpperCase() ?? "?";
-  const coverUrl = isCoach ? (coachProfile!.cover_media || coachProfile!.image_url) : profile.avatar_url;
   const followersCount = isCoach ? (followerCount > 0 ? followerCount : (coachProfile!.followers ?? 0)) : 0;
-  const sessionsCount = isCoach ? (coachProfile!.total_sessions ?? 0) : 0;
-  const price = isCoach ? (coachProfile!.price ?? 50) : 0;
+  const sessionsCount = isCoach ? (coachProfile!.total_sessions ?? 0) : bookings.length;
 
-  return (
-    <div className="h-full overflow-y-auto bg-background pb-24">
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+  const level = progress?.level ?? 1;
+  const xp = progress?.xp ?? 0;
+  const xpPerLevel = 1200;
+  const xpInLevel = xp % xpPerLevel;
+  const xpProgress = Math.min(100, (xpInLevel / xpPerLevel) * 100);
+  const streakDays = (progress as any)?.streak_days ?? 0;
+  const playerRoleLabel = (profile as any)?.interests?.[0]
+    ? `${(profile as any).interests[0]} athlete`
+    : "Pro trainee";
 
-      {/* ═══════ COVER BANNER — Full-width with gradient overlay ═══════ */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="relative h-52 overflow-hidden"
-      >
-        {coverUrl ? (
-          <img
-            src={isCoach && coachProfile!.cover_media ? coachProfile!.cover_media : coverUrl}
-            alt="Cover"
-            className={cn(
-              "w-full h-full object-cover",
-              !isCoach || !coachProfile!.cover_media ? "blur-2xl scale-125 opacity-60" : ""
-            )}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/30 via-[#0F3460] to-background" />
-        )}
-        {/* Premium gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent" />
-
-        {/* Top right actions */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="absolute top-3 right-4 flex items-center gap-2 z-10"
-        >
-          <button onClick={() => setShareOpen(true)} className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-xl flex items-center justify-center text-white active:scale-95 transition-transform">
-            <Share2 className="h-4 w-4" />
-          </button>
-          <button onClick={signOut} className="h-9 w-9 rounded-full bg-black/30 backdrop-blur-xl flex items-center justify-center text-white active:scale-95 transition-transform">
-            <LogOut className="h-4 w-4" />
-          </button>
-        </motion.div>
-      </motion.div>
-
-      {/* ═══════ PROFILE IDENTITY — Large avatar with sport ring ═══════ */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="px-5 -mt-16 relative z-10"
-      >
-        <div className="flex items-end gap-4">
-          {/* Avatar with sport badges ring */}
-          <button onClick={() => fileRef.current?.click()} className="relative flex-shrink-0 group">
-            <div
-              className={cn(
-                "p-[3px] rounded-full",
-                !isCoach && profile.interests?.length
-                  ? "ring-2 ring-primary/40"
-                  : isCoach ? "ring-2 ring-primary/40" : ""
-              )}
-              style={!isCoach && profile.interests?.length ? {
-                background: `linear-gradient(135deg, ${SPORT_COLORS[profile.interests[0]?.toLowerCase()] || "#00D4AA"}, #00D4AA88)`
-              } : isCoach ? {
-                background: `linear-gradient(135deg, #00D4AA, #00D4AA88)`
-              } : undefined}
-            >
-              <div className="h-28 w-28 rounded-full border-[3px] border-background overflow-hidden bg-secondary">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
-                ) : null}
-                <div className={cn("h-full w-full flex items-center justify-center text-primary font-heading text-3xl font-bold bg-primary/10", avatarUrl ? 'hidden' : '')}>{initial}</div>
-              </div>
-            </div>
-            <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Camera className="h-5 w-5 text-white" />
-            </div>
-            {avatarUploading && (
-              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
-                <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-            {isCoach && coachProfile!.is_verified && (
-              <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5">
-                <div className="rounded-full bg-primary p-1 shadow-lg">
-                  <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
-                </div>
-              </div>
-            )}
-          </button>
-
-          {/* Name + role + bio */}
-          <div className="flex-1 min-w-0 pb-1">
-            <h1 className="font-heading text-2xl font-bold text-foreground truncate leading-tight">{displayName}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              {isCoach ? (
-                <>
-                  <Badge className="text-[10px] bg-primary/10 text-primary border-0 rounded-full px-2 py-0.5">{coachProfile!.sport}</Badge>
-                  {coachProfile!.location && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />{coachProfile!.location}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <>
-                  <span className="text-xs text-muted-foreground">@{profile.username || "athlete"}</span>
-                  {(profile as any).location && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />{(profile as any).location}
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
-            {isCoach && coachProfile!.tagline && (
-              <p className="text-[13px] text-foreground/70 mt-1 line-clamp-1">{coachProfile!.tagline}</p>
-            )}
-          </div>
+  /* ─── Coach Page Lab render helper ─── */
+  const renderCoachSection = (section: PageSection) => {
+    const icon = section.section_type === "media" ? Video
+      : section.section_type === "about" ? Star
+      : section.section_type === "schedule" ? Calendar
+      : LayoutGrid;
+    const Icon = icon;
+    return (
+      <section className="rounded-lg border border-white/5 bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Icon className="h-4 w-4 text-[#46f1c5]" />
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white">
+            {sectionLabel(section.section_type)}
+          </h2>
         </div>
-
-        {/* Rating row (coach) */}
-        {isCoach && (
-          <div className="flex items-center gap-3 mt-3 text-xs">
-            <span className="flex items-center gap-1 font-semibold text-foreground">
-              <Star className="h-3.5 w-3.5 text-accent fill-accent" />
-              {avgRating}
-              <span className="text-muted-foreground font-normal">({reviews.length})</span>
-            </span>
-            {coachProfile!.years_experience && coachProfile!.years_experience > 0 && (
-              <>
-                <span className="text-muted-foreground">·</span>
-                <span className="text-muted-foreground">{coachProfile!.years_experience}yr exp</span>
-              </>
-            )}
-          </div>
+        {section.section_type === "about" && coachProfile?.bio && (
+          <p className="text-sm text-white/70 whitespace-pre-wrap leading-relaxed">{coachProfile.bio}</p>
         )}
-
-        {/* Bio */}
-        {(isCoach ? coachProfile!.bio : bio) && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-3"
-          >
-            {isCoach ? coachProfile!.bio : bio}
-          </motion.p>
-        )}
-
-        {/* Specialties (coach) / Interests (player) */}
-        {isCoach && coachProfile!.specialties && coachProfile!.specialties.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {coachProfile!.specialties.slice(0, 5).map((s) => (
-              <Badge key={s} className="px-2.5 py-1 text-[10px] rounded-full bg-secondary text-foreground border-0 font-medium">{s}</Badge>
+        {section.section_type === "media" && content.length > 0 && (
+          <div className="grid grid-cols-3 gap-1.5">
+            {content.slice(0, 6).map((c) => (
+              <img key={c.id} src={c.thumbnail_url || c.media_url} alt={c.title} className="aspect-square w-full rounded-lg object-cover" loading="lazy" />
             ))}
           </div>
         )}
-      </motion.div>
+        {section.section_type === "about" && !coachProfile?.bio && (
+          <p className="text-sm text-white/40 italic">No bio yet</p>
+        )}
+      </section>
+    );
+  };
+  const visibleSections = hasCustomLayout ? sections.filter((s) => s.is_visible) : [];
 
-      {/* ═══════ STATS BAR ═══════ */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="px-5 mt-5"
-      >
-        <div className="bg-card border border-border/10 rounded-2xl flex divide-x divide-border/10">
+  return (
+    <div className="min-h-screen bg-background pb-32 app-top-nav">
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+
+      <div className="pt-6 pb-4 px-6 max-w-md mx-auto">
+        {/* ═══════ HERO PROFILE ═══════ */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center mb-10 text-center"
+        >
+          <div className="relative mb-6">
+            {/* Kinetic gradient ring */}
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="relative w-32 h-32 rounded-full p-1 bg-gradient-kinetic active:scale-95 transition-transform group"
+              aria-label="Change avatar"
+            >
+              <div className="w-full h-full rounded-full border-4 border-background overflow-hidden bg-card">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#46f1c5]/10 text-[#46f1c5] font-black text-4xl">
+                    {initial}
+                  </div>
+                )}
+              </div>
+              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="h-5 w-5 text-white" />
+              </div>
+              {avatarUploading && (
+                <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center">
+                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+              {isCoach && coachProfile!.is_verified && (
+                <div className="absolute bottom-1 right-1 rounded-full bg-background p-0.5">
+                  <div className="rounded-full bg-[#46f1c5] p-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-background" />
+                  </div>
+                </div>
+              )}
+            </button>
+            {/* Level badge */}
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#00d4aa] text-[#005643] px-4 py-1 rounded-full text-[10px] font-black tracking-[0.25em] shadow-lg uppercase">
+              Level {level}
+            </div>
+          </div>
+
+          <h1 className="text-3xl font-black uppercase tracking-tight text-white mb-1">
+            {displayName}
+          </h1>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#46f1c5] mb-6">
+            {isCoach ? `${coachProfile!.sport} coach` : playerRoleLabel}
+          </p>
+
+          {/* XP progress */}
+          <div className="w-full max-w-xs space-y-2">
+            <div className="flex justify-between text-[10px] font-black tracking-[0.2em] text-white/50 uppercase">
+              <span>{fmt(xpInLevel)} XP</span>
+              <span>{fmt(xpPerLevel)} XP</span>
+            </div>
+            <div className="h-2 w-full bg-card rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-kinetic"
+                initial={{ width: 0 }}
+                animate={{ width: `${xpProgress}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
+            </div>
+          </div>
+
+          {/* Quick actions */}
+          <div className="flex gap-2 mt-6 w-full max-w-xs">
+            <button
+              onClick={() => navigate("/edit-profile")}
+              className="flex-1 h-11 rounded-lg bg-gradient-kinetic text-white font-black uppercase tracking-[0.15em] text-[11px] active:scale-95 transition-transform inline-flex items-center justify-center gap-1.5 shadow-[0_10px_30px_rgba(0,212,170,0.3)]"
+            >
+              <Edit3 className="h-3.5 w-3.5" />
+              Edit
+            </button>
+            <button
+              onClick={() => setShareOpen(true)}
+              className="h-11 w-11 rounded-lg bg-card border border-white/5 flex items-center justify-center text-white active:scale-95 transition-transform"
+              aria-label="Share"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={signOut}
+              className="h-11 w-11 rounded-lg bg-card border border-white/5 flex items-center justify-center text-white/70 active:scale-95 transition-transform"
+              aria-label="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        </motion.section>
+
+        {/* ═══════ BENTO STATS ═══════ */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="grid grid-cols-2 gap-4 mb-10"
+        >
+          {/* Hero streak card */}
+          <div className="col-span-2 bg-[#cd4802] p-6 rounded-lg relative overflow-hidden flex items-center justify-between">
+            <div className="relative z-10">
+              <span className="text-[10px] font-black tracking-[0.25em] text-white/70 uppercase">
+                Active Momentum
+              </span>
+              <h3 className="text-3xl font-black italic text-white uppercase">
+                {streakDays > 0 ? `${streakDays} day streak` : "Start your streak"}
+              </h3>
+            </div>
+            <Flame className="relative z-10 h-12 w-12 text-white/90" strokeWidth={2.5} fill="currentColor" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+          </div>
+
           {isCoach ? (
             <>
-              <StatPill value={fmt(followersCount)} label="Followers" icon={Users} onClick={() => { setFollowersModalTab("followers"); setFollowersModalOpen(true); }} />
-              <StatPill value={fmt(sessionsCount)} label="Sessions" icon={Calendar} />
-              <StatPill value={fmt(reviews.length)} label="Reviews" icon={Star} />
-              <StatPill value={`₪${price}`} label="Per session" icon={Zap} />
+              <button
+                onClick={() => { setFollowersModalTab("followers"); setFollowersModalOpen(true); }}
+                className="bg-card p-5 rounded-lg text-left active:scale-95 transition-transform"
+              >
+                <span className="text-[10px] font-black tracking-[0.2em] text-white/50 uppercase block mb-2">Followers</span>
+                <div className="text-2xl font-black text-white">{fmt(followersCount)}</div>
+              </button>
+              <div className="bg-card p-5 rounded-lg">
+                <span className="text-[10px] font-black tracking-[0.2em] text-white/50 uppercase block mb-2">Sessions</span>
+                <div className="text-2xl font-black text-[#46f1c5]">{fmt(sessionsCount)}</div>
+              </div>
             </>
           ) : (
             <>
-              <StatPill value={fmt(bookings.length)} label="Sessions" icon={Calendar} />
-              <StatPill value={fmt(followingCount)} label="Following" icon={Heart} onClick={() => { setFollowersModalTab("following"); setFollowersModalOpen(true); }} />
-              <StatPill value={fmt(progress?.xp ?? 0)} label="XP" icon={Zap} className={(progress?.xp ?? 0) > 0 ? "bg-primary/[0.06]" : undefined} />
-              <StatPill value={`Lv${progress?.level ?? 1}`} label="Level" icon={Trophy} />
+              <div className="bg-card p-5 rounded-lg">
+                <span className="text-[10px] font-black tracking-[0.2em] text-white/50 uppercase block mb-2">Total Workouts</span>
+                <div className="text-2xl font-black text-white">{fmt(sessionsCount)}</div>
+              </div>
+              <button
+                onClick={() => { setFollowersModalTab("following"); setFollowersModalOpen(true); }}
+                className="bg-card p-5 rounded-lg text-left active:scale-95 transition-transform"
+              >
+                <span className="text-[10px] font-black tracking-[0.2em] text-white/50 uppercase block mb-2">Following</span>
+                <div className="text-2xl font-black text-[#46f1c5]">{fmt(followingCount)}</div>
+              </button>
             </>
           )}
-        </div>
-      </motion.div>
+        </motion.section>
 
-      {/* ═══════ PLAYER: HIGHLIGHTS ROW (Instagram-style) ═══════ */}
-      {!isCoach && playerHighlights.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
+        {/* ═══════ BADGES ROW ═══════ */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="px-5 mt-5"
+          transition={{ delay: 0.2 }}
+          className="mb-10"
         >
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-5 px-5">
-            {playerHighlights.map((h, i) => (
-              <HighlightCircle key={h.label} label={h.label} icon={h.icon} color={h.color} delay={0.3 + i * 0.06} />
+          <div className="flex justify-between items-end mb-4">
+            <h3 className="font-bold text-xl tracking-tight text-white">Recent Badges</h3>
+            <button className="text-[10px] font-black tracking-[0.2em] text-[#46f1c5] uppercase hover:opacity-80">
+              View All
+            </button>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            {[
+              { Icon: Star, color: "#46f1c5", earned: (progress as any)?.level >= 1 },
+              { Icon: Rocket, color: "#ffb59a", earned: streakDays >= 7 },
+              { Icon: Shield, color: "#46f1c5", earned: bookings.length >= 5 },
+              { Icon: Bolt, color: "#ffb59a", earned: xp >= 500 },
+              { Icon: Trophy, color: "#46f1c5", earned: followingCount >= 3 },
+            ].map(({ Icon, color, earned }, i) => (
+              <motion.div
+                key={i}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.3 + i * 0.08 }}
+                className={`flex-shrink-0 w-20 h-20 bg-card rounded-full flex items-center justify-center border ${
+                  earned ? "border-white/10" : "border-white/5 opacity-40"
+                }`}
+              >
+                <Icon className="h-7 w-7" style={{ color: earned ? color : "#555" }} fill={earned ? color : "none"} />
+              </motion.div>
             ))}
           </div>
-        </motion.div>
-      )}
+        </motion.section>
 
-      {/* ═══════ ACTION BUTTONS ═══════ */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        className="px-5 mt-4 flex gap-2"
-      >
-        <button
-          onClick={() => navigate("/edit-profile")}
-          className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-primary to-[#00B894] text-white font-heading font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.97] transition-all flex items-center justify-center gap-2"
-        >
-          <Edit3 className="h-4 w-4" />
-          Edit Profile
-        </button>
-        {isCoach && (
-          <>
-            <Link
-              to="/coach-dashboard"
-              className="h-12 px-5 rounded-2xl bg-foreground text-background font-heading font-bold text-sm active:scale-[0.97] transition-all flex items-center justify-center gap-2"
-            >
-              <LayoutGrid className="h-4 w-4" />
-              Dashboard
-            </Link>
-            <Link
-              to={`/coach/${coachProfile!.id}`}
-              className="h-12 w-12 rounded-2xl bg-secondary border border-border/20 flex items-center justify-center text-foreground active:scale-95 transition-all flex-shrink-0"
-            >
-              <Eye className="h-5 w-5" />
-            </Link>
-          </>
-        )}
+        {/* ═══════ PLAYER TAB BAR ═══════ */}
         {!isCoach && (
-          <button
-            onClick={() => setShareOpen(true)}
-            className="h-12 px-5 rounded-2xl bg-secondary border border-border/20 font-heading font-bold text-sm text-foreground active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+          <motion.nav
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="sticky top-16 z-30 bg-background/80 backdrop-blur-xl -mx-6 px-6 py-3 mb-6 flex gap-6 overflow-x-auto scrollbar-hide"
           >
-            <Share2 className="h-4 w-4" />
-            Share
-          </button>
+            {PLAYER_TABS.map((tab) => {
+              const isActive = playerTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setPlayerTab(tab.key)}
+                  className={`flex-shrink-0 text-xs font-black tracking-[0.2em] pb-1 uppercase transition-colors ${
+                    isActive ? "text-[#46f1c5] border-b-2 border-[#46f1c5]" : "text-white/50 hover:text-white/80"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </motion.nav>
         )}
-      </motion.div>
 
-      {/* ═══════ PREVIEW PUBLIC PROFILE ═══════ */}
-      {isCoach && coachProfile && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="px-5 mt-2"
-        >
-          <Link
-            to={`/coach/${coachProfile.id}`}
-            className="w-full h-11 rounded-2xl bg-secondary border border-border/20 font-heading font-bold text-sm text-muted-foreground hover:text-foreground active:scale-[0.97] transition-all flex items-center justify-center gap-2"
-          >
-            <Eye className="h-4 w-4" />
-            Preview Public Profile
-          </Link>
-        </motion.div>
-      )}
-
-      {/* ═══════ HUB: QUICK ACCESS ═══════ */}
-      {!isCoach && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="px-5 mt-5"
-        >
-          <div className="grid grid-cols-2 gap-3">
-            <Link to="/discover" className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 active:scale-[0.97] transition-all">
-              <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                <Search className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Find Coach</p>
-                <p className="text-[11px] text-muted-foreground">Browse & book</p>
-              </div>
-            </Link>
-            <Link to="/schedule" className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/10 active:scale-[0.97] transition-all">
-              <div className="h-10 w-10 rounded-xl bg-accent/15 flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-accent" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Schedule</p>
-                <p className="text-[11px] text-muted-foreground">{upcomingBookings.length} upcoming</p>
-              </div>
-            </Link>
-            <Link to="/inbox" className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/30 border border-border/10 active:scale-[0.97] transition-all">
-              <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
-                <MessageSquare className="h-5 w-5 text-foreground/70" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Messages</p>
-                <p className="text-[11px] text-muted-foreground">Inbox</p>
-              </div>
-            </Link>
-            <Link to="/community" className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/30 border border-border/10 active:scale-[0.97] transition-all">
-              <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
-                <Users className="h-5 w-5 text-foreground/70" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Community</p>
-                <p className="text-[11px] text-muted-foreground">Groups & challenges</p>
-              </div>
-            </Link>
-          </div>
-        </motion.div>
-      )}
-
-      {/* ═══════ STATS ENGINE + ACHIEVEMENTS (NEW) ═══════ */}
-      <div className="mt-4">
-        {isCoach ? (
-          <ProfileStatsAndAchievements
-            rating={coachProfile?.rating ?? 0}
-            totalSessions={coachProfile?.total_sessions ?? sessionsCount}
-            yearsExperience={coachProfile?.years_experience ?? 0}
-            followers={followersCount}
-            achievements={(coachProfile as any)?.achievements ?? []}
-            isPro={(coachProfile as any)?.is_pro ?? false}
-          />
-        ) : (
-          <ProfileStatsAndAchievements
-            variant="user"
-            sessionsBooked={bookings?.length ?? 0}
-            trainingStreak={(progress as any)?.streak_days ?? 0}
-            xp={(progress as any)?.xp ?? 0}
-            level={(progress as any)?.level ?? 1}
-            achievements={[]}
-            isPro={false}
-          />
-        )}
-      </div>
-
-      {/* ═══════ COACH: QUICK INSIGHTS ═══════ */}
-      {isCoach && (sessionsCount > 0 || followersCount > 0) && (
-        <div className="px-5 mt-3">
-          <button
-            onClick={() => navigate("/coach-dashboard?tab=stats")}
-            className="w-full bg-gradient-to-r from-primary to-accent rounded-2xl p-4 flex items-center gap-3 text-white shadow-sm active:scale-[0.97] transition-all text-left"
-          >
-            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <TrendingUp className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">Insights</p>
-              <p className="text-sm font-heading font-bold">{sessionsCount} sessions · {fmt(followersCount)} followers · {reviews.length} reviews</p>
-            </div>
-            <ChevronRight className="h-5 w-5 text-white/50 flex-shrink-0" />
-          </button>
-        </div>
-      )}
-
-      {/* ═══════ PLAYER: TABBED CONTENT ═══════ */}
-      {!isCoach && (
-        <>
-          {/* Tab bar */}
-          <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border/20 mt-4">
-            <div className="flex px-5">
-              {PLAYER_TABS.map((tab) => {
-                const isActive = playerTab === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    onClick={() => setPlayerTab(tab.key)}
-                    className={cn(
-                      "flex-1 flex flex-col items-center gap-1 py-3 relative transition-all",
-                      isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground/60"
-                    )}
-                  >
-                    <tab.icon className="h-[18px] w-[18px]" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{tab.label}</span>
-                    {isActive && (
-                      <motion.div
-                        layoutId="player-tab-indicator"
-                        className="absolute bottom-0 left-[20%] right-[20%] h-[3px] rounded-full bg-primary"
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Tab content */}
+        {/* ═══════ PLAYER CONTENT ═══════ */}
+        {!isCoach && (
           <AnimatePresence mode="wait">
-            {/* ── ACTIVITY TAB ── */}
+            {/* ── ACTIVITY ── */}
             {playerTab === "activity" && (
-              <motion.div key="activity" {...fadeUp} className="px-5 pt-5 pb-4 space-y-4">
-                <div className="rounded-2xl bg-gradient-to-br from-primary/8 to-accent/5 border border-primary/10 p-1">
-                  <TraineeProgressCard userId={user.id} />
-                </div>
+              <motion.div key="activity" {...fadeUp} className="space-y-5">
+                <TraineeProgressCard userId={user.id} />
 
-                {/* Recent activity feed */}
                 {upcomingBookings.length > 0 && (
-                  <SectionCard icon={Calendar} title="Upcoming Sessions" count={upcomingBookings.length}>
-                    <div className="space-y-2.5">
+                  <section>
+                    <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-3">
+                      Upcoming sessions
+                    </h4>
+                    <div className="space-y-2">
                       {upcomingBookings.slice(0, 3).map((b) => (
-                        <motion.div key={b.id} variants={cardVariant} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40 border border-border/10">
-                          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Calendar className="h-5 w-5 text-primary" />
+                        <div key={b.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5">
+                          <div className="h-10 w-10 rounded-lg bg-[#46f1c5]/10 flex items-center justify-center flex-shrink-0">
+                            <Calendar className="h-5 w-5 text-[#46f1c5]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">{b.coach_name}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-sm font-bold text-white truncate">{b.coach_name}</p>
+                            <p className="text-xs text-white/60">
                               {new Date(b.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {b.time_label || b.time}
                             </p>
                           </div>
-                          <Badge className={cn(
-                            "text-[10px] rounded-full border-0 px-2 py-0.5",
-                            b.status === "confirmed" ? "bg-green-500/15 text-green-400" : "bg-yellow-500/15 text-yellow-400"
-                          )}>{b.status}</Badge>
-                        </motion.div>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-[#46f1c5]">{b.status}</span>
+                        </div>
                       ))}
                     </div>
-                  </SectionCard>
+                  </section>
                 )}
 
-                {/* Upload Content CTA */}
-                <button
-                  onClick={() => window.dispatchEvent(new CustomEvent("open-upload-flow"))}
-                  className="w-full rounded-2xl border-2 border-dashed border-primary/20 bg-secondary/20 p-4 flex items-center gap-4 active:scale-[0.98] transition-all"
-                >
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-[#00B894] flex items-center justify-center shadow-lg shadow-primary/20 flex-shrink-0">
-                    <Plus className="h-6 w-6 text-white" />
+                {/* Quick access */}
+                <section>
+                  <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-3">Quick access</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link to="/discover" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.97] transition-transform">
+                      <div className="h-10 w-10 rounded-lg bg-[#46f1c5]/10 flex items-center justify-center">
+                        <Search className="h-5 w-5 text-[#46f1c5]" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">Find Coach</p>
+                        <p className="text-[10px] text-white/50">Browse & book</p>
+                      </div>
+                    </Link>
+                    <Link to="/schedule" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.97] transition-transform">
+                      <div className="h-10 w-10 rounded-lg bg-[#ffb59a]/10 flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-[#ffb59a]" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">Schedule</p>
+                        <p className="text-[10px] text-white/50">{upcomingBookings.length} upcoming</p>
+                      </div>
+                    </Link>
+                    <Link to="/inbox" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.97] transition-transform">
+                      <div className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center">
+                        <MessageSquare className="h-5 w-5 text-white/80" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">Messages</p>
+                        <p className="text-[10px] text-white/50">Inbox</p>
+                      </div>
+                    </Link>
+                    <Link to="/community" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.97] transition-transform">
+                      <div className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-white/80" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">Community</p>
+                        <p className="text-[10px] text-white/50">Groups & circles</p>
+                      </div>
+                    </Link>
                   </div>
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-foreground">Share Your Journey</p>
-                    <p className="text-xs text-muted-foreground">Upload clips, photos & training updates</p>
-                  </div>
-                </button>
-
-                {/* Discover coaches CTA */}
-                <motion.div variants={cardVariant} className="rounded-2xl bg-gradient-to-r from-primary/10 to-transparent border border-primary/10 p-5 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <h2 className="font-heading text-sm font-bold text-foreground">Find Your Circle</h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Discover coaches, book sessions, and level up your game.</p>
-                  <Link to="/discover" className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-heading font-bold text-white active:scale-95 transition-transform">
-                    Explore Coaches <ChevronRight className="h-3.5 w-3.5" />
-                  </Link>
-                </motion.div>
+                </section>
               </motion.div>
             )}
 
-            {/* ── BOOKINGS TAB ── */}
+            {/* ── BOOKINGS ── */}
             {playerTab === "bookings" && (
-              <motion.div key="bookings" {...fadeUp} className="px-5 pt-5 pb-4 space-y-4">
+              <motion.div key="bookings" {...fadeUp} className="space-y-5">
                 {bookingsLoading ? (
                   <div className="space-y-3">
-                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)}
+                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}
                   </div>
                 ) : bookings.length === 0 ? (
-                  <div className="text-center py-16">
-                    <Calendar className="h-14 w-14 text-muted-foreground/20 mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-muted-foreground">No bookings yet</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">Book your first session with a coach</p>
-                    <Link to="/discover" className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-heading font-bold text-white mt-4 active:scale-95 transition-transform">
+                  <div className="text-center py-16 bg-card rounded-lg border border-white/5">
+                    <Calendar className="h-12 w-12 text-white/20 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-white">No bookings yet</p>
+                    <p className="text-xs text-white/50 mt-1 mb-4">Book your first session with a coach</p>
+                    <Link to="/discover" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-full bg-gradient-kinetic text-white text-xs font-black uppercase tracking-wider">
                       Find a Coach
                     </Link>
                   </div>
                 ) : (
                   <>
-                    {/* Next Session highlight */}
                     {upcomingBookings.length > 0 && (
-                      <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-primary/15 via-primary/8 to-transparent border border-primary/15">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <Sparkles className="h-3.5 w-3.5 text-primary" />
-                          <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Next Session</span>
-                        </div>
-                        <p className="text-base font-bold text-foreground">{upcomingBookings[0].coach_name || "Upcoming Session"}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {new Date(upcomingBookings[0].date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {upcomingBookings[0].time_label || upcomingBookings[0].time || "TBD"}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Upcoming */}
-                    {upcomingBookings.length > 0 && (
-                      <div>
-                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Upcoming</h3>
-                        <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2.5">
+                      <section>
+                        <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-3">Upcoming</h4>
+                        <div className="space-y-2">
                           {upcomingBookings.map((b) => (
-                            <motion.div key={b.id} variants={cardVariant} className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/40 border border-border/10">
-                              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <Calendar className="h-6 w-6 text-primary" />
+                            <div key={b.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5">
+                              <div className="h-12 w-12 rounded-lg bg-[#46f1c5]/10 flex items-center justify-center flex-shrink-0">
+                                <Calendar className="h-6 w-6 text-[#46f1c5]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-foreground truncate">{b.coach_name}</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">
+                                <p className="text-sm font-bold text-white truncate">{b.coach_name}</p>
+                                <p className="text-xs text-white/60 mt-0.5">
                                   {new Date(b.date).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
                                 </p>
-                                <p className="text-xs text-muted-foreground">{b.time_label || b.time} · {b.training_type}</p>
+                                <p className="text-xs text-white/60">{b.time_label || b.time} · {b.training_type}</p>
                               </div>
-                              <div className="text-right flex-shrink-0">
-                                <Badge className="bg-green-500/15 text-green-400 border-0 text-[10px] rounded-full">{b.status}</Badge>
-                                <p className="text-xs font-bold text-foreground mt-1">₪{b.price}</p>
+                              <div className="text-right">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-[#46f1c5]">{b.status}</span>
+                                <p className="text-xs font-bold text-white mt-1">₪{b.price}</p>
                               </div>
-                            </motion.div>
+                            </div>
                           ))}
-                        </motion.div>
-                      </div>
+                        </div>
+                      </section>
                     )}
 
-                    {/* Past */}
                     {pastBookings.length > 0 && (
-                      <div>
-                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Past Sessions</h3>
-                        <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2">
+                      <section>
+                        <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-3">Past sessions</h4>
+                        <div className="space-y-2">
                           {pastBookings.slice(0, 10).map((b) => (
-                            <motion.div key={b.id} variants={cardVariant} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/20 border border-border/10 opacity-70">
-                              <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
-                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <div key={b.id} className="flex items-center gap-3 p-3 rounded-lg bg-card/60 border border-white/5 opacity-70">
+                              <div className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+                                <Calendar className="h-4 w-4 text-white/60" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-foreground truncate">{b.coach_name}</p>
-                                <p className="text-xs text-muted-foreground">{new Date(b.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {b.training_type}</p>
+                                <p className="text-sm font-bold text-white truncate">{b.coach_name}</p>
+                                <p className="text-xs text-white/50">
+                                  {new Date(b.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {b.training_type}
+                                </p>
                               </div>
-                              <Badge className={cn(
-                                "text-[10px] rounded-full border-0",
-                                b.status === "completed" ? "bg-white/5 text-muted-foreground" : "bg-red-500/10 text-red-400"
-                              )}>{b.status}</Badge>
-                            </motion.div>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-white/50">{b.status}</span>
+                            </div>
                           ))}
-                        </motion.div>
-                      </div>
+                        </div>
+                      </section>
                     )}
                   </>
                 )}
               </motion.div>
             )}
 
-            {/* ── SAVED TAB ── */}
+            {/* ── SAVED (Saved Routines Grid) ── */}
             {playerTab === "saved" && (
-              <motion.div key="saved" {...fadeUp} className="px-5 pt-5 pb-4">
+              <motion.div key="saved" {...fadeUp}>
+                <div className="flex justify-between items-end mb-6">
+                  <h3 className="font-bold text-xl tracking-tight text-white">Saved Routines</h3>
+                  <div className="flex gap-4">
+                    <LayoutGrid className="h-5 w-5 text-[#46f1c5]" />
+                  </div>
+                </div>
+
                 {savedItems.length === 0 ? (
-                  <div className="text-center py-16">
-                    <Bookmark className="h-14 w-14 text-muted-foreground/20 mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-muted-foreground">Nothing saved yet</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">Save coaches and content to find them later</p>
+                  <div className="text-center py-16 bg-card rounded-lg border border-white/5">
+                    <Bookmark className="h-12 w-12 text-white/20 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-white">Nothing saved yet</p>
+                    <p className="text-xs text-white/50 mt-1">Save coaches and content to find them later</p>
                   </div>
                 ) : (
-                  <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-3">
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{savedItems.length} saved items</p>
-                    {savedItems.slice(0, 12).map((item) => (
-                      <motion.div key={item.id} variants={cardVariant} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40 border border-border/10">
-                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Bookmark className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">{item.collection_name}</p>
-                          <p className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {savedItems.slice(0, 12).map((item, i) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        className="group relative aspect-[3/4] rounded-lg overflow-hidden bg-card border border-white/5"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#46f1c5]/20 to-[#cd4802]/30" />
+                        <div className="absolute bottom-0 left-0 p-4 w-full bg-gradient-to-t from-background to-transparent">
+                          <span className="text-[9px] font-black text-[#46f1c5] uppercase tracking-[0.25em]">
+                            Collection
+                          </span>
+                          <p className="text-sm font-bold text-white uppercase truncate mt-0.5">
+                            {item.collection_name}
+                          </p>
                         </div>
                       </motion.div>
                     ))}
-                  </motion.div>
+                  </div>
                 )}
               </motion.div>
             )}
 
-            {/* ── FOLLOWING TAB ── */}
+            {/* ── FOLLOWING ── */}
             {playerTab === "following" && (
-              <motion.div key="following" {...fadeUp} className="px-5 pt-5 pb-4">
+              <motion.div key="following" {...fadeUp}>
                 {followedLoading ? (
                   <div className="space-y-3">
-                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)}
+                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}
                   </div>
                 ) : followedCoaches.length === 0 ? (
-                  <div className="text-center py-16">
-                    <Heart className="h-14 w-14 text-muted-foreground/20 mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-muted-foreground">Not following any coaches</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">Follow coaches to see them here</p>
-                    <Link to="/discover" className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs font-heading font-bold text-white mt-4 active:scale-95 transition-transform">
-                      Discover Coaches
+                  <div className="text-center py-16 bg-card rounded-lg border border-white/5">
+                    <Heart className="h-12 w-12 text-white/20 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-white">Not following anyone</p>
+                    <p className="text-xs text-white/50 mt-1 mb-4">Follow coaches to see them here</p>
+                    <Link to="/discover" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-full bg-gradient-kinetic text-white text-xs font-black uppercase tracking-wider">
+                      Discover
                     </Link>
                   </div>
                 ) : (
-                  <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2.5">
+                  <div className="space-y-3">
                     {followedCoaches.map((coach) => (
-                      <motion.div key={coach.id} variants={cardVariant} className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/40 border border-border/10">
+                      <div key={coach.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5">
                         <Link to={`/coach/${coach.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                          <Avatar className="h-12 w-12 border-2 border-border/20">
+                          <Avatar className="h-12 w-12 border-2 border-white/5">
                             <AvatarImage src={coach.image_url || undefined} alt={coach.coach_name} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                            <AvatarFallback className="bg-[#46f1c5]/10 text-[#46f1c5] font-bold">
                               {coach.coach_name?.charAt(0)?.toUpperCase() || "?"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <p className="text-sm font-bold text-foreground truncate">{coach.coach_name}</p>
-                              {coach.is_verified && <CheckCircle2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />}
+                              <p className="text-sm font-bold text-white truncate">{coach.coach_name}</p>
+                              {coach.is_verified && <CheckCircle2 className="h-3.5 w-3.5 text-[#46f1c5] flex-shrink-0" />}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <Badge className="text-[10px] bg-primary/10 text-primary border-0 rounded-full px-2 py-0">{coach.sport}</Badge>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-[#46f1c5]">{coach.sport}</span>
                               {coach.rating && (
-                                <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-0.5 text-xs text-white/60">
                                   <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />{coach.rating.toFixed(1)}
                                 </span>
                               )}
@@ -1267,134 +778,139 @@ const UserProfile = () => {
                         </Link>
                         <button
                           onClick={() => navigate(`/book/${coach.id}`)}
-                          className="h-10 px-4 rounded-xl bg-primary text-white text-xs font-bold active:scale-95 transition-all flex items-center gap-1.5 flex-shrink-0"
+                          className="h-10 px-4 rounded-lg bg-gradient-kinetic text-white text-[10px] font-black uppercase tracking-wider active:scale-95 transition-transform flex items-center gap-1.5 flex-shrink-0"
                         >
                           <Calendar className="h-3.5 w-3.5" />
                           Book
                         </button>
-                      </motion.div>
+                      </div>
                     ))}
-                  </motion.div>
+                  </div>
                 )}
               </motion.div>
             )}
           </AnimatePresence>
-        </>
-      )}
+        )}
 
-      {/* ═══════ COACH: CONTENT AREA ═══════ */}
-      {isCoach && (
-        <div className="px-5 mt-5 space-y-4">
-          {/* Training Progress */}
-          <TraineeProgressCard userId={user.id} />
-
-          {/* Upload Content CTA */}
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent("open-upload-flow"))}
-            className="w-full rounded-2xl border-2 border-dashed border-primary/20 bg-secondary/20 p-4 flex items-center gap-4 active:scale-[0.98] transition-all"
-          >
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-[#00B894] flex items-center justify-center shadow-lg shadow-primary/20 flex-shrink-0">
-              <Plus className="h-6 w-6 text-white" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-bold text-foreground">Upload Content</p>
-              <p className="text-xs text-muted-foreground">Share videos, photos & updates</p>
-            </div>
-          </button>
-
-          {/* Page Lab Sections */}
-          <button
-            onClick={() => setPageLabOpen(true)}
-            className="w-full h-11 rounded-2xl bg-secondary border border-border/20 text-sm font-heading font-bold text-foreground flex items-center justify-center gap-2 active:scale-[0.97] transition-all"
-          >
-            <Sparkles className="h-4 w-4 text-primary" />
-            {hasCustomLayout ? "Edit Layout" : "Build with Page Lab"}
-          </button>
-
-          {sectionsLoading ? (
-            <div className="py-12 flex items-center justify-center"><div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
-          ) : hasCustomLayout ? (
-            <div className="flex flex-col gap-3">
-              {visibleSections.map((s) => <div key={s.id}>{renderSection(s)}</div>)}
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-primary/20 bg-secondary/20 p-8 text-center space-y-4">
-              <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <LayoutGrid className="h-8 w-8 text-primary" />
+        {/* ═══════ COACH CONTENT ═══════ */}
+        {isCoach && (
+          <div className="space-y-5">
+            {/* Location / tagline */}
+            {(coachProfile!.tagline || coachProfile!.location) && (
+              <div className="flex flex-col gap-1 mb-2 text-center">
+                {coachProfile!.tagline && (
+                  <p className="text-sm text-white/70 leading-relaxed">{coachProfile!.tagline}</p>
+                )}
+                {coachProfile!.location && (
+                  <p className="text-xs text-white/50 flex items-center justify-center gap-1">
+                    <MapPin className="h-3 w-3" />{coachProfile!.location}
+                  </p>
+                )}
               </div>
-              <div className="space-y-1.5">
-                <h2 className="font-heading text-lg font-bold text-foreground">Build your creator page</h2>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">Customize sections, order content, and turn this into your personal brand hub.</p>
-              </div>
-              <button onClick={() => setPageLabOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-heading font-bold text-primary-foreground active:scale-95 transition-transform">
-                <Sparkles className="h-4 w-4" />Start building
+            )}
+
+            {/* Dashboard + preview links */}
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                to="/coach-dashboard"
+                className="h-12 rounded-lg bg-white text-background font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+              >
+                <LayoutGrid className="h-4 w-4" />
+                Dashboard
+              </Link>
+              <Link
+                to={`/coach/${coachProfile!.id}`}
+                className="h-12 rounded-lg bg-card border border-white/5 text-white font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+              >
+                <Eye className="h-4 w-4" />
+                Preview
+              </Link>
+            </div>
+
+            {/* Insights banner */}
+            {(sessionsCount > 0 || followersCount > 0) && (
+              <button
+                onClick={() => navigate("/coach-dashboard?tab=analytics")}
+                className="w-full rounded-lg p-5 bg-gradient-kinetic text-white flex items-center gap-4 active:scale-[0.97] transition-transform text-left shadow-[0_20px_40px_rgba(0,212,170,0.15)]"
+              >
+                <div className="h-12 w-12 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/80">Insights</p>
+                  <p className="text-sm font-black uppercase tracking-tight">{sessionsCount} sessions · {fmt(followersCount)} followers</p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-white/70" />
               </button>
-            </div>
-          )}
+            )}
 
-          {/* Quick content summary if no Page Lab */}
-          {!hasCustomLayout && content.length > 0 && (
-            <div className="space-y-3">
-              {clips.length > 0 && (
-                <SectionCard icon={Video} title="Recent Clips" count={clips.length}>
-                  <div className="flex w-full max-w-full gap-2 overflow-x-auto pb-1 scrollbar-none">
-                    {clips.slice(0, 6).map((c) => (
-                      <div key={c.id} className="relative flex-shrink-0 w-28 overflow-hidden rounded-xl bg-secondary">
-                        <video src={c.media_url} className="aspect-[3/4] w-full object-cover" muted playsInline preload="metadata" />
-                        <div className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                          <Play className="h-2 w-2 text-white fill-white ml-[1px]" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
-              {posts.length > 0 && (
-                <SectionCard icon={ImageIcon} title="Recent Posts" count={posts.length}>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {posts.slice(0, 6).map((p) => (
-                      <img key={p.id} src={p.thumbnail_url || p.media_url} alt={p.title} className="aspect-square w-full rounded-xl object-cover" loading="lazy" />
-                    ))}
-                  </div>
-                </SectionCard>
-              )}
+            {/* Page Lab */}
+            <button
+              onClick={() => setPageLabOpen(true)}
+              className="w-full h-12 rounded-lg bg-card border border-white/5 text-white font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-transform"
+            >
+              <Sparkles className="h-4 w-4 text-[#46f1c5]" />
+              {hasCustomLayout ? "Edit layout" : "Build with Page Lab"}
+            </button>
+
+            {sectionsLoading ? (
+              <div className="py-12 flex items-center justify-center">
+                <div className="h-8 w-8 border-2 border-[#46f1c5] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : hasCustomLayout ? (
+              <div className="flex flex-col gap-3">
+                {visibleSections.map((s) => <div key={s.id}>{renderCoachSection(s)}</div>)}
+              </div>
+            ) : (
+              <TraineeProgressCard userId={user.id} />
+            )}
+
+            {/* Upload */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("open-upload-flow"))}
+              className="w-full rounded-lg border border-dashed border-[#46f1c5]/30 bg-card p-4 flex items-center gap-4 active:scale-[0.98] transition-transform"
+            >
+              <div className="h-12 w-12 rounded-lg bg-gradient-kinetic flex items-center justify-center shadow-[0_10px_30px_rgba(0,212,170,0.3)] flex-shrink-0">
+                <Plus className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-black uppercase tracking-[0.15em] text-white">Upload content</p>
+                <p className="text-xs text-white/60 mt-0.5">Share videos, photos & updates</p>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {/* ═══════ SETTINGS ═══════ */}
+        <div className="mt-8 space-y-2">
+          <button
+            onClick={() => navigate("/notification-preferences")}
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.98] transition-transform text-left"
+          >
+            <div className="h-9 w-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+              <Bell className="h-4 w-4 text-white/70" />
             </div>
-          )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white">Notifications</p>
+              <p className="text-[10px] text-white/50">Control what you get notified about</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-white/40" />
+          </button>
+
+          <button
+            onClick={() => navigate("/data-privacy")}
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.98] transition-transform text-left"
+          >
+            <div className="h-9 w-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
+              <Shield className="h-4 w-4 text-white/70" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white">Data & Privacy</p>
+              <p className="text-[10px] text-white/50">Export or delete your data</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-white/40" />
+          </button>
         </div>
-      )}
-
-      {/* ═══════ NOTIFICATION PREFERENCES ═══════ */}
-      <div className="px-5 mt-4 mb-2">
-        <button
-          onClick={() => navigate("/notification-preferences")}
-          className="w-full flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/10 active:scale-[0.98] transition-all text-left"
-        >
-          <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground">Notifications</p>
-            <p className="text-[10px] text-muted-foreground">Control what you get notified about</p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
-        </button>
-      </div>
-
-      {/* ═══════ DATA & PRIVACY ═══════ */}
-      <div className="px-5 mt-4 mb-2">
-        <button
-          onClick={() => navigate("/data-privacy")}
-          className="w-full flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/10 active:scale-[0.98] transition-all text-left"
-        >
-          <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground">Data & Privacy</p>
-            <p className="text-[10px] text-muted-foreground">Export or delete your data</p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
-        </button>
       </div>
 
       {/* ═══════ MODALS ═══════ */}

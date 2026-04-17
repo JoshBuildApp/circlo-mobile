@@ -1,8 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, Users, Plus, Sparkles, Trophy, Flame } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Search, Users, Plus, Sparkles, Flame, MapPin } from "lucide-react";
 import { useCommunity } from "@/hooks/use-community";
 import type { CommunityInfo } from "@/hooks/use-community";
 import { CommunityEmptyState } from "@/components/CommunityEmptyState";
@@ -37,85 +34,107 @@ const cardVariants = {
   }),
 };
 
-const FeaturedCard = ({
+/* ─── Hero banner (featured / first community) ─────────────────────────── */
+const CommunityHero = ({
   community,
-  onClick,
-  index,
+  memberPreviews,
+  totalMembers,
+  onJoin,
 }: {
   community: CommunityInfo;
-  onClick: () => void;
-  index: number;
+  memberPreviews: string[];
+  totalMembers: number;
+  onJoin: () => void;
 }) => (
-  <motion.div
-    custom={index}
-    variants={cardVariants}
-    initial="hidden"
-    animate="visible"
-    className="min-w-[280px] md:min-w-0 snap-center"
-  >
-    <Card
-      onClick={onClick}
-      className="group relative overflow-hidden rounded-2xl border-border/20 cursor-pointer hover:shadow-elevated transition-all duration-300 hover:-translate-y-1 bg-card h-[220px]"
-    >
-      {/* Cover image */}
-      <div className="absolute inset-0">
-        {community.image ? (
-          <img
-            src={community.image}
-            alt={community.coachName}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-[#1A1A2E] to-[#00D4AA]/30" />
-        )}
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+  <section className="relative h-[360px] md:h-[420px] w-full overflow-hidden">
+    {community.image ? (
+      <img
+        src={community.image}
+        alt={community.coachName}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+    ) : (
+      <div className="absolute inset-0 bg-gradient-kinetic opacity-80" />
+    )}
+    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+
+    <div className="absolute bottom-0 left-0 right-0 px-6 pb-8">
+      <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 rounded-full glass-dark border border-white/10">
+        {community.isVerified && <Sparkles className="h-3 w-3 text-[#46f1c5]" />}
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#46f1c5]">
+          {community.isVerified ? "Pro Community" : "Featured"}
+        </span>
       </div>
 
-      {/* Content */}
-      <div className="relative h-full flex flex-col justify-end p-5">
-        <div className="flex items-center gap-2 mb-1.5">
-          {community.isVerified && (
-            <Badge className="bg-[#00D4AA]/20 text-[#00D4AA] border-[#00D4AA]/30 text-[10px] px-2 py-0 h-5">
-              <Sparkles className="h-3 w-3 mr-1" />
-              Verified
-            </Badge>
+      <h1 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none text-white mb-4">
+        {community.coachName}
+      </h1>
+
+      <div className="flex items-center gap-4 flex-wrap">
+        <button
+          onClick={onJoin}
+          className="bg-gradient-kinetic text-white font-black uppercase tracking-[0.15em] px-7 py-3 rounded-md text-xs shadow-[0_10px_30px_rgba(0,212,170,0.35)] active:scale-95 transition-transform"
+        >
+          Join Club
+        </button>
+
+        <div className="flex -space-x-3">
+          {memberPreviews.slice(0, 3).map((src, i) =>
+            src ? (
+              <img
+                key={i}
+                src={src}
+                alt=""
+                className="h-8 w-8 rounded-full border-2 border-background object-cover"
+              />
+            ) : (
+              <div
+                key={i}
+                className="h-8 w-8 rounded-full border-2 border-background bg-secondary"
+              />
+            )
           )}
-          <Badge className="bg-white/10 text-white/90 border-white/20 text-[10px] px-2 py-0 h-5">
-            {community.sport}
-          </Badge>
-        </div>
-        <h3 className="text-lg font-bold text-white truncate">
-          {community.coachName}
-        </h3>
-        {community.tagline && (
-          <p className="text-xs text-white/60 truncate mt-0.5">
-            {community.tagline}
-          </p>
-        )}
-        <div className="flex items-center justify-between mt-3">
-          <span className="flex items-center gap-1.5 text-xs text-white/70">
-            <Users className="h-3.5 w-3.5" />
-            {fmt(community.memberCount)} members
-          </span>
-          <Button
-            size="sm"
-            className="h-8 px-4 rounded-full bg-gradient-to-r from-[#00D4AA] to-[#00B894] text-white text-xs font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick();
-            }}
-          >
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            Join
-          </Button>
+          {totalMembers > 3 && (
+            <div className="h-8 w-8 rounded-full border-2 border-background bg-card flex items-center justify-center text-[10px] font-black text-[#46f1c5]">
+              +{fmt(totalMembers - 3)}
+            </div>
+          )}
         </div>
       </div>
-    </Card>
-  </motion.div>
+    </div>
+  </section>
 );
 
-const CommunityCard = ({
+/* ─── Bento mini community card (for stats row) ───────────────────────── */
+const BentoCommunityCard = ({
+  community,
+  onClick,
+  accent,
+}: {
+  community: CommunityInfo;
+  onClick: () => void;
+  accent: "primary" | "secondary";
+}) => (
+  <button
+    onClick={onClick}
+    className="relative overflow-hidden rounded-lg border border-white/5 bg-card/80 p-5 aspect-square text-left flex flex-col justify-between active:scale-95 transition-transform"
+  >
+    <Users
+      className={`h-7 w-7 ${accent === "primary" ? "text-[#46f1c5]" : "text-[#ffb59a]"}`}
+    />
+    <div>
+      <div className="text-2xl font-black text-white leading-none truncate">
+        {community.coachName}
+      </div>
+      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 mt-1">
+        {community.sport} · {fmt(community.memberCount)} members
+      </div>
+    </div>
+  </button>
+);
+
+/* ─── Feed-style card for main list ────────────────────────────────────── */
+const FeedCommunityCard = ({
   community,
   onClick,
   index,
@@ -130,69 +149,71 @@ const CommunityCard = ({
     initial="hidden"
     animate="visible"
   >
-    <Card
+    <button
       onClick={onClick}
-      className="group relative overflow-hidden rounded-2xl border-border/20 cursor-pointer hover:shadow-elevated transition-all duration-300 hover:-translate-y-1 bg-card"
+      className="group w-full text-left bg-card border-0 rounded-lg overflow-hidden active:scale-[0.98] transition-transform"
     >
-      {/* Cover */}
-      <div className="relative h-36 overflow-hidden">
-        {community.image ? (
-          <img
-            src={community.image}
-            alt={community.coachName}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-[#1A1A2E] to-[#00D4AA]/20" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <Badge className="absolute top-3 left-3 bg-black/40 backdrop-blur-sm text-white/90 border-white/10 text-[10px] px-2 py-0 h-5">
-          {community.sport}
-        </Badge>
+      {/* Header */}
+      <div className="p-4 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-full border border-[#46f1c5]/30 overflow-hidden bg-secondary">
+          {community.image ? (
+            <img src={community.image} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full bg-gradient-kinetic" />
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-white truncate">{community.coachName}</p>
+          <p className="text-[10px] font-medium uppercase tracking-wider text-white/50">
+            {community.sport} · {fmt(community.memberCount)} members
+          </p>
+        </div>
         {community.isVerified && (
-          <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-[#00D4AA]/90 flex items-center justify-center">
-            <Sparkles className="h-3 w-3 text-white" />
+          <div className="h-6 w-6 rounded-full bg-[#46f1c5]/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="h-3 w-3 text-[#46f1c5]" />
           </div>
         )}
       </div>
 
-      {/* Body */}
-      <div className="p-4">
-        <h3 className="font-bold text-foreground text-sm truncate group-hover:text-[#00D4AA] transition-colors">
-          {community.coachName}
-        </h3>
-        {community.tagline && (
-          <p className="text-xs text-muted-foreground truncate mt-0.5">
+      {community.tagline && (
+        <div className="px-4 pb-4">
+          <p className="text-sm text-white/70 leading-relaxed line-clamp-2">
             {community.tagline}
           </p>
+        </div>
+      )}
+
+      {/* Image banner */}
+      <div className="relative h-48 mx-4 mb-4 rounded-lg overflow-hidden">
+        {community.image ? (
+          <img
+            src={community.image}
+            alt=""
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="h-full w-full bg-gradient-to-br from-[#1A1A2E] to-[#46f1c5]/20" />
         )}
-        <div className="flex items-center justify-between mt-3">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Users className="h-3.5 w-3.5" />
+        <div className="absolute top-3 right-3 glass-dark rounded-full px-3 py-1 flex items-center gap-1">
+          <Flame className="h-3 w-3 text-[#ffb59a]" />
+          <span className="text-[10px] font-black text-white">Active</span>
+        </div>
+        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+          <div className="inline-flex items-center gap-1 glass-dark rounded-full px-3 py-1">
+            <Users className="h-3 w-3 text-white/80" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-white">
               {fmt(community.memberCount)}
             </span>
-            {community.memberCount > 5 && (
-              <span className="flex items-center gap-1 text-xs text-[#FF6B2C]">
-                <Flame className="h-3.5 w-3.5" />
-                Active
-              </span>
-            )}
           </div>
-          <Button
-            size="sm"
-            className="h-8 px-3 rounded-full bg-gradient-to-r from-[#00D4AA] to-[#00B894] text-white text-xs font-semibold hover:scale-105 transition-transform"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick();
-            }}
+          <div
+            className="bg-gradient-kinetic text-white font-black uppercase tracking-[0.15em] px-4 py-1.5 rounded-full text-[10px] flex items-center gap-1"
           >
-            <Plus className="h-3.5 w-3.5 mr-1" />
+            <Plus className="h-3 w-3" />
             Join
-          </Button>
+          </div>
         </div>
       </div>
-    </Card>
+    </button>
   </motion.div>
 );
 
@@ -221,49 +242,25 @@ const Community = () => {
     [communities]
   );
 
+  const hero = featured[0];
+  const bentoPair = featured.slice(1, 3);
+
+  const totalMembers = useMemo(
+    () => (communities || []).reduce((s, c) => s + (c.memberCount || 0), 0),
+    [communities]
+  );
+
+  const memberAvatars = useMemo(
+    () => (communities || []).map((c) => c.image).filter(Boolean) as string[],
+    [communities]
+  );
+
   const hasNone = !loading && (!communities || communities.length === 0);
 
   return (
-    <div className="w-full pb-24 md:pb-10 max-w-6xl mx-auto">
-      {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative overflow-hidden px-4 md:px-0 pt-8 pb-10 md:pt-12 md:pb-14"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00D4AA]/5 via-transparent to-[#FF6B2C]/5 pointer-events-none" />
-        <div className="relative max-w-2xl mx-auto text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#00D4AA] to-[#00B894] flex items-center justify-center">
-              <Trophy className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#00D4AA]">
-              Communities
-            </span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">
-            Join the Circle
-          </h1>
-          <p className="mt-2 text-sm md:text-base text-muted-foreground max-w-md mx-auto md:mx-0">
-            Connect with coaches and athletes who share your passion. Train together, grow together.
-          </p>
-
-          {/* Search */}
-          <div className="relative mt-6 max-w-lg mx-auto md:mx-0">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-            <input
-              placeholder="Search by coach or sport..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-12 pl-11 pr-4 rounded-xl bg-card border border-border/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]/40 shadow-sm transition-all"
-            />
-          </div>
-        </div>
-      </motion.div>
-
+    <div className="w-full pb-32 bg-background min-h-screen">
       {hasNone ? (
-        <div className="px-4 md:px-0">
+        <div className="px-4 pt-8">
           <CommunityEmptyState
             title="Be the first to create a community"
             description="No communities yet — start one and bring athletes together around your sport."
@@ -272,97 +269,137 @@ const Community = () => {
         </div>
       ) : (
         <>
-          {/* Featured Communities */}
-          {!loading && featured.length > 0 && (
-            <div className="px-4 md:px-0 mb-10">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-4 w-4 text-[#FF6B2C]" />
-                <h2 className="text-lg font-bold text-foreground">Featured</h2>
-              </div>
-              <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 md:overflow-visible scrollbar-hide">
-                {featured.map((c, i) => (
-                  <FeaturedCard
+          {/* Hero */}
+          {hero && (
+            <CommunityHero
+              community={hero}
+              memberPreviews={memberAvatars}
+              totalMembers={totalMembers}
+              onJoin={() => navigate(`/community/${hero.coachId}`)}
+            />
+          )}
+
+          {/* Sticky sport filters */}
+          <nav className="sticky top-16 z-40 bg-background/80 backdrop-blur-md px-6 py-4 flex gap-6 overflow-x-auto scrollbar-hide">
+            {SPORTS.map((sport) => (
+              <button
+                key={sport}
+                onClick={() => setActiveSport(sport)}
+                className={`flex-shrink-0 text-xs font-black tracking-[0.2em] pb-1 uppercase transition-colors ${
+                  activeSport === sport
+                    ? "text-[#46f1c5] border-b-2 border-[#46f1c5]"
+                    : "text-white/50 hover:text-white/80"
+                }`}
+              >
+                {sport}
+              </button>
+            ))}
+          </nav>
+
+          {/* Search */}
+          <div className="px-6 mt-6">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+              <input
+                placeholder="Search coaches or sports..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-12 pl-11 pr-4 rounded-lg bg-card border border-white/5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#46f1c5]/30 focus:border-[#46f1c5]/40 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Bento grid: hero highlight + 2 stat-style featured tiles */}
+          {activeSport === "All" && !searchQuery && hero && bentoPair.length > 0 && (
+            <div className="px-6 mt-8">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Wide highlight */}
+                <button
+                  onClick={() => navigate(`/community/${hero.coachId}`)}
+                  className="col-span-2 relative overflow-hidden rounded-lg bg-card p-6 group text-left active:scale-[0.99] transition-transform"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-kinetic opacity-10 blur-3xl group-hover:opacity-20 transition-opacity" />
+                  <div className="relative flex justify-between items-start mb-4">
+                    <div>
+                      <span className="text-[10px] font-black text-[#ffb59a] uppercase tracking-[0.25em] mb-2 block">
+                        Next Highlight
+                      </span>
+                      <h3 className="text-2xl font-bold text-white leading-tight">
+                        Join {hero.coachName}
+                        <br />
+                        <span className="text-white/70 text-base font-normal">
+                          {hero.sport} community
+                        </span>
+                      </h3>
+                    </div>
+                    <div className="bg-card/80 border border-white/5 rounded-lg p-3 flex flex-col items-center min-w-[54px]">
+                      <span className="text-xs font-black text-[#46f1c5] uppercase">Live</span>
+                      <span className="text-xl font-black text-white">
+                        {fmt(hero.memberCount)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="relative flex items-center gap-4 text-sm text-white/60">
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      <span>{fmt(hero.memberCount)} members</span>
+                    </div>
+                    {hero.sport && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{hero.sport}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-5 inline-flex h-11 items-center justify-center w-full rounded-md bg-white/5 text-xs font-black uppercase tracking-[0.2em] text-white border border-white/10">
+                    Open community
+                  </div>
+                </button>
+
+                {bentoPair.map((c, i) => (
+                  <BentoCommunityCard
                     key={c.coachId}
                     community={c}
-                    index={i}
                     onClick={() => navigate(`/community/${c.coachId}`)}
+                    accent={i === 0 ? "primary" : "secondary"}
                   />
                 ))}
               </div>
             </div>
           )}
 
-          {/* Sport Filter Pills */}
-          <div className="mb-8 px-4 md:px-0">
-            <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
-              {SPORTS.map((sport) => (
-                <button
-                  key={sport}
-                  onClick={() => setActiveSport(sport)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 ${
-                    activeSport === sport
-                      ? "bg-gradient-to-r from-[#00D4AA] to-[#00B894] text-white shadow-md"
-                      : "bg-card border border-border/30 text-muted-foreground hover:text-foreground hover:border-[#00D4AA]/30"
-                  }`}
-                >
-                  {sport}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Community Grid */}
-          <div className="px-4 md:px-0">
-            <div className="flex items-center gap-2 mb-4">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <h2 className="text-lg font-bold text-foreground">
-                Browse Communities
-              </h2>
-              {filtered.length > 0 && (
-                <span className="text-xs text-muted-foreground ml-1">
-                  ({filtered.length})
-                </span>
-              )}
-            </div>
+          {/* Feed list */}
+          <div className="px-6 mt-10">
+            <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-4">
+              {activeSport === "All" ? "Latest communities" : `${activeSport} communities`}
+            </h4>
 
             {loading ? (
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, i) => (
+              <div className="space-y-4">
+                {Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={i}
-                    className="bg-card rounded-2xl border border-border/20 overflow-hidden animate-pulse"
-                  >
-                    <div className="h-36 bg-secondary" />
-                    <div className="p-4 space-y-3">
-                      <div className="h-4 bg-secondary rounded w-32" />
-                      <div className="h-3 bg-secondary rounded w-24" />
-                      <div className="flex justify-between">
-                        <div className="h-3 bg-secondary rounded w-16" />
-                        <div className="h-8 bg-secondary rounded-full w-20" />
-                      </div>
-                    </div>
-                  </div>
+                    className="bg-card rounded-lg overflow-hidden animate-pulse h-72"
+                  />
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="h-12 w-12 rounded-full bg-muted mx-auto mb-3 flex items-center justify-center">
-                  <Search className="h-5 w-5 text-muted-foreground" />
+              <div className="text-center py-16 bg-card/60 rounded-lg border border-white/5">
+                <div className="h-12 w-12 rounded-full bg-white/5 mx-auto mb-3 flex items-center justify-center">
+                  <Search className="h-5 w-5 text-white/50" />
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/60">
                   No communities found for "{searchQuery || activeSport}"
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-4">
                 {filtered.map((community, i) => (
-                  <CommunityCard
+                  <FeedCommunityCard
                     key={community.coachId}
                     community={community}
                     index={i}
-                    onClick={() =>
-                      navigate(`/community/${community.coachId}`)
-                    }
+                    onClick={() => navigate(`/community/${community.coachId}`)}
                   />
                 ))}
               </div>

@@ -1,16 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import CircloLogo from "@/components/CircloLogo";
 import { SportsSelection } from "@/components/onboarding/SportsSelection";
 import { LocationStep } from "@/components/onboarding/LocationStep";
 import { RoleStep } from "@/components/onboarding/RoleStep";
 import { FollowCoachesStep } from "@/components/onboarding/FollowCoachesStep";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 const TOTAL_STEPS = 4;
@@ -24,75 +21,32 @@ const STEP_LABELS = [
 
 const STORAGE_KEY = "circlo_onboarding_progress";
 
-// ─── Animated Progress Ring ────────────────────────────────────────────────
-function ProgressRing({ step, total }: { step: number; total: number }) {
-  const size = 88;
-  const strokeWidth = 7;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const progress = step / total;
-  const offset = circumference - progress * circumference;
-
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        {/* Background track */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="hsl(var(--muted))"
-          strokeWidth={strokeWidth}
-        />
-        {/* Progress arc */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="hsl(var(--primary))"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 0.4s ease-in-out" }}
-        />
-      </svg>
-      {/* Step counter */}
-      <span className="absolute text-sm font-bold text-foreground rotate-0 select-none">
-        {step} / {total}
-      </span>
-    </div>
-  );
-}
-
 // ─── Completion Celebration Screen ────────────────────────────────────────
 function CompletionScreen() {
-  const checkLength = 120;
-
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
+      className="fixed inset-0 z-[60] flex flex-col items-center justify-center"
+      style={{
+        background:
+          "radial-gradient(circle at top right, rgba(70,241,197,0.35) 0%, transparent 45%), radial-gradient(circle at bottom left, rgba(205,72,2,0.35) 0%, transparent 45%), #111125",
+      }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
       <div className="flex flex-col items-center gap-6 text-center px-8">
-        {/* Animated checkmark SVG */}
         <div className="relative flex items-center justify-center w-32 h-32">
-          {/* Glow ring */}
           <motion.div
-            className="absolute inset-0 rounded-full bg-primary/20"
+            className="absolute inset-0 rounded-full bg-[#46f1c5]/20"
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1.15, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
           />
           <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-            <circle cx="40" cy="40" r="36" stroke="hsl(var(--primary))" strokeWidth="5" opacity="0.25" />
+            <circle cx="40" cy="40" r="36" stroke="#46f1c5" strokeWidth="5" opacity="0.25" />
             <motion.path
               d="M22 40 L35 53 L58 27"
-              stroke="hsl(var(--primary))"
+              stroke="#46f1c5"
               strokeWidth="5.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -104,19 +58,18 @@ function CompletionScreen() {
           </svg>
         </div>
 
-        {/* Heading */}
         <motion.h1
-          className="text-3xl font-bold text-primary"
+          className="text-4xl font-black italic tracking-widest uppercase text-[#46f1c5]"
+          style={{ textShadow: "0 0 24px rgba(70,241,197,0.5)" }}
           initial={{ y: 16, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.55, duration: 0.4 }}
         >
-          You're in! 🎉
+          You're in!
         </motion.h1>
 
-        {/* Subtitle */}
         <motion.p
-          className="text-muted-foreground text-base"
+          className="text-white/70 text-sm tracking-[0.2em] uppercase"
           initial={{ y: 16, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.4 }}
@@ -124,13 +77,12 @@ function CompletionScreen() {
           Taking you to Circlo...
         </motion.p>
 
-        {/* Spinner */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 0.3 }}
         >
-          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+          <Loader2 className="w-5 h-5 animate-spin text-[#46f1c5]" />
         </motion.div>
       </div>
     </motion.div>
@@ -142,7 +94,7 @@ export default function Onboarding() {
   const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
+  const [direction, setDirection] = useState(1);
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
   const [location, setLocation] = useState("");
   const [role, setRole] = useState<"user" | "coach" | null>(null);
@@ -198,7 +150,6 @@ export default function Onboarding() {
   };
 
   const handleSkip = () => {
-    // Save partial progress then go home
     try {
       localStorage.setItem(
         STORAGE_KEY,
@@ -218,7 +169,6 @@ export default function Onboarding() {
     setIsLoading(true);
 
     try {
-      // 1. Update profile
       const profileUpdate: Record<string, unknown> = {
         interests: selectedSports,
         location: location.trim(),
@@ -233,7 +183,6 @@ export default function Onboarding() {
 
       if (profileError) throw profileError;
 
-      // 2. Assign role
       if (role) {
         const { data: existingRole } = await supabase
           .from("user_roles")
@@ -264,7 +213,6 @@ export default function Onboarding() {
         }
       }
 
-      // 3. Follow selected coaches
       if (selectedCoachIds.length > 0) {
         const follows = selectedCoachIds.map((coachId) => ({
           user_id: user.id,
@@ -276,11 +224,8 @@ export default function Onboarding() {
       }
 
       await refreshProfile();
-
-      // Clear saved progress
       localStorage.removeItem(STORAGE_KEY);
 
-      // Show celebration, then navigate
       setShowComplete(true);
       setTimeout(() => {
         navigate("/home", { replace: true });
@@ -313,104 +258,144 @@ export default function Onboarding() {
     exit: (dir: number) => ({ x: dir * -60, opacity: 0 }),
   };
 
+  const progressPct = (currentStep / TOTAL_STEPS) * 100;
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        {/* Header with animated progress ring */}
-        <div className="flex flex-col items-center mb-8 gap-3">
-          <CircloLogo className="mb-1" />
-          <ProgressRing step={currentStep} total={TOTAL_STEPS} />
-          <div className="text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-              {STEP_LABELS[currentStep - 1]}
-            </p>
-            <h1 className="text-xl font-bold text-foreground mt-0.5">
-              Welcome to Circlo!
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Let's personalise your experience
-            </p>
-          </div>
+    <div
+      className="relative min-h-screen w-full flex flex-col items-center overflow-hidden app-top-nav app-bottom-nav"
+      style={{
+        background:
+          "radial-gradient(circle at top right, rgba(70,241,197,0.35) 0%, transparent 45%), radial-gradient(circle at bottom left, rgba(205,72,2,0.35) 0%, transparent 45%), #111125",
+      }}
+    >
+      {/* Background glow decorations */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#46f1c5]/20 blur-[100px]" />
+        <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-[#cd4802]/20 blur-[100px]" />
+      </div>
+
+      {/* Orbital logo + title header */}
+      <div className="relative z-10 w-full max-w-xl px-6 pt-12 pb-6 flex flex-col items-center">
+        <div className="relative inline-block mb-8">
+          <div className="absolute -inset-8 rounded-full border border-[#46f1c5]/20" />
+          <div className="absolute -inset-14 rounded-full border border-[#ffb59a]/10" />
+          <h1
+            className="relative font-black italic tracking-[0.2em] text-4xl uppercase text-[#46f1c5]"
+            style={{ textShadow: "0 0 20px rgba(70,241,197,0.45)" }}
+          >
+            CIRCLO
+          </h1>
         </div>
 
-        {/* Step content with slide transitions */}
-        <Card className="border-0 shadow-lg bg-card overflow-hidden">
-          <CardContent className="p-6">
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={currentStep}
-                custom={direction}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.25, ease: "easeInOut" }}
-              >
-                {currentStep === 1 && (
-                  <SportsSelection
-                    selectedSports={selectedSports}
-                    onSelectionChange={setSelectedSports}
-                  />
-                )}
-                {currentStep === 2 && (
-                  <LocationStep
-                    location={location}
-                    onLocationChange={setLocation}
-                  />
-                )}
-                {currentStep === 3 && (
-                  <RoleStep role={role} onRoleChange={setRole} />
-                )}
-                {currentStep === 4 && (
-                  <FollowCoachesStep
-                    selectedCoachIds={selectedCoachIds}
-                    onSelectionChange={setSelectedCoachIds}
-                    interests={selectedSports}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </CardContent>
-        </Card>
+        <p className="text-[10px] font-label tracking-[0.3em] uppercase text-white/50 mb-1">
+          Step {currentStep} of {TOTAL_STEPS}
+        </p>
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#46f1c5] mb-1">
+          {STEP_LABELS[currentStep - 1]}
+        </p>
+        <h2 className="text-lg font-bold text-white">Find your circle</h2>
+      </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between items-center mt-6">
-          <Button
-            variant="outline"
+      {/* Step content — glass panel */}
+      <div className="relative z-10 w-full max-w-xl flex-1 px-4 pb-6">
+        <div
+          className="rounded-[2rem] border border-white/10 p-5 md:p-6"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+          }}
+        >
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentStep}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
+              {currentStep === 1 && (
+                <SportsSelection
+                  selectedSports={selectedSports}
+                  onSelectionChange={setSelectedSports}
+                />
+              )}
+              {currentStep === 2 && (
+                <LocationStep
+                  location={location}
+                  onLocationChange={setLocation}
+                />
+              )}
+              {currentStep === 3 && (
+                <RoleStep role={role} onRoleChange={setRole} />
+              )}
+              {currentStep === 4 && (
+                <FollowCoachesStep
+                  selectedCoachIds={selectedCoachIds}
+                  onSelectionChange={setSelectedCoachIds}
+                  interests={selectedSports}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Footer: action buttons + progress bar */}
+      <div className="relative z-10 w-full max-w-xl px-6 pb-10 space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <button
             onClick={handleBack}
             disabled={currentStep === 1 || isLoading}
+            className="h-11 w-11 rounded-full border border-white/15 text-white/70 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            aria-label="Back"
           >
-            Back
-          </Button>
+            <ArrowLeft className="h-4 w-4" />
+          </button>
 
-          <div className="flex items-center gap-3">
-            {/* Skip link — every step except last */}
-            {currentStep < TOTAL_STEPS && (
-              <button
-                onClick={handleSkip}
-                disabled={isLoading}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
-              >
-                Skip for now →
-              </button>
+          <button
+            onClick={handleNext}
+            disabled={!canProceed() || isLoading}
+            className="flex-1 h-14 rounded-lg bg-white text-[#111125] font-black uppercase tracking-[0.2em] text-sm shadow-[0_20px_40px_rgba(255,255,255,0.15)] active:scale-95 transition-transform disabled:opacity-40 disabled:shadow-none"
+          >
+            {isLoading ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving...
+              </span>
+            ) : currentStep === TOTAL_STEPS ? (
+              "Complete setup"
+            ) : (
+              <span className="inline-flex items-center gap-2">
+                Next
+                <ArrowRight className="h-4 w-4" />
+              </span>
             )}
+          </button>
+        </div>
 
-            <Button
-              onClick={handleNext}
-              disabled={!canProceed() || isLoading}
-              className="min-w-[130px] bg-primary hover:brightness-110 text-primary-foreground"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : currentStep === TOTAL_STEPS ? (
-                "Complete Setup"
-              ) : (
-                "Next"
-              )}
-            </Button>
+        {currentStep < TOTAL_STEPS && (
+          <button
+            onClick={handleSkip}
+            disabled={isLoading}
+            className="w-full text-[11px] font-label tracking-[0.3em] uppercase text-white/50 hover:text-white/80 transition-colors disabled:opacity-40"
+          >
+            Skip for now →
+          </button>
+        )}
+
+        <p className="text-[10px] text-center font-label text-white/40 tracking-[0.3em] uppercase">
+          Connect • Compete • Conquer
+        </p>
+
+        <div className="flex justify-center">
+          <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-kinetic transition-all duration-500"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
         </div>
       </div>
