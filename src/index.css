@@ -167,6 +167,16 @@
     --brand-navy-deep: 222 47% 11%;
     --brand-navy-card: 217 33% 17%;
     --brand-navy-light: 215 19% 27%;
+
+    /* ── Kinetic Pulse / Stitch accent tokens ── */
+    /* Vibrant teal (#46f1c5) — used as Stitch primary accent */
+    --accent-teal: 166 85% 61%;
+    /* Deep teal (#00c87a ≈ 166 100% 39%) — same as --brand-teal, aliased for Stitch refs */
+    --accent-teal-dark: 166 100% 39%;
+    /* Soft coral (#ffb59a) — Stitch secondary accent */
+    --accent-coral: 14 100% 81%;
+    /* Kinetic gradient: 135° Teal → Orange (Stitch CTA signature) */
+    --gradient-kinetic: linear-gradient(135deg, #00D4AA, #FF6B2C);
   }
 
   .dark {
@@ -508,6 +518,29 @@
   }
   .follow-morph:active {
     transform: scale(0.92);
+  }
+
+  /* ── Kinetic Pulse / Stitch utilities ── */
+  /* Dark glassmorphism: semi-translucent dark surface with blur */
+  .glass-dark {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  }
+  /* Kinetic gradient background — 135° Teal (#00D4AA) → Orange (#FF6B2C) */
+  .bg-gradient-kinetic {
+    background: var(--gradient-kinetic);
+  }
+  /* Kinetic gradient text */
+  .gradient-kinetic-text {
+    background: var(--gradient-kinetic);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  /* Ambient teal glow — use on floating elements per Stitch spec */
+  .glow-teal {
+    box-shadow: 0 0 40px 0 rgba(70, 241, 197, 0.08);
   }
 }
 
