@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, Users, Check, CheckCheck, Loader2, Mic, Plus, Video, Info } from "lucide-react";
+import { ArrowLeft, Send, Users, Check, CheckCheck, Loader2, Mic, Plus, Info } from "lucide-react";
 import { useMessages } from "@/hooks/use-messages";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -159,9 +159,6 @@ const Chat = () => {
             </div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            <button className="text-muted-foreground hover:text-foreground transition-colors">
-              <Video className="h-5 w-5" />
-            </button>
             <button className="text-muted-foreground hover:text-foreground transition-colors">
               <Info className="h-5 w-5" />
             </button>
