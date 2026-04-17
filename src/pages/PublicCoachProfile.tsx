@@ -2134,14 +2134,13 @@ const PublicCoachProfile = ({
             </p>
           )}
 
-          {/* CTAs */}
+          {/* CTAs — primary Book uses Kinetic Pulse gradient (teal→orange per Stitch) */}
           <div ref={heroCtaRef} className="flex gap-2.5 mt-5">
             <button
               onClick={handleBook}
-              className="flex-1 h-12 rounded-2xl font-bold text-sm text-white shadow-lg active:scale-[0.97] transition-all hover:brightness-110 flex items-center justify-center gap-2"
+              className="flex-1 h-12 rounded-2xl font-bold text-sm text-white shadow-lg active:scale-[0.97] transition-all hover:brightness-110 flex items-center justify-center gap-2 bg-gradient-kinetic"
               style={{
-                background: "linear-gradient(135deg, #FF6B2C 0%, #FF8C4A 50%, #E55A1C 100%)",
-                boxShadow: "0 6px 20px rgba(255,107,44,0.35)",
+                boxShadow: "0 6px 20px rgba(0,212,170,0.28), 0 2px 8px rgba(255,107,44,0.18)",
               }}
             >
               <Calendar className="h-4 w-4" />

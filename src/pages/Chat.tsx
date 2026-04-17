@@ -269,7 +269,7 @@ const Chat = () => {
           <button
             onClick={handleSend}
             disabled={!text.trim() || sending || (!messageLimits.hasBooking && !messageLimits.canSend)}
-            className="h-11 w-11 rounded-full bg-foreground flex items-center justify-center text-background disabled:opacity-30 active:scale-90 transition-all"
+            className="h-11 w-11 rounded-full bg-gradient-kinetic flex items-center justify-center text-white shadow-[0_6px_18px_rgba(0,212,170,0.25)] disabled:opacity-30 disabled:shadow-none active:scale-90 transition-all"
           >
             <Send className="h-4 w-4" />
           </button>
