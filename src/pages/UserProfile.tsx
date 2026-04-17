@@ -338,7 +338,7 @@ const UserProfile = () => {
     <div className="min-h-screen bg-background pb-32 app-top-nav">
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
 
-      <div className="pt-6 pb-4 px-6 max-w-md mx-auto">
+      <div className="pt-6 pb-4 px-6">
         {/* ═══════ HERO PROFILE ═══════ */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}

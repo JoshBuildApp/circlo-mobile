@@ -445,7 +445,7 @@ const CoachDashboard = () => {
   return (
     <div className="min-h-screen bg-background pb-32 app-top-nav">
       {/* ═══════ HEADER ═══════ */}
-      <div className="px-6 pt-6 pb-4 max-w-md mx-auto">
+      <div className="px-6 pt-6 pb-4">
         <div className="flex items-start justify-between mb-2">
           <div>
             <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ffb59a]">Dashboard</span>
@@ -477,7 +477,7 @@ const CoachDashboard = () => {
 
       {/* ═══════ OVERVIEW VIEW ═══════ */}
       {tab === "overview" && (
-        <div className="px-6 max-w-md mx-auto space-y-8">
+        <div className="px-6 space-y-8">
           {/* Hero Earnings Card */}
           <section className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-kinetic opacity-20 blur-2xl group-hover:opacity-30 transition duration-1000" />
@@ -618,7 +618,7 @@ const CoachDashboard = () => {
       )}
 
       {/* ═══════ TAB BAR (below overview) ═══════ */}
-      <div className="px-6 mt-8 max-w-md mx-auto mb-5">
+      <div className="px-6 mt-8 mb-5">
         <div className="flex gap-1 overflow-x-auto scrollbar-hide">
           {TABS.map((t) => (
             <button
@@ -647,7 +647,7 @@ const CoachDashboard = () => {
       </div>
 
       {/* ═══════ TAB CONTENT (non-overview) ═══════ */}
-      <div className="px-6 max-w-md mx-auto space-y-5">
+      <div className="px-6 space-y-5">
         {tab === "notifications" && profile && (
           <NotificationsTab coachProfileId={profile.id} />
         )}
