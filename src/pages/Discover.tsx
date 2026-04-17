@@ -181,11 +181,14 @@ const Discover = () => {
           className="flex-1 overflow-y-auto hide-scrollbar pb-24"
         >
           {!isFiltered && (
-            <div className="px-6 pt-6 pb-4">
-              <h2 className="text-4xl font-black tracking-tighter leading-[0.95] text-foreground mb-2">
-                DISCOVER
+            <div className="px-6 pt-8 pb-5">
+              <h2 className="text-5xl font-black tracking-tighter leading-[0.9] mb-3">
+                <span className="text-foreground">DISCOVER</span>
                 <br />
-                <span className="italic text-transparent bg-clip-text bg-gradient-kinetic">
+                <span
+                  className="italic text-transparent bg-clip-text bg-gradient-kinetic"
+                  style={{ WebkitTextStroke: "0.5px transparent" }}
+                >
                   PERFORMANCE
                 </span>
               </h2>
@@ -227,6 +230,22 @@ const Discover = () => {
             />
           ) : (
             <>
+              {/* Kinetic section header — "TOP COACHES NEAR YOU" with orange accent */}
+              {!isFiltered && (
+                <div className="flex justify-between items-end px-6 pt-2 pb-4">
+                  <h3 className="text-xl font-black uppercase tracking-tight text-foreground leading-none">
+                    Top Coaches{" "}
+                    <span className="text-[#ffb59a]">Near You</span>
+                  </h3>
+                  <button
+                    onClick={() => {/* no-op — full list already shown */}}
+                    className="text-[10px] font-black tracking-[0.2em] text-[#46f1c5] uppercase border-b border-[#46f1c5]/30 pb-0.5"
+                  >
+                    View All
+                  </button>
+                </div>
+              )}
+
               <DiscoverGrid
                 coaches={visibleCoaches}
                 availability={availability}
