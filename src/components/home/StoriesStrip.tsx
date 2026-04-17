@@ -76,7 +76,7 @@ const StoriesStrip = () => {
                 onClick={() => openStory(os.ownerId)}
                 className="flex flex-col items-center gap-2 flex-shrink-0 active:scale-95 transition-transform touch-target"
               >
-                <div className="relative h-20 w-20 rounded-full p-[3px] bg-gradient-to-br from-[#FF6B2C] to-[#FF8C42] shadow-md shadow-[#FF6B2C]/20">
+                <div className="relative h-20 w-20 rounded-full p-[3px] bg-gradient-kinetic shadow-md shadow-[#00D4AA]/15">
                   <div className="h-full w-full rounded-full overflow-hidden ring-2 ring-background">
                     <SafeImage
                       src={os.image}

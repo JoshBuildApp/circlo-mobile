@@ -1,9 +1,10 @@
 import { lazy, Suspense, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { useHomeData } from "@/hooks/use-home-data";
 import BrandLoader from "@/components/BrandLoader";
 import PullToRefresh from "@/components/PullToRefresh";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search } from "lucide-react";
+import { Search, Zap } from "lucide-react";
 
 // Hero needs featured coaches for avatars + media
 const HeroPanel = lazy(() => import("@/components/home/HeroPanel"));
@@ -104,6 +105,15 @@ const HomePage = () => {
           <CtaSection />
         </Suspense>
       </div>
+
+      {/* Kinetic FAB — quick-create entry point. Floats above bottom nav. */}
+      <Link
+        to="/create"
+        aria-label="Quick create"
+        className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-kinetic shadow-[0_20px_40px_rgba(0,212,170,0.25)] active:scale-90 transition-transform"
+      >
+        <Zap className="h-6 w-6 text-white" fill="currentColor" strokeWidth={0} />
+      </Link>
     </PullToRefresh>
   );
 };
