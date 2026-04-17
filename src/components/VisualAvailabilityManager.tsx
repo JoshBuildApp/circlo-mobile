@@ -1,8 +1,8 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { format, addDays, startOfWeek, isBefore, isAfter, isSameDay } from "date-fns";
 import {
   CalendarDays, Clock, ChevronLeft, ChevronRight, Palmtree,
-  Plus, Trash2, ToggleLeft, ToggleRight, X, Check,
+  Plus, Trash2, ToggleLeft, ToggleRight, X, Check, Timer, Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -44,7 +44,7 @@ function useCoachVacations(coachId: string) {
 
   const fetch = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("coach_vacations")
       .select("*")
       .eq("coach_id", coachId)
@@ -60,11 +60,56 @@ function useCoachVacations(coachId: string) {
 
 type ViewMode = "grid" | "vacation";
 
+const DURATION_OPTIONS = [
+  { mins: 30,  label: "30m" },
+  { mins: 45,  label: "45m" },
+  { mins: 60,  label: "1h" },
+  { mins: 75,  label: "1h 15m" },
+  { mins: 90,  label: "1h 30m" },
+  { mins: 120, label: "2h" },
+];
+
 const VisualAvailabilityManager = ({ coachProfileId }: Props) => {
   const { slots, loading, refresh } = useAvailability(coachProfileId);
   const { vacations, refresh: refreshVacations } = useCoachVacations(coachProfileId);
   const [view, setView] = useState<ViewMode>("grid");
   const [saving, setSaving] = useState(false);
+  const [sessionDuration, setSessionDuration] = useState<number>(60);
+  const [durationSaving, setDurationSaving] = useState(false);
+
+  // Fetch current session duration from the coach profile
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from("coach_profiles")
+      .select("session_duration")
+      .eq("id", coachProfileId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        if (data && typeof data.session_duration === "number") {
+          setSessionDuration(data.session_duration);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [coachProfileId]);
+
+  const saveSessionDuration = async (mins: number) => {
+    const prev = sessionDuration;
+    setSessionDuration(mins);
+    setDurationSaving(true);
+    const { error } = await supabase
+      .from("coach_profiles")
+      .update({ session_duration: mins })
+      .eq("id", coachProfileId);
+    setDurationSaving(false);
+    if (error) {
+      setSessionDuration(prev);
+      toast.error("Failed to update session length");
+      return;
+    }
+    toast.success(`Session length set to ${mins} minutes`);
+  };
 
   // Track pending grid changes before save
   const [pendingAdds, setPendingAdds] = useState<Set<string>>(new Set());
@@ -240,7 +285,7 @@ const VisualAvailabilityManager = ({ coachProfileId }: Props) => {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("coach_vacations").insert({
+    const { error } = await (supabase as any).from("coach_vacations").insert({
       coach_id: coachProfileId,
       start_date: format(vacStart, "yyyy-MM-dd"),
       end_date: format(vacEnd, "yyyy-MM-dd"),
@@ -259,7 +304,7 @@ const VisualAvailabilityManager = ({ coachProfileId }: Props) => {
   };
 
   const handleDeleteVacation = async (id: string) => {
-    await supabase.from("coach_vacations").delete().eq("id", id);
+    await (supabase as any).from("coach_vacations").delete().eq("id", id);
     toast.success("Vacation removed");
     refreshVacations();
   };
@@ -268,19 +313,66 @@ const VisualAvailabilityManager = ({ coachProfileId }: Props) => {
   const activeHourCount = effectiveKeys.size;
 
   return (
-    <div className="space-y-5" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-            <CalendarDays className="h-4.5 w-4.5 text-primary" />
+    <div className="space-y-6" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+      {/* ═══ HERO HEADER CARD ═══ */}
+      <div
+        className="relative overflow-hidden rounded-3xl border border-border/40 bg-card p-5 md:p-6"
+        style={{
+          background:
+            "linear-gradient(135deg, hsl(var(--primary) / 0.12) 0%, hsl(var(--accent) / 0.08) 40%, hsl(var(--card)) 100%)",
+        }}
+      >
+        <div className="absolute top-0 right-0 w-60 h-60 rounded-full blur-3xl opacity-20 pointer-events-none"
+             style={{ background: "radial-gradient(circle, hsl(var(--primary)), transparent 70%)" }} />
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center shadow-inner">
+              <CalendarDays className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-heading text-xl md:text-2xl font-bold text-foreground tracking-tight">Schedule</h2>
+              <p className="text-xs text-muted-foreground">
+                <span className="font-bold text-foreground">{activeHourCount}</span> hour{activeHourCount !== 1 ? "s" : ""} active per week
+                {" · "}
+                <span className="font-bold text-foreground">{sessionDuration}min</span> sessions
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-heading text-lg font-bold text-foreground">Availability</h2>
-            <p className="text-[11px] text-muted-foreground">
-              {activeHourCount} hour{activeHourCount !== 1 ? "s" : ""} per week
-            </p>
+        </div>
+
+        {/* Session length selector */}
+        <div className="relative mt-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Timer className="h-3.5 w-3.5 text-primary" />
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Session length</p>
+            {durationSaving && (
+              <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            )}
           </div>
+          <div className="flex flex-wrap gap-2">
+            {DURATION_OPTIONS.map((opt) => {
+              const active = sessionDuration === opt.mins;
+              return (
+                <button
+                  key={opt.mins}
+                  onClick={() => saveSessionDuration(opt.mins)}
+                  disabled={durationSaving}
+                  className={cn(
+                    "h-10 px-4 rounded-xl text-sm font-bold transition-all active:scale-95 disabled:opacity-60",
+                    active
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                      : "bg-card/70 text-muted-foreground border border-border/40 hover:border-primary/40 hover:text-foreground"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            Athletes will book {sessionDuration}-minute blocks starting from your available hours.
+          </p>
         </div>
       </div>
 

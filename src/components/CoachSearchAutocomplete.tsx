@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { resolveCoachImage } from '@/lib/coach-placeholders';
 
 interface CoachSearchResult {
   id: string;
@@ -53,12 +54,12 @@ export function CoachSearchAutocomplete({
     }
 
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .rpc("search_coaches", { search_term: term.trim() });
 
     if (!error && data) {
       const filtered = (data as CoachSearchResult[])
-        .filter((c) => !((c as Record<string, unknown>).is_fake))
+        .filter((c) => !(c as any).is_fake)
         .slice(0, 8);
       setResults(filtered);
     } else {
@@ -208,7 +209,7 @@ export function CoachSearchAutocomplete({
                 >
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9 ring-1 ring-border/20">
-                      <AvatarImage src={coach.image_url || undefined} />
+                      <AvatarImage src={resolveCoachImage(coach.image_url, coach.id)} />
                       <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">

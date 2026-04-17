@@ -82,8 +82,9 @@ const AdminVerificationInbox = () => {
         await supabase.from("messages").insert({
           sender_id: adminUser.user.id,
           receiver_id: coach.user_id,
+          conversation_id: [adminUser.user.id, coach.user_id].sort().join("_"),
           content: `Congratulations! Your verification request has been approved. You are now a verified coach on CIRCLO!`,
-        });
+        } as any);
       }
     }
     toast.success("Coach approved and verified!");
@@ -112,8 +113,9 @@ const AdminVerificationInbox = () => {
         await supabase.from("messages").insert({
           sender_id: adminUser.user.id,
           receiver_id: coach.user_id,
+          conversation_id: [adminUser.user.id, coach.user_id].sort().join("_"),
           content: `Your verification request was not approved. Reason: ${rejectionReason}. You can submit a new request after addressing the feedback.`,
-        });
+        } as any);
       }
     }
     toast("Request rejected");
@@ -144,8 +146,9 @@ const AdminVerificationInbox = () => {
         await supabase.from("messages").insert({
           sender_id: adminUser.user.id,
           receiver_id: coach.user_id,
+          conversation_id: [adminUser.user.id, coach.user_id].sort().join("_"),
           content: `Regarding your verification request: ${infoMessage}`,
-        });
+        } as any);
       }
     }
     toast("Info request sent to coach");
@@ -172,7 +175,7 @@ const AdminVerificationInbox = () => {
           <div className="flex items-center gap-4">
             <div className="h-14 w-14 rounded-xl overflow-hidden bg-secondary flex-shrink-0">
               {selected.coach_image_url ? (
-                <img src={selected.coach_image_url} alt="" className="h-full w-full object-cover" />
+                <img src={selected.coach_image_url} alt="" className="h-full w-full object-cover" loading="lazy" />
               ) : (
                 <div className="h-full w-full flex items-center justify-center text-lg font-bold text-muted-foreground">
                   {selected.coach_name?.[0] || "C"}
@@ -389,7 +392,7 @@ const AdminVerificationInbox = () => {
               >
                 <div className="h-11 w-11 rounded-xl overflow-hidden bg-secondary flex-shrink-0">
                   {req.coach_image_url ? (
-                    <img src={req.coach_image_url} alt="" className="h-full w-full object-cover" />
+                    <img src={req.coach_image_url} alt="" className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center text-sm font-bold text-muted-foreground">
                       {req.coach_name?.[0] || "C"}

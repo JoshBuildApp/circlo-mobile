@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, memo } from "react";
-import { Heart, MessageCircle, Share2, Play, Bookmark, UserPlus, UserCheck, Send, X, Trash2, Zap, Volume2, VolumeX, ChevronUp } from "lucide-react";
+import { Heart, MessageCircle, Share2, Play, Bookmark, UserPlus, UserCheck, Send, X, Trash2, Zap, Volume2, VolumeX, ChevronUp, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFeedVideos, useLike, trackView } from "@/hooks/use-feed";
@@ -93,9 +93,11 @@ const Reels = () => {
     }
   }, [showHint]);
 
+  const navigate = useNavigate();
+
   if (loading && allVideos.length === 0) {
     return (
-      <div className="h-full bg-black flex flex-col items-center justify-center gap-4">
+      <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center gap-4">
         <div className="relative">
           <div className="h-16 w-16 rounded-full border-2 border-white/10 flex items-center justify-center">
             <Play className="h-6 w-6 text-white/40 fill-white/40 ml-0.5" />
@@ -108,10 +110,16 @@ const Reels = () => {
   }
 
   return (
-    <div className="h-full bg-black flex flex-col overflow-hidden relative">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden">
       {/* Top header - transparent overlay */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-4 pb-10 bg-gradient-to-b from-black/70 via-black/30 to-transparent pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-10 bg-gradient-to-b from-black/70 via-black/30 to-transparent pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
+          <button
+            onClick={() => navigate(-1)}
+            className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center active:scale-90 transition-transform border border-white/10"
+          >
+            <ArrowLeft className="h-4 w-4 text-white" />
+          </button>
           <span className="font-heading text-base font-bold text-white tracking-wide">Reels</span>
           <span className="text-white/40 text-xs font-medium">{activeIndex + 1}/{allVideos.length}</span>
         </div>
@@ -139,7 +147,7 @@ const Reels = () => {
       {/* Snap scroll container */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
+        className="absolute inset-0 overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {allVideos.map((video, index) => {
@@ -148,7 +156,7 @@ const Reels = () => {
             <div
               key={video.id + "-" + index}
               data-index={index}
-              className="h-full w-full snap-start snap-always"
+              className="h-[100dvh] w-full snap-start snap-always"
             >
               {isNearActive ? (
                 <ReelCard video={video} isActive={index === activeIndex} muted={muted} />

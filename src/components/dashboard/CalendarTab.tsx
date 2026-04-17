@@ -458,7 +458,7 @@ const CalendarTab = ({ allBookings, coachProfileId, onRefresh }: CalendarTabProp
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-2xl bg-secondary overflow-hidden flex-shrink-0">
                 {b.avatar_url ? (
-                  <img src={b.avatar_url} alt="" className="h-full w-full object-cover" />
+                  <img src={b.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center text-muted-foreground text-lg font-bold">
                     {(b.user_name || "T")[0].toUpperCase()}

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { authRedirect } from "@/lib/platform";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ const ForgotPassword = () => {
 
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: authRedirect("/reset-password"),
     });
 
     if (error) {

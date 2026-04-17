@@ -50,7 +50,6 @@ const PageLabSectionCard = ({
             ? "border-border/20 bg-card shadow-sm hover:shadow-md hover:border-primary/20"
             : "border-border/10 bg-secondary/20 opacity-50"
       }`}
-      style={{ touchAction: "none" }}
     >
       {/* Main row */}
       <div className="flex items-center gap-2.5 p-3">

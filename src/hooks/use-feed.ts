@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDataMode } from "@/contexts/DataModeContext";
+import { useHaptics } from "@/native/useNative";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUUID = (s: string) => UUID_RE.test(s);
@@ -142,12 +143,14 @@ export const useBatchLikes = (contentIds: string[]) => {
   return likeMap;
 };
 
-/** Like/unlike a video — standalone for individual use */
+/** Like/unlike a video — standalone with optimistic update + rollback */
 export const useLike = (contentId: string) => {
   const { user } = useAuth();
+  const { tap } = useHaptics();
   const [liked, setLiked] = useState(false);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const pendingRef = useRef(false);
 
   useEffect(() => {
     if (!contentId || !isUUID(contentId)) return;
@@ -176,24 +179,40 @@ export const useLike = (contentId: string) => {
   }, [contentId, user]);
 
   const toggleLike = useCallback(async () => {
-    if (!user || !contentId || !isUUID(contentId)) return;
+    if (!user || !contentId || !isUUID(contentId) || pendingRef.current) return;
+    pendingRef.current = true;
 
-    if (liked) {
-      await supabase
-        .from("likes")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("content_id", contentId);
-      await supabase.rpc("increment_likes", { video_id: contentId, delta: -1 });
-      setLiked(false);
-      setCount((c) => Math.max(0, c - 1));
-    } else {
-      await supabase
-        .from("likes")
-        .insert({ user_id: user.id, content_id: contentId });
-      await supabase.rpc("increment_likes", { video_id: contentId, delta: 1 });
-      setLiked(true);
-      setCount((c) => c + 1);
+    const wasLiked = liked;
+
+    // Optimistic update — instant UI feedback
+    setLiked(!wasLiked);
+    setCount((c) => wasLiked ? Math.max(0, c - 1) : c + 1);
+    tap("light");
+
+    try {
+      if (wasLiked) {
+        const { error } = await supabase
+          .from("likes")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("content_id", contentId);
+        if (error) throw error;
+        const { error: rpcErr } = await supabase.rpc("increment_likes", { video_id: contentId, delta: -1 });
+        if (rpcErr) throw rpcErr;
+      } else {
+        const { error } = await supabase
+          .from("likes")
+          .insert({ user_id: user.id, content_id: contentId });
+        if (error) throw error;
+        const { error: rpcErr } = await supabase.rpc("increment_likes", { video_id: contentId, delta: 1 });
+        if (rpcErr) throw rpcErr;
+      }
+    } catch {
+      // Rollback on failure
+      setLiked(wasLiked);
+      setCount((c) => wasLiked ? c + 1 : Math.max(0, c - 1));
+    } finally {
+      pendingRef.current = false;
     }
   }, [user, contentId, liked]);
 

@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { X, ChevronLeft, Camera, ImageIcon, RotateCcw, Loader2 } from "lucide-react";
+import { X, ChevronLeft, Camera, ImageIcon, RotateCcw, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useUploadLimits, validateFile, UPLOAD_LIMITS } from "@/hooks/use-rate-limits";
+import { Progress } from "@/components/ui/progress";
 
 type Step = "capture" | "preview" | "details" | "posting";
 
@@ -13,15 +15,16 @@ interface ContentUploadFlowProps {
   onClose: () => void;
 }
 
-const MAX_SIZE_MB = 100;
-const ACCEPTED_VIDEO = "video/mp4,video/quicktime,video/webm,video/x-msvideo";
-const ACCEPTED_IMAGE = "image/jpeg,image/png,image/webp,image/gif";
+const MAX_SIZE_MB = 50; // Aligned with rate limit rules
+const ACCEPTED_VIDEO = UPLOAD_LIMITS.ALLOWED_VIDEO_TYPES.join(",");
+const ACCEPTED_IMAGE = UPLOAD_LIMITS.ALLOWED_IMAGE_TYPES.join(",");
 
 const ContentUploadFlow = ({ open, onClose }: ContentUploadFlowProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const uploadLimits = useUploadLimits();
 
   const [step, setStep] = useState<Step>("capture");
   const [file, setFile] = useState<File | null>(null);
@@ -73,8 +76,19 @@ const ContentUploadFlow = ({ open, onClose }: ContentUploadFlowProps) => {
     const f = e.target.files?.[0];
     if (!f) return;
 
-    if (f.size > MAX_SIZE_MB * 1024 * 1024) {
-      toast.error(`File too large. Max ${MAX_SIZE_MB}MB`);
+    // Validate file type and size using rate limit rules
+    const validationError = validateFile(f);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    // Check upload cap
+    if (!uploadLimits.canUpload) {
+      toast.error("Portfolio full — delete items to free space", {
+        description: "Upgrade for more uploads",
+        duration: 5000,
+      });
       return;
     }
 
@@ -126,6 +140,9 @@ const ContentUploadFlow = ({ open, onClose }: ContentUploadFlowProps) => {
         category: isVideo ? "training" : "photos",
       });
 
+      // Increment upload usage on confirmed success
+      await uploadLimits.incrementUsage(file.size);
+
       toast.success("Posted!");
       window.dispatchEvent(new CustomEvent("content-uploaded"));
       handleClose();
@@ -171,6 +188,28 @@ const ContentUploadFlow = ({ open, onClose }: ContentUploadFlowProps) => {
             <h2 className="text-xl font-bold text-foreground">Create</h2>
             <p className="text-sm text-muted-foreground">Choose how to add content</p>
           </div>
+
+          {/* Upload usage indicator */}
+          {!uploadLimits.loading && (
+            <div className="w-full max-w-[280px] space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">
+                  {uploadLimits.current} / {uploadLimits.cap} uploads used
+                </span>
+                {uploadLimits.current >= uploadLimits.cap * 0.8 && uploadLimits.current < uploadLimits.cap && (
+                  <span className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" /> Almost full
+                  </span>
+                )}
+              </div>
+              <Progress value={(uploadLimits.current / uploadLimits.cap) * 100} className="h-1.5" />
+              {!uploadLimits.canUpload && (
+                <p className="text-xs text-destructive text-center mt-2">
+                  Portfolio full — delete items to free space
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-4">
             <button

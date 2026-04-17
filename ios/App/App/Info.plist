@@ -45,5 +45,24 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>club.circlo.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>circlo</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Circlo uses the camera so you can upload a profile photo, coach content, and verification documents.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Circlo uses your photo library so you can choose images for your profile, coach content, and posts.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Circlo saves images you create in the app (e.g. session receipts) to your photo library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Circlo uses the microphone when you record coaching videos or voice messages.</string>
 </dict>
 </plist>

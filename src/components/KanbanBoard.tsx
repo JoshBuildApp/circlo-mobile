@@ -60,8 +60,6 @@ export const KanbanBoard: React.FC = () => {
           table: 'tasks',
         },
         (payload) => {
-          console.log('Real-time task update:', payload);
-          
           switch (payload.eventType) {
             case 'INSERT':
               setTasks(prev => {

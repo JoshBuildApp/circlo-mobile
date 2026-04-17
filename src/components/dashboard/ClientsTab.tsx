@@ -129,7 +129,7 @@ const ClientsTab = ({ clients, retentionData, loading }: ClientsTabProps) => {
               >
                 <div className="h-12 w-12 rounded-2xl bg-secondary overflow-hidden border-2 border-yellow-500/30">
                   {c.avatar_url ? (
-                    <img src={c.avatar_url} alt="" className="h-full w-full object-cover" />
+                    <img src={c.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm font-bold">
                       {c.username[0]?.toUpperCase()}
@@ -178,7 +178,7 @@ const ClientsTab = ({ clients, retentionData, loading }: ClientsTabProps) => {
                 >
                   <div className="h-10 w-10 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
                     {c.avatar_url ? (
-                      <img src={c.avatar_url} alt="" className="h-full w-full object-cover" />
+                      <img src={c.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm font-bold">
                         {c.username[0]?.toUpperCase()}

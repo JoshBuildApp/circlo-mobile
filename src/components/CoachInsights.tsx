@@ -821,7 +821,7 @@ const StatCard = ({ label, value, trend, icon: Icon, accent, prefix = "", suffix
       />
       <div className="flex items-center justify-between mb-3">
         <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: `${accent}15` }}>
-          <Icon className="h-4.5 w-4.5" style={{ color: accent }} />
+          <Icon className="h-[18px] w-[18px]" style={{ color: accent }} />
         </div>
         {trend !== 0 && (
           <div className={cn(

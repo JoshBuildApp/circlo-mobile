@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { openExternal, openSystemUrl } from "@/lib/platform";
 
 interface ShareCoachProfileProps {
   coachId: string;
@@ -41,13 +42,13 @@ export const ShareCoachProfile = ({ coachId, coachName, className }: ShareCoachP
 
   const shareViaWhatsApp = () => {
     const text = encodeURIComponent(`Check out ${coachName}'s coaching profile on Circlo: ${shareUrl}`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    openExternal(`https://wa.me/?text=${text}`);
   };
 
   const shareViaEmail = () => {
     const subject = encodeURIComponent(`Check out ${coachName} on Circlo`);
     const body = encodeURIComponent(`I thought you might be interested in ${coachName}'s coaching profile on Circlo: ${shareUrl}`);
-    window.open(`mailto:?subject=${subject}&body=${body}`);
+    openSystemUrl(`mailto:?subject=${subject}&body=${body}`);
   };
 
   const shareViaNative = async () => {
@@ -60,7 +61,6 @@ export const ShareCoachProfile = ({ coachId, coachName, className }: ShareCoachP
         });
       } catch (err) {
         // User cancelled sharing or error occurred
-        console.log('Share cancelled');
       }
     } else {
       // Fallback to copy to clipboard

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveCoachImage } from "@/lib/coach-placeholders";
 import { Loader2, UserPlus, Check } from "lucide-react";
 
 interface Coach {
@@ -141,7 +142,7 @@ export function FollowCoachesStep({
               <CardContent className="p-4">
                 <div className="flex items-center space-x-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={coach.image_url || undefined} alt={coach.coach_name} />
+                    <AvatarImage src={resolveCoachImage(coach.image_url, coach.id)} alt={coach.coach_name} />
                     <AvatarFallback className="bg-teal-100 text-teal-700 font-semibold">
                       {coach.coach_name.slice(0, 2).toUpperCase()}
                     </AvatarFallback>

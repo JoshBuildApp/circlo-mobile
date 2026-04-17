@@ -2,10 +2,8 @@ import { useTheme, type ThemeName } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 
 const SWATCHES: { id: ThemeName; label: string; bg: string; primary: string }[] = [
-  { id: "light",  label: "Light",  bg: "#F8F7F4", primary: "#FF6B2C" },
-  { id: "dark",   label: "Dark",   bg: "#0F172A", primary: "#FF6B2C" },
-  { id: "ocean",  label: "Ocean",  bg: "#F0FDFA", primary: "#0D9488" },
-  { id: "sunset", label: "Sunset", bg: "#FFFBF5", primary: "#EA580C" },
+  { id: "light",  label: "Light",  bg: "#F9F7F4", primary: "#C67A4B" },
+  { id: "dark",   label: "Dark",   bg: "#1A1A2E", primary: "#C67A4B" },
 ];
 
 interface ThemeSwitcherProps {

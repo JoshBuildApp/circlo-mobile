@@ -4,6 +4,7 @@ import { useStories } from "@/hooks/use-stories";
 import type { Story } from "@/hooks/use-stories";
 import { SafeImage } from "@/components/ui/safe-image";
 import { useAuth } from "@/contexts/AuthContext";
+import SectionHeader from "./SectionHeader";
 
 const StoriesStrip = () => {
   const { user } = useAuth();
@@ -50,38 +51,56 @@ const StoriesStrip = () => {
 
   return (
     <>
-      <div className="px-4 pt-3 pb-2">
-        <div className="flex w-full max-w-full gap-3 overflow-x-auto hide-scrollbar">
+      <div className="px-4 md:px-6 lg:px-8">
+        <SectionHeader title="Live from your coaches" linkTo="/feed" linkLabel="View all" />
+        <div className="flex w-full max-w-full gap-5 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
           {/* Add Story button for any logged-in user */}
           {user && (
             <button
               onClick={openCreateStory}
-              className="flex flex-col items-center gap-1.5 flex-shrink-0 active:scale-95 transition-transform touch-target"
+              className="flex flex-col items-center gap-2 flex-shrink-0 active:scale-95 transition-transform touch-target"
             >
-              <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
-                <Plus className="h-6 w-6 text-primary" />
+              <div className="h-20 w-20 rounded-full bg-[#FF6B2C]/5 flex items-center justify-center border-2 border-dashed border-[#FF6B2C]/40 hover:border-[#FF6B2C] transition-colors">
+                <Plus className="h-7 w-7 text-[#FF6B2C]" />
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium w-16 text-center truncate">
+              <span className="text-[11px] text-foreground font-bold w-20 text-center truncate">
                 Add Story
               </span>
             </button>
           )}
-          {ownerStories.map((os) => (
-            <button
-              key={os.ownerId}
-              onClick={() => openStory(os.ownerId)}
-              className="flex flex-col items-center gap-1.5 flex-shrink-0 active:scale-95 transition-transform touch-target"
-            >
-              <div className="h-16 w-16 rounded-full p-[2.5px] bg-brand-gradient shadow-brand-sm">
-                <div className="h-full w-full rounded-full overflow-hidden ring-2 ring-card">
-                  <SafeImage src={os.image} alt={os.name} className="h-full w-full object-cover" loading="lazy" protect={false} displayWidth={80} srcSetWidths={[64, 128]} sizes="64px" />
+          {ownerStories.map((os, idx) => {
+            const isLive = idx === 0; // first story tagged as "live" for visual variety
+            return (
+              <button
+                key={os.ownerId}
+                onClick={() => openStory(os.ownerId)}
+                className="flex flex-col items-center gap-2 flex-shrink-0 active:scale-95 transition-transform touch-target"
+              >
+                <div className="relative h-20 w-20 rounded-full p-[3px] bg-gradient-to-br from-[#FF6B2C] to-[#FF8C42] shadow-md shadow-[#FF6B2C]/20">
+                  <div className="h-full w-full rounded-full overflow-hidden ring-2 ring-background">
+                    <SafeImage
+                      src={os.image}
+                      alt={os.name}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      protect={false}
+                      displayWidth={96}
+                      srcSetWidths={[80, 160]}
+                      sizes="80px"
+                    />
+                  </div>
+                  {isLive && (
+                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-red-600 text-[8px] text-white px-1.5 py-[1px] rounded-full font-black border-2 border-background tracking-wider">
+                      LIVE
+                    </span>
+                  )}
                 </div>
-              </div>
-              <span className="text-[11px] text-muted-foreground font-medium w-16 text-center truncate">
-                {os.name.split(" ")[0]}
-              </span>
-            </button>
-          ))}
+                <span className="text-[11px] text-foreground font-bold w-20 text-center truncate">
+                  {os.name.split(" ")[0]}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

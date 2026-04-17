@@ -162,7 +162,7 @@ const CoachSessions = ({ coachProfileId }: CoachSessionsProps) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="h-9 w-9 rounded-xl bg-accent/10 flex items-center justify-center">
-            <CalendarDays className="h-4.5 w-4.5 text-accent" />
+            <CalendarDays className="h-[18px] w-[18px] text-accent" />
           </div>
           <div>
             <h2 className="font-heading text-lg font-bold text-foreground">My Sessions</h2>
@@ -226,9 +226,9 @@ const CoachSessions = ({ coachProfileId }: CoachSessionsProps) => {
               <div className="flex items-center gap-4">
                 <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
                   {booking.is_group ? (
-                    <Users className="h-4.5 w-4.5 text-accent" />
+                    <Users className="h-[18px] w-[18px] text-accent" />
                   ) : (
-                    <User className="h-4.5 w-4.5 text-muted-foreground" />
+                    <User className="h-[18px] w-[18px] text-muted-foreground" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

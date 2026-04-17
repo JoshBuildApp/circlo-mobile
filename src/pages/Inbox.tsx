@@ -6,6 +6,7 @@ import {
   Inbox as InboxIcon, Sparkles, ArrowRight, Trophy, Star,
   ChevronRight, MessageCircle
 } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import { useConversations } from "@/hooks/use-messages";
 import { useBookingRequests } from "@/hooks/use-booking-requests";
 import { useNotifications } from "@/hooks/use-notifications";
@@ -14,6 +15,7 @@ import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useBatchOnlineStatus } from "@/hooks/use-online-status";
 import { ActiveIndicator } from "@/components/ActiveIndicator";
+import { EmptyState } from "@/components/EmptyState";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Tab = "messages" | "requests" | "notifications";
@@ -162,27 +164,26 @@ const Inbox = () => {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Header */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold text-foreground">Inbox</h1>
+      <PageHeader
+        title="Inbox"
+        actions={
+          <>
             {(unreadMsgs + pendingCount + unreadCount) > 0 && (
               <span className="h-5 min-w-[20px] rounded-full bg-destructive flex items-center justify-center px-1.5">
                 <span className="text-[10px] font-bold text-white">{unreadMsgs + pendingCount + unreadCount}</span>
               </span>
             )}
-          </div>
-          {tab === "notifications" && unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="text-xs font-semibold text-primary active:scale-95 transition-all"
-            >
-              Mark all read
-            </button>
-          )}
-        </div>
-
+            {tab === "notifications" && unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="text-xs font-semibold text-primary active:scale-95 transition-all"
+              >
+                Mark all read
+              </button>
+            )}
+          </>
+        }
+      >
         {/* Search */}
         <div className="relative mb-3">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
@@ -232,7 +233,7 @@ const Inbox = () => {
             </button>
           ))}
         </div>
-      </div>
+      </PageHeader>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
@@ -271,7 +272,7 @@ const Inbox = () => {
 /* ─── Messages Tab ─── */
 const MessagesTab = ({ conversations, loading, onlineStatuses }: { conversations: any[]; loading: boolean; onlineStatuses: Record<string, import("@/hooks/use-activity").ActivityStatus> }) => {
   if (loading) return <LoadingState />;
-  if (conversations.length === 0) return <EmptyState icon={MessageSquare} title="No messages yet" sub="Start a conversation with a coach to get training advice" action={{ label: "Discover Coaches", to: "/discover" }} />;
+  if (conversations.length === 0) return <EmptyState icon={MessageSquare} illustration="messages" title="No messages yet" description="Start a conversation with a coach to get personalised training advice" action={{ label: "Find a Coach", to: "/discover" }} size="lg" />;
 
   return (
     <div className="py-1">
@@ -293,7 +294,7 @@ const MessagesTab = ({ conversations, loading, onlineStatuses }: { conversations
             >
               <div className="relative h-12 w-12 rounded-full overflow-hidden bg-secondary flex-shrink-0">
                 {conv.partnerAvatar ? (
-                  <img src={conv.partnerAvatar} alt={conv.partnerName} className="h-full w-full object-cover" />
+                  <img src={conv.partnerAvatar} alt={conv.partnerName} className="h-full w-full object-cover" loading="lazy" />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-secondary to-secondary/50">
                     <User className="h-5 w-5 text-muted-foreground/30" />
@@ -341,7 +342,7 @@ const RequestsTab = ({
   onAccept: (id: string) => void; onReject: (id: string) => void;
 }) => {
   if (loading) return <LoadingState />;
-  if (pending.length === 0 && other.length === 0) return <EmptyState icon={CalendarCheck} title="No requests" sub="Booking requests from athletes will appear here" />;
+  if (pending.length === 0 && other.length === 0) return <EmptyState icon={CalendarCheck} illustration="requests" title="No requests yet" description="Booking requests from your athletes will appear here" action={{ label: "Share Profile", to: "/profile" }} size="lg" />;
 
   return (
     <div className="py-1">
@@ -398,7 +399,7 @@ const RequestCard = ({
       <div className="flex items-start gap-3">
         <div className="h-11 w-11 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 overflow-hidden">
           {r.user_avatar ? (
-            <img src={r.user_avatar} alt="" className="h-full w-full rounded-full object-cover" />
+            <img src={r.user_avatar} alt="" className="h-full w-full rounded-full object-cover" loading="lazy" />
           ) : (
             <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-secondary to-secondary/50">
               <User className="h-4 w-4 text-muted-foreground/40" />
@@ -466,7 +467,7 @@ const NotificationsTab = ({
 
   if (loading) return <LoadingState />;
   const total = groups.bookings.length + groups.social.length + groups.system.length;
-  if (total === 0) return <EmptyState icon={Bell} title="No updates yet" sub="Follow coaches and book sessions to get activity updates" />;
+  if (total === 0) return <EmptyState icon={Bell} illustration="notifications" title="All quiet here" description="Follow coaches and book sessions to start receiving activity updates" action={{ label: "Discover Coaches", to: "/discover" }} size="lg" />;
 
   const categories = (Object.keys(CATEGORY_CONFIG) as NotificationCategory[]).filter(
     (cat) => groups[cat].length > 0
@@ -493,7 +494,7 @@ const NotificationsTab = ({
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center", config.iconBg)}>
-              <config.icon className="h-4.5 w-4.5" />
+              <config.icon className="h-[18px] w-[18px]" />
             </div>
             <div>
               <p className="text-sm font-bold text-foreground">{config.label}</p>
@@ -625,7 +626,7 @@ const NotificationItem = ({ notification: n, index: i, onMarkRead }: { notificat
         "h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0",
         !n.is_read ? colorClass : "bg-secondary/80 text-muted-foreground/30"
       )}>
-        <Icon className="h-4.5 w-4.5" />
+        <Icon className="h-[18px] w-[18px]" />
       </div>
       <div className="flex-1 min-w-0">
         <p className={cn("text-sm leading-tight", !n.is_read ? "font-bold text-foreground" : "font-medium text-foreground/70")}>
@@ -653,25 +654,6 @@ const LoadingState = () => (
       <div className="absolute inset-0 h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
     </div>
     <span className="text-xs text-muted-foreground/40">Loading...</span>
-  </div>
-);
-
-const EmptyState = ({ icon: Icon, title, sub, action }: { icon: typeof Bell; title: string; sub: string; action?: { label: string; to: string } }) => (
-  <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-    <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-secondary to-secondary/50 flex items-center justify-center mb-4">
-      <Icon className="h-7 w-7 text-muted-foreground/25" />
-    </div>
-    <h3 className="text-base font-bold text-foreground mb-1">{title}</h3>
-    <p className="text-sm text-muted-foreground/60 mb-5 max-w-[240px] leading-relaxed">{sub}</p>
-    {action && (
-      <Link
-        to={action.to}
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-all shadow-[0_2px_8px_rgba(0,212,170,0.2)]"
-      >
-        {action.label}
-        <ArrowRight className="h-3.5 w-3.5" />
-      </Link>
-    )}
   </div>
 );
 

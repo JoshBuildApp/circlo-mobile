@@ -9,7 +9,6 @@ export interface GatewayHealthStatus {
     database: 'connected' | 'disconnected';
     auth: 'available' | 'unavailable';
   };
-  tunnelId?: string;
 }
 
 class GatewayHealthChecker {
@@ -38,7 +37,6 @@ class GatewayHealthChecker {
           database: dbStatus,
           auth: authStatus,
         },
-        tunnelId: process.env.CLOUDFLARE_TUNNEL_ID,
       };
     } catch (error) {
       console.error('Health check failed:', error);

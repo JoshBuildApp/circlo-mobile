@@ -1,5 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const SPORTS = [
@@ -18,7 +17,7 @@ const SPORTS = [
   { id: "surfing", name: "Surfing", emoji: "🏄" },
   { id: "climbing", name: "Climbing", emoji: "🧗" },
   { id: "martial_arts", name: "Martial Arts", emoji: "🥋" },
-  { id: "hockey", name: "Hockey", emoji: "🏒" }
+  { id: "hockey", name: "Hockey", emoji: "🏒" },
 ];
 
 interface SportsSelectionProps {
@@ -29,62 +28,103 @@ interface SportsSelectionProps {
 export function SportsSelection({ selectedSports, onSelectionChange }: SportsSelectionProps) {
   const handleSportToggle = (sportId: string) => {
     const newSelection = selectedSports.includes(sportId)
-      ? selectedSports.filter(id => id !== sportId)
+      ? selectedSports.filter((id) => id !== sportId)
       : [...selectedSports, sportId];
-    
     onSelectionChange(newSelection);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          What sports do you love?
-        </h2>
-        <p className="text-gray-600">
-          Select all the sports you're interested in. This helps us recommend the best coaches and content for you.
-        </p>
+    <div className="space-y-5">
+      {/* Header + count badge */}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">What sports do you love?</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Tap to select — we'll match you with the best coaches.
+          </p>
+        </div>
+
+        <AnimatePresence>
+          {selectedSports.length > 0 && (
+            <motion.div
+              key="badge"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              className="shrink-0 mt-0.5 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-sm"
+            >
+              {selectedSports.length} selected
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {SPORTS.map((sport) => (
-          <Card
-            key={sport.id}
-            className={cn(
-              "cursor-pointer transition-all hover:shadow-md border-2",
-              selectedSports.includes(sport.id)
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
-            )}
-            onClick={() => handleSportToggle(sport.id)}
+      {/* 3-column emoji grid */}
+      <div className="grid grid-cols-3 gap-2.5">
+        {SPORTS.map((sport) => {
+          const isSelected = selectedSports.includes(sport.id);
+          return (
+            <motion.button
+              key={sport.id}
+              onClick={() => handleSportToggle(sport.id)}
+              whileTap={{ scale: 0.88 }}
+              animate={{ scale: isSelected ? 1.04 : 1 }}
+              transition={{ type: "spring", stiffness: 420, damping: 18 }}
+              className={cn(
+                "relative flex flex-col items-center justify-center gap-1.5 rounded-2xl py-4 px-2 cursor-pointer border-2 transition-colors duration-200 select-none outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                isSelected
+                  ? "border-primary bg-gradient-to-b from-primary/20 to-primary/10 shadow-md"
+                  : "border-border bg-muted/40 hover:border-primary/40 hover:bg-muted/70"
+              )}
+              aria-pressed={isSelected}
+            >
+              {/* Checkmark pip */}
+              <AnimatePresence>
+                {isSelected && (
+                  <motion.div
+                    key="check"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                    className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center"
+                  >
+                    <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+                      <path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <span className="text-2xl leading-none">{sport.emoji}</span>
+              <span
+                className={cn(
+                  "text-xs font-semibold leading-tight text-center",
+                  isSelected ? "text-primary" : "text-foreground/70"
+                )}
+              >
+                {sport.name}
+              </span>
+            </motion.button>
+          );
+        })}
+      </div>
+
+      {/* Empty state hint */}
+      <AnimatePresence>
+        {selectedSports.length === 0 && (
+          <motion.p
+            key="hint"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-center text-xs text-muted-foreground pt-1"
           >
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl mb-2">{sport.emoji}</div>
-              <div className="font-medium text-sm">{sport.name}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {selectedSports.length > 0 && (
-        <div className="flex flex-wrap gap-2 pt-4 border-t">
-          <span className="text-sm font-medium text-gray-700 mr-2">Selected:</span>
-          {selectedSports.map((sportId) => {
-            const sport = SPORTS.find(s => s.id === sportId);
-            return sport ? (
-              <Badge key={sportId} variant="secondary">
-                {sport.emoji} {sport.name}
-              </Badge>
-            ) : null;
-          })}
-        </div>
-      )}
-
-      {selectedSports.length === 0 && (
-        <div className="text-center text-sm text-gray-500 bg-gray-50 p-4 rounded-lg">
-          Please select at least one sport to continue
-        </div>
-      )}
+            Select at least one sport to continue
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

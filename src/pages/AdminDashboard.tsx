@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Users, User, UserCog, Image, FileX } from "lucide-react";
+import { Shield, Users, User, UserCog, Image, FileX, DollarSign, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminVerificationInbox from "@/components/AdminVerificationInbox";
 import AdminContentPanel from "@/components/AdminContentPanel";
 import AdminUserManager from "@/components/AdminUserManager";
+import RevenueTab from "@/components/admin/RevenueTab";
+import ChurnTab from "@/components/admin/ChurnTab";
+import FunnelTab from "@/components/admin/FunnelTab";
 import { toast } from "sonner";
 
 type AppRole = "admin" | "user" | "coach" | "developer";
@@ -17,7 +20,7 @@ interface UserRow {
   role: AppRole;
 }
 
-type Tab = "verification" | "users" | "content" | "manage-users";
+type Tab = "verification" | "users" | "content" | "manage-users" | "revenue" | "churn" | "funnel";
 
 const AdminDashboard = () => {
   const { user, isAdmin, isDeveloper, loading } = useAuth();
@@ -82,6 +85,9 @@ const AdminDashboard = () => {
     { key: "users", label: "All Users" },
     { key: "content", label: "Content" },
     { key: "manage-users", label: "Manage Users" },
+    { key: "revenue", label: "Revenue" },
+    { key: "churn", label: "Churn" },
+    { key: "funnel", label: "Funnel" },
   ];
 
   return (
@@ -140,6 +146,12 @@ const AdminDashboard = () => {
         {tab === "content" && <AdminContentPanel />}
 
         {tab === "manage-users" && <AdminUserManager />}
+
+        {tab === "revenue" && <RevenueTab />}
+
+        {tab === "churn" && <ChurnTab />}
+
+        {tab === "funnel" && <FunnelTab />}
 
         {tab === "users" && (
           <div className="bg-card rounded-2xl border border-border/10 overflow-hidden">

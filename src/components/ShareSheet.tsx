@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Copy, Check, MessageCircle, Instagram, Link2, Share2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { openExternal, shareUrl as buildShareUrl } from "@/lib/platform";
 
 interface ShareSheetProps {
   open: boolean;
@@ -16,7 +17,7 @@ const ShareSheet = ({ open, onClose, title, text, url }: ShareSheetProps) => {
 
   if (!open) return null;
 
-  const fullUrl = url.startsWith("http") ? url : `${window.location.origin}${url}`;
+  const fullUrl = url.startsWith("http") ? url : buildShareUrl(url);
   const shareText = text || title;
 
   const handleCopy = async () => {
@@ -27,7 +28,7 @@ const ShareSheet = ({ open, onClose, title, text, url }: ShareSheetProps) => {
   };
 
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(`${shareText}\n${fullUrl}`)}`, "_blank");
+    openExternal(`https://wa.me/?text=${encodeURIComponent(`${shareText}\n${fullUrl}`)}`);
     onClose();
   };
 

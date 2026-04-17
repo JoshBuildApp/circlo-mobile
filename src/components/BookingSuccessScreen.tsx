@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, Calendar, Share2, ChevronRight, X, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { openExternal } from "@/lib/platform";
+import { useHaptics } from "@/native/useNative";
 
 interface BookingSuccessProps {
   coachName: string;
@@ -80,19 +82,21 @@ const RingBurst = () => (
 
 const BookingSuccessScreen = ({ coachName, sport, date, time, price, onClose }: BookingSuccessProps) => {
   const [showConfetti, setShowConfetti] = useState(true);
+  const { success } = useHaptics();
 
   useEffect(() => {
     const t = setTimeout(() => setShowConfetti(false), 4000);
-    // Haptic feedback on supported devices
-    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    // Native success haptic on iOS/Android; web fallback to Vibration API.
+    success();
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate([100, 50, 100]);
     return () => clearTimeout(t);
-  }, []);
+  }, [success]);
 
   const addToCalendar = () => {
     const start = new Date(`${date}T${time}`);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Circlo+${sport}+Session+with+${coachName}&dates=${start.toISOString().replace(/[-:]/g, "").split(".")[0]}Z/${end.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`;
-    window.open(url, "_blank");
+    openExternal(url);
   };
 
   const share = async () => {

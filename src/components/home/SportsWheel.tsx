@@ -56,8 +56,8 @@ const SportsWheel = ({ selected, onSelect }: SportsWheelProps) => {
               }
             `}
             style={isActive ? {
-              background: "linear-gradient(135deg, #00D4AA, #FF6B2C)",
-              boxShadow: "0 4px 15px rgba(0,212,170,0.3)"
+              background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))",
+              boxShadow: "0 4px 15px hsl(var(--primary) / 0.3)"
             } : {}}
           >
             <span className="text-base leading-none">{sport.emoji}</span>

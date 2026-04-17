@@ -20,9 +20,9 @@ export const ActiveIndicator = ({
   return (
     <div 
       className={cn(
-        "rounded-full border-2 border-white",
+        "rounded-full border-2 border-card",
         sizeClasses[size],
-        isActive ? "bg-green-500" : "bg-gray-400",
+        isActive ? "bg-accent" : "bg-muted",
         className
       )}
     />

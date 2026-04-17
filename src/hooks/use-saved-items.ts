@@ -38,7 +38,19 @@ export function useSavedItems() {
       });
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved_items"] }),
+    onMutate: async ({ contentId, collectionName = "Saved" }) => {
+      await queryClient.cancelQueries({ queryKey: ["saved_items", user?.id] });
+      const previous = queryClient.getQueryData<SavedItem[]>(["saved_items", user?.id]);
+      queryClient.setQueryData<SavedItem[]>(["saved_items", user?.id], (old = []) => [
+        { id: `optimistic-${Date.now()}`, user_id: user!.id, content_id: contentId, collection_name: collectionName, created_at: new Date().toISOString() },
+        ...old,
+      ]);
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(["saved_items", user?.id], context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["saved_items", user?.id] }),
   });
 
   const unsaveItem = useMutation({
@@ -51,7 +63,18 @@ export function useSavedItems() {
         .eq("content_id", contentId);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved_items"] }),
+    onMutate: async (contentId) => {
+      await queryClient.cancelQueries({ queryKey: ["saved_items", user?.id] });
+      const previous = queryClient.getQueryData<SavedItem[]>(["saved_items", user?.id]);
+      queryClient.setQueryData<SavedItem[]>(["saved_items", user?.id], (old = []) =>
+        old.filter((item) => item.content_id !== contentId),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(["saved_items", user?.id], context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["saved_items", user?.id] }),
   });
 
   const isItemSaved = (contentId: string) =>

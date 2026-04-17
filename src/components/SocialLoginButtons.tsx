@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { authRedirect } from "@/lib/platform";
 
 interface SocialLoginButtonsProps {
   /** Visual variant for light or dark backgrounds */
@@ -15,7 +16,7 @@ const SocialLoginButtons = ({ variant = "light" }: SocialLoginButtonsProps) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/home`,
+        redirectTo: authRedirect("/home"),
       },
     });
     if (error) {
@@ -31,7 +32,7 @@ const SocialLoginButtons = ({ variant = "light" }: SocialLoginButtonsProps) => {
     : "h-14 w-full rounded-2xl border text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3";
 
   const googleClasses = isDark
-    ? `${btnBase} border-white/10 bg-[#12121A] text-white hover:border-white/20`
+    ? `${btnBase} border-border bg-card text-foreground hover:border-border/70`
     : `${btnBase} border-border bg-background text-foreground hover:bg-muted`;
 
   const appleClasses = isDark

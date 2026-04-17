@@ -11,29 +11,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 })
 
-// Initialize chat-files bucket if it doesn't exist
-const initializeChatStorage = async () => {
-  try {
-    // Check if bucket exists
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const chatBucketExists = buckets?.some(bucket => bucket.name === 'chat-files');
-    
-    if (!chatBucketExists) {
-      // Create chat-files bucket
-      const { error } = await supabase.storage.createBucket('chat-files', {
-        public: true,
-        allowedMimeTypes: ['image/*', 'audio/*'],
-        fileSizeLimit: 5242880, // 5MB
-      });
-      
-      if (error) {
-        console.error('Error creating chat-files bucket:', error);
-      }
-    }
-  } catch (error) {
-    console.error('Error initializing chat storage:', error);
-  }
-};
-
-// Initialize storage on client setup
-initializeChatStorage();
+// The chat-files bucket is provisioned server-side by the migration
+// 20260414000002_security_hardening_followup.sql as a *private* bucket with
+// per-user folder RLS. The previous client-side auto-create path made it
+// public with no RLS and has been removed.

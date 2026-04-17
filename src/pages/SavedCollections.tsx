@@ -1,10 +1,12 @@
 import { Bookmark, FolderOpen } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { useSavedItems } from "@/hooks/use-saved-items";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import PageHeader from "@/components/PageHeader";
 
 const SavedCollections = () => {
   const { user } = useAuth();
@@ -45,10 +47,11 @@ const SavedCollections = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="px-5 pt-6 pb-4">
-        <h1 className="font-heading text-xl font-bold text-foreground">Saved</h1>
-        <p className="text-xs text-muted-foreground mt-1">{savedItems.length} items saved</p>
-      </div>
+      <PageHeader
+        title="Saved"
+        subtitle={`${savedItems.length} items saved`}
+        className="px-5 pt-6 pb-4"
+      />
 
       {/* Collection chips */}
       <div className="flex w-full max-w-full gap-2 overflow-x-auto hide-scrollbar px-5 pb-4">
@@ -75,10 +78,19 @@ const SavedCollections = () => {
 
       {/* Grid */}
       {videos.length === 0 ? (
-        <div className="text-center py-16">
-          <FolderOpen className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">No saved content yet</p>
-        </div>
+        <EmptyState
+          icon={Bookmark}
+          illustration="saved"
+          title={savedItems.length === 0 ? "Nothing saved yet" : "No videos here"}
+          description={
+            savedItems.length === 0
+              ? "Bookmark coaching videos and plays to watch them anytime"
+              : "Try a different collection or save more content"
+          }
+          action={savedItems.length === 0 ? { label: "Explore Videos", to: "/plays" } : undefined}
+          secondaryAction={savedItems.length === 0 ? { label: "Browse coaches", to: "/discover" } : undefined}
+          size="lg"
+        />
       ) : (
         <div className="grid grid-cols-2 gap-2.5 px-5">
           {videos.map((v: any) => (
@@ -88,7 +100,7 @@ const SavedCollections = () => {
               className="relative aspect-[9/14] rounded-2xl overflow-hidden bg-secondary group"
             >
               {v.thumbnail_url ? (
-                <img src={v.thumbnail_url} alt={v.title} className="absolute inset-0 h-full w-full object-cover" />
+                <img src={v.thumbnail_url} alt={v.title} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
               ) : (
                 <video src={v.media_url} className="absolute inset-0 h-full w-full object-cover" muted preload="metadata" />
               )}

@@ -130,7 +130,6 @@ export function GatewayHealthStatus({ gatewayUrl, compact = false }: GatewayHeal
         <div className="text-xs text-muted-foreground space-y-1">
           <p>Uptime: {Math.floor(health.uptime / 3600)}h {Math.floor((health.uptime % 3600) / 60)}m</p>
           <p>Last check: {new Date(health.timestamp).toLocaleTimeString()}</p>
-          {health.tunnelId && <p>Tunnel ID: {health.tunnelId}</p>}
         </div>
       </CardContent>
     </Card>

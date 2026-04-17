@@ -1,8 +1,10 @@
-import React, { Component, ReactNode } from 'react';
+import React, { Component, ReactNode, lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, Home, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+
+const NotFoundPage = lazy(() => import('@/components/ui/page-not-found'));
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -60,69 +62,39 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
-          <Card className="max-w-md w-full shadow-xl border-0">
-            <CardContent className="p-8 text-center space-y-6">
-              {/* Simple branded text instead of CircloLogo to avoid context dependency */}
-              <div className="flex justify-center mb-6">
-                <span className="text-2xl font-bold text-foreground">Circlo</span>
-              </div>
-
-              <div className="flex justify-center">
-                <div className="relative">
-                  <div className="w-24 h-24 bg-destructive/10 rounded-full flex items-center justify-center">
-                    <AlertCircle className="w-12 h-12 text-destructive" />
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-background flex items-center justify-center p-4">
+              <Card className="max-w-md w-full shadow-xl border-0">
+                <CardContent className="p-8 text-center space-y-6">
+                  <div className="flex justify-center mb-6">
+                    <span className="text-2xl font-bold text-foreground">Circlo</span>
                   </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-foreground">
-                  Oops! Something went wrong
-                </h2>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  We're experiencing a technical hiccup. Don't worry - our team has been notified.
-                </p>
-              </div>
-
-              {import.meta.env.DEV && this.state.error && (
-                <details className="text-left bg-muted p-3 rounded-lg text-xs">
-                  <summary className="cursor-pointer font-medium text-foreground mb-2">
-                    Technical Details
-                  </summary>
-                  <code className="text-destructive break-all">
-                    {this.state.error.message}
-                  </code>
-                </details>
-              )}
-
-              <div className="space-y-3">
-                <Button 
-                  onClick={this.handleRetry}
-                  className="w-full"
-                  size="lg"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Try Again
-                </Button>
-                
-                <Button 
-                  onClick={this.handleGoHome}
-                  variant="outline"
-                  className="w-full"
-                  size="lg"
-                >
-                  <Home className="w-4 h-4 mr-2" />
-                  Back to Home
-                </Button>
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                If this keeps happening, please reach out to our support team.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+                  <div className="flex justify-center">
+                    <div className="w-24 h-24 bg-destructive/10 rounded-full flex items-center justify-center">
+                      <AlertCircle className="w-12 h-12 text-destructive" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-semibold text-foreground">Something went wrong</h2>
+                    <p className="text-muted-foreground text-sm">Loading error page...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          }
+        >
+          <NotFoundPage
+            title="Something Went Wrong"
+            description={
+              import.meta.env.DEV && this.state.error
+                ? this.state.error.message
+                : "We're experiencing a technical hiccup. Don't worry — our team has been notified."
+            }
+            onGoBack={this.handleRetry}
+            onGoHome={this.handleGoHome}
+          />
+        </Suspense>
       );
     }
 

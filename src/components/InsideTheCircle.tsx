@@ -15,17 +15,15 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
     <section
       ref={ref}
       id="community"
-      className={`relative py-24 sm:py-32 overflow-hidden ${
-        dark ? "bg-navy-deep" : "bg-[#0B0B14]"
-      }`}
+      className="relative py-20 sm:py-28 lg:py-32 overflow-x-hidden overflow-y-visible bg-[#070912]"
     >
-      {/* Ambient background glow — iridescent radial gradient */}
+      {/* Ambient background glow — brand orange radial */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(0,212,170,0.10) 0%, rgba(168,85,247,0.08) 35%, transparent 70%)",
+            "radial-gradient(ellipse at center, rgba(255,107,43,0.10) 0%, rgba(255,120,100,0.06) 35%, transparent 70%)",
         }}
       />
 
@@ -43,20 +41,20 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
       <div className="relative max-w-6xl mx-auto px-6">
         {/* Section header */}
         <div className="text-center mb-16">
-          <span className="text-xs font-medium tracking-wider uppercase text-teal">
-            Inside The Circle
+          <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-primary">
+            🔥 Inside The Circle
           </span>
           <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-white">
             More than booking sessions
           </h2>
           <p className="mt-4 text-base sm:text-lg text-gray-400 max-w-2xl mx-auto">
             Join training circles, build streaks, and meet your crew at live
-            community sessions across Tel Aviv and beyond.
+            community sessions — your squad is waiting.
           </p>
         </div>
 
         {/* Visual stage */}
-        <div className="relative h-[640px] sm:h-[600px] flex items-center justify-center">
+        <div className="relative min-h-[640px] sm:min-h-[600px] flex items-center justify-center">
           {/* Iridescent torus / ring */}
           <motion.div
             className="absolute"
@@ -71,7 +69,7 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
                 className="absolute inset-0 rounded-full"
                 style={{
                   background:
-                    "radial-gradient(circle, rgba(168,85,247,0.45), rgba(0,212,170,0.35), transparent 65%)",
+                    "radial-gradient(circle, rgba(255,107,43,0.45), rgba(255,157,138,0.30), transparent 65%)",
                   filter: "blur(50px)",
                 }}
               />
@@ -82,7 +80,7 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
                 className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full"
                 style={{
                   background:
-                    "conic-gradient(from 0deg, #00D4AA, #A855F7, #06B6D4, #00D4AA)",
+                    "conic-gradient(from 0deg, #FF6B2B, #FF9D8A, #FFB5A0, #FF6B2B)",
                   WebkitMaskImage:
                     "radial-gradient(circle, transparent 56%, black 57%)",
                   maskImage:
@@ -100,7 +98,7 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
               />
               <div
                 aria-hidden
-                className="absolute w-60 h-60 sm:w-64 sm:h-64 rounded-full border border-teal/30"
+                className="absolute w-60 h-60 sm:w-64 sm:h-64 rounded-full border border-primary/30"
                 style={{ transform: "rotate(-25deg) scaleY(0.5)" }}
               />
             </div>
@@ -131,7 +129,7 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
                   circlo
                 </span>
               </div>
-              <p className="mt-2 text-sm text-gray-300">@maya</p>
+              <p className="mt-2 text-sm text-gray-300">@coachalex</p>
               <p className="mt-1 text-xs text-gray-500">
                 member since · jan 2026
               </p>
@@ -157,7 +155,7 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
             >
               <div className="flex items-center justify-between text-sm text-white">
                 <span className="flex items-center gap-2 text-gray-300">
-                  <Users size={14} className="text-teal" />
+                  <Users size={14} className="text-primary" />
                   coaches followed
                 </span>
                 <span className="font-semibold w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs">
@@ -176,7 +174,7 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
               <div className="flex items-center justify-between text-sm text-white">
                 <span className="flex items-center gap-2 text-gray-300">
                   <Heart size={14} className="text-purple-400" />
-                  kudos given
+                  likes
                 </span>
                 <span className="font-semibold w-10 h-7 rounded-full bg-white/10 flex items-center justify-center text-xs">
                   194
@@ -203,7 +201,7 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
               }}
             >
               <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                <Calendar size={12} className="text-teal" />
+                <Calendar size={12} className="text-primary" />
                 <span className="uppercase tracking-wider">Live session</span>
               </div>
               <p className="text-lg font-semibold text-white leading-tight">
@@ -215,10 +213,10 @@ export default function InsideTheCircle({ dark }: { dark: boolean }) {
                 className="mt-4 w-full py-2.5 rounded-full text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 style={{
                   background:
-                    "linear-gradient(90deg, #A855F7, #06B6D4, #00D4AA)",
+                    "linear-gradient(135deg, hsl(18, 100%, 59%), hsl(5, 100%, 75%))",
                 }}
               >
-                RSVP
+                Book
               </button>
             </motion.div>
           </motion.div>

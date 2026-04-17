@@ -27,12 +27,15 @@ export const platform = Capacitor.getPlatform();
 export async function initNative(): Promise<void> {
   if (!isNative) return;
 
-  // Status bar — match Circlo navy and overlay the webview so hero gradients
-  // can bleed under the notch/Dynamic Island on iOS.
+  // Status bar — opaque Circlo navy with light (white) content so the native
+  // status bar feels like a natural extension of the app chrome. We use
+  // `overlay: false` here (iOS reserves its own strip and the webview starts
+  // below) because the original overlay:true mode produced a white safe-area
+  // gap on light themes that didn't match the dark status bar above it.
   try {
     await StatusBar.setStyle({ style: Style.Dark });
     await StatusBar.setBackgroundColor({ color: "#1A1A2E" });
-    await StatusBar.setOverlaysWebView({ overlay: true });
+    await StatusBar.setOverlaysWebView({ overlay: false });
   } catch (err) {
     console.warn("[circlo] status bar init failed", err);
   }
@@ -59,6 +62,23 @@ export async function initNative(): Promise<void> {
       window.history.back();
     } else {
       CapApp.exitApp();
+    }
+  });
+
+  // Deep links — when the OS opens circlo:// URLs (auth callbacks, password
+  // reset emails, payment returns), route them into the SPA.
+  CapApp.addListener("appUrlOpen", ({ url }) => {
+    try {
+      // Strip scheme → in-app path. "circlo://reset-password?code=abc"
+      // becomes "/reset-password?code=abc".
+      const stripped = url.replace(/^circlo:\/\//i, "/").replace(/^\/\//, "/");
+      if (stripped && typeof window !== "undefined") {
+        window.history.pushState({}, "", stripped);
+        // Let React Router pick it up.
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
+    } catch (err) {
+      console.warn("[circlo] appUrlOpen handler failed", err);
     }
   });
 

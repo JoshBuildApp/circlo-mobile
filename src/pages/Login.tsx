@@ -1,18 +1,19 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ADMIN_EMAILS, DEVELOPER_EMAIL } from "@/config/dev";
+import { ADMIN_EMAILS } from "@/config/dev";
 import CircloLogo from "@/components/CircloLogo";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
-import { useDevGate } from "@/contexts/DevGateContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Mail } from "lucide-react";
 import loginRightPanel from "@/assets/login-right-panel.png";
-
-const DEV_CODES = ["C1rcl0DevX992!", "BackupDev884!"];
-const DEV_PASSWORD = "10203040302010";
+import { authRedirect } from "@/lib/platform";
 
 const Login = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = (location.state as { from?: string })?.from || "/home";
@@ -21,29 +22,12 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"password" | "magic-link">("password");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
-  const { showGate } = useDevGate();
-  const logoTapCount = useRef(0);
-  const logoTapTimer = useRef<ReturnType<typeof setTimeout>>();
-
-  const handleLogoTap = (e: React.MouseEvent) => {
-    e.preventDefault();
-    logoTapCount.current += 1;
-    clearTimeout(logoTapTimer.current);
-    if (logoTapCount.current >= 5) {
-      logoTapCount.current = 0;
-      showGate();
-    } else {
-      logoTapTimer.current = setTimeout(() => {
-        logoTapCount.current = 0;
-      }, 1500);
-    }
-  };
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      toast.error("Please enter your email address");
+      toast.error(t("login.enterEmail"));
       return;
     }
 
@@ -52,7 +36,7 @@ const Login = () => {
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmedEmail,
       options: {
-        emailRedirectTo: `${window.location.origin}/home`,
+        emailRedirectTo: authRedirect("/home"),
       },
     });
 
@@ -63,74 +47,62 @@ const Login = () => {
     }
 
     setMagicLinkSent(true);
-    toast.success("Check your email for the login link!");
+    toast.success(t("login.checkInbox"));
     setLoading(false);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email && !password) {
-      toast.error("Please fill in all fields");
+    if (!email || !password) {
+      toast.error(t("login.fillFields"));
       return;
     }
 
     setLoading(true);
 
-    const inputtedCode = email.trim() || password.trim();
-    const isDevCode = DEV_CODES.includes(inputtedCode);
-
-    let loginEmail = email;
-    let loginPassword = password;
-
-    if (isDevCode) {
-      loginEmail = DEVELOPER_EMAIL;
-      loginPassword = DEV_PASSWORD;
-    }
-
-    if (!loginEmail || !loginPassword) {
-      toast.error("Please fill in all fields");
-      setLoading(false);
-      return;
-    }
-
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
+      email,
+      password,
     });
 
     if (error) {
-      toast.error(isDevCode ? "Dev login failed" : error.message);
+      toast.error(error.message);
       setLoading(false);
       return;
     }
 
     const isBypass = ADMIN_EMAILS.some((a) => a.toLowerCase() === data.user?.email?.toLowerCase());
     if (data.user && !data.user.email_confirmed_at && !isBypass) {
-      toast.error("Please verify your email before continuing.");
+      toast.error(t("login.verifyEmailFirst"));
       await supabase.auth.signOut();
       setLoading(false);
       return;
     }
 
-    toast.success(isDevCode ? "Welcome, Developer!" : "Welcome back!");
+    toast.success(t("login.welcomeBack"));
     navigate(redirectTo);
     setLoading(false);
   };
 
   return (
     <main className="min-h-screen bg-background px-4 py-4 sm:px-6 sm:py-6 lg:px-10 lg:py-8">
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1760px] overflow-hidden rounded-[28px] border border-border/40 bg-card shadow-[0_24px_80px_-32px_hsl(var(--foreground)/0.18)] sm:min-h-[calc(100vh-3rem)] lg:grid lg:grid-cols-[0.82fr_1.18fr]">
+      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1760px] overflow-hidden rounded-[28px] border border-border/40 bg-card shadow-[0_24px_80px_-32px_hsl(var(--foreground)/0.18)] sm:min-h-[calc(100vh-3rem)] lg:grid lg:grid-cols-[0.82fr_1.18fr] relative">
+        <Link
+          to="/"
+          className="absolute top-5 left-5 z-10 flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t("common.back")}
+        </Link>
+        <div className="absolute top-4 right-5 z-10">
+          <LanguageSwitcher variant="compact" />
+        </div>
         <section className="flex items-center justify-center px-6 py-10 sm:px-10 lg:px-14 xl:px-20">
           <div className="w-full max-w-[430px]">
-            <h1 className="sr-only" tabIndex={-1}>Log in to Circlo</h1>
-            <button
-              type="button"
-              onClick={handleLogoTap}
-              className="mb-10 inline-flex cursor-pointer items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              aria-label="Circlo logo"
-            >
+            <h1 className="sr-only" tabIndex={-1}>{t("login.title")}</h1>
+            <div className="mb-10 inline-flex items-center" aria-label="Circlo logo">
               <CircloLogo variant="full" size="lg" theme="light" />
-            </button>
+            </div>
 
             {mode === "magic-link" ? (
               magicLinkSent ? (
@@ -139,9 +111,9 @@ const Login = () => {
                     <Mail className="h-8 w-8 text-primary" />
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-xl font-bold text-foreground">Check your email</h2>
+                    <h2 className="text-xl font-bold text-foreground">{t("login.checkYourEmail")}</h2>
                     <p className="text-sm text-muted-foreground">
-                      We sent a login link to <span className="font-medium text-foreground">{email}</span>. Click it to sign in.
+                      {t("login.magicLinkSent", { email })}
                     </p>
                   </div>
                   <button
@@ -149,14 +121,14 @@ const Login = () => {
                     onClick={() => { setMagicLinkSent(false); setEmail(""); }}
                     className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
                   >
-                    Use a different email
+                    {t("login.useDifferentEmail")}
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleMagicLink} className="space-y-6">
                   <div className="space-y-2">
                     <label htmlFor="magic-email" className="block text-[15px] font-semibold text-foreground/80">
-                      Email
+                      {t("login.email")}
                     </label>
                     <input
                       id="magic-email"
@@ -175,14 +147,14 @@ const Login = () => {
                       disabled={loading}
                       className="h-14 w-full rounded-full bg-foreground text-base font-bold text-background transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
                     >
-                      {loading ? "Sending..." : "Send Magic Link"}
+                      {loading ? t("login.sending") : t("login.sendMagicLink")}
                     </button>
 
                     <Link
                       to="/signup"
                       className="flex h-14 w-full items-center justify-center rounded-full bg-brand-gradient text-base font-bold text-primary-foreground transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
                     >
-                      Sign Up
+                      {t("login.signUp")}
                     </Link>
                   </div>
                 </form>
@@ -192,12 +164,12 @@ const Login = () => {
                 <form onSubmit={handleLogin} className="space-y-6">
                   <div className="space-y-2">
                     <label htmlFor="email" className="block text-[15px] font-semibold text-foreground/80">
-                      Email
+                      {t("login.email")}
                     </label>
                     <input
                       id="email"
                       type="text"
-                      placeholder="Email or dev code"
+                      placeholder={t("login.emailOrDevCode")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="h-14 w-full rounded-2xl border border-border bg-background px-5 text-lg text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10"
@@ -206,12 +178,12 @@ const Login = () => {
 
                   <div className="space-y-2">
                     <label htmlFor="password" className="block text-[15px] font-semibold text-foreground/80">
-                      Password
+                      {t("login.password")}
                     </label>
                     <input
                       id="password"
                       type="password"
-                      placeholder="Password"
+                      placeholder={t("login.passwordPlaceholder")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="h-14 w-full rounded-2xl border border-border bg-background px-5 text-lg text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10"
@@ -224,14 +196,14 @@ const Login = () => {
                       disabled={loading}
                       className="h-14 w-full rounded-full bg-foreground text-base font-bold text-background transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
                     >
-                      {loading ? "Logging in..." : "Log In"}
+                      {loading ? t("login.loggingIn") : t("login.logIn")}
                     </button>
 
                     <Link
                       to="/signup"
                       className="flex h-14 w-full items-center justify-center rounded-full bg-brand-gradient text-base font-bold text-primary-foreground transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
                     >
-                      Sign Up
+                      {t("login.signUp")}
                     </Link>
                   </div>
                 </form>
@@ -243,7 +215,7 @@ const Login = () => {
                       <div className="w-full border-t border-border" />
                     </div>
                     <div className="relative flex justify-center text-xs">
-                      <span className="bg-card px-3 text-muted-foreground">or continue with</span>
+                      <span className="bg-card px-3 text-muted-foreground">{t("login.orContinueWith")}</span>
                     </div>
                   </div>
                   <SocialLoginButtons variant="light" />
@@ -257,11 +229,11 @@ const Login = () => {
                 onClick={() => { setMode(mode === "password" ? "magic-link" : "password"); setMagicLinkSent(false); }}
                 className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
               >
-                {mode === "password" ? "Sign in with Magic Link" : "Sign in with Password"}
+                {mode === "password" ? t("login.switchToMagic") : t("login.switchToPassword")}
               </button>
               {mode === "password" && (
                 <Link to="/forgot-password" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-                  Forgot Password?
+                  {t("login.forgotPassword")}
                 </Link>
               )}
             </div>
@@ -274,7 +246,8 @@ const Login = () => {
               src={loginRightPanel}
               alt="Circlo sports coaching illustration"
               className="h-auto w-full object-contain"
-              loading="eager"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </section>

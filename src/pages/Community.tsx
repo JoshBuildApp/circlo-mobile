@@ -224,7 +224,7 @@ const Community = () => {
   const hasNone = !loading && (!communities || communities.length === 0);
 
   return (
-    <div className="w-full pb-24 md:pb-10">
+    <div className="w-full pb-24 md:pb-10 max-w-6xl mx-auto">
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}

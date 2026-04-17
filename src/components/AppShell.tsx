@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatedOutlet } from "@/components/AnimatedOutlet";
+import { openExternal } from "@/lib/platform";
 import {
   Home, Search, CalendarDays, User, MessageSquare, Users, Play, Plus,
   UserPlus, Shield, Video, ArrowLeft, Palette, Bell, Zap, ChevronDown,
   LogOut, Settings, Bookmark, Menu, X, LayoutDashboard, Compass,
-  Clock, Crown, Dumbbell, Trophy,
+  Clock, Crown, Dumbbell, Trophy, Rocket,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -72,11 +73,18 @@ const desktopLinks = [
 
 const TAB_PATHS = ["/home", "/discover", "/plays", "/schedule", "/profile", "/community", "/book"];
 
+// Agent control dashboard (OpenClaw / Circlo Hub) — opened from the dev panel
+// entry in the top nav. Dev-only; regular users never see the trigger.
+const AGENT_DASHBOARD_URL = "https://circlo-agent-core.lovable.app";
+
 const AppShell = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, profile, role, isAdmin, signOut } = useAuth();
+  const { user, profile, role, isAdmin, isDeveloper, signOut } = useAuth();
+  // Dev panel visibility — replaces the old 5-logo-taps reveal. Directly
+  // toggled by a visible "Rocket" button in the top nav for developers.
+  const [showDevMenu, setShowDevMenu] = useState(false);
   useActivity();
   usePresenceHeartbeat();
   const isCoach = role === "coach" || isAdmin;
@@ -233,6 +241,21 @@ const AppShell = () => {
                   <div className="hidden md:block">
                     <DevModeToggle />
                   </div>
+                  {/* Dev panel opener — visible only to developers, replaces
+                      the legacy "tap logo 5 times" reveal with a clearly
+                      discoverable entry point into the Agent Dashboard.
+                      Shows on every breakpoint so the launcher is always one
+                      tap away. */}
+                  {isDeveloper && (
+                    <button
+                      onClick={() => setShowDevMenu(true)}
+                      className="h-8 w-8 rounded-full flex items-center justify-center text-accent hover:bg-accent/10 active:scale-90 transition-all"
+                      aria-label="Open developer panel"
+                      title="Developer panel"
+                    >
+                      <Rocket className="h-[17px] w-[17px]" strokeWidth={2} />
+                    </button>
+                  )}
                 </div>
 
                 {/* CENTER — Search (desktop only) */}
@@ -900,6 +923,68 @@ const AppShell = () => {
         <GuestAuthSheet />
       </Suspense>
 
+      {/* ═══ DEV PANEL — Agent Dashboard launcher ═══
+          Opened by the Rocket button in the top nav (developers only).
+          Replaces the legacy "tap logo 5 times" reveal. */}
+      {showDevMenu && (
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center px-6"
+          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
+          onClick={() => setShowDevMenu(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Developer panel"
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl overflow-hidden"
+            style={{ background: "#1A1A2E", border: "1px solid rgba(255,255,255,0.1)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 pt-6 pb-4 border-b" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #00D4AA22, #FF6B2C22)", border: "1px solid rgba(0,212,170,0.3)" }}
+                >
+                  <Rocket className="h-4 w-4" style={{ color: "#00D4AA" }} />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-sm">Developer Panel</h3>
+                  <p className="text-xs" style={{ color: "#8B9CB8" }}>Choose your destination</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 space-y-3">
+              <button
+                onClick={() => { setShowDevMenu(false); openExternal(AGENT_DASHBOARD_URL); }}
+                className="w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all hover:scale-[1.01] active:scale-[0.98]"
+                style={{ background: "rgba(0,212,170,0.1)", border: "1px solid rgba(0,212,170,0.2)" }}
+              >
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: "rgba(0,212,170,0.15)" }}
+                >
+                  <LayoutDashboard className="h-5 w-5" style={{ color: "#00D4AA" }} />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-white font-semibold text-sm">Agent Dashboard</div>
+                  <div className="text-xs mt-0.5" style={{ color: "#8B9CB8" }}>Open Circlo Hub — manage agents &amp; tasks</div>
+                </div>
+                <div className="ml-auto text-white/30 text-lg">›</div>
+              </button>
+            </div>
+            <div className="px-4 pb-4">
+              <button
+                onClick={() => setShowDevMenu(false)}
+                className="w-full py-2.5 rounded-xl text-sm transition-colors"
+                style={{ color: "#8B9CB8", background: "rgba(255,255,255,0.05)" }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

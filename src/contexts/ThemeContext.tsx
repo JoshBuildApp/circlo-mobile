@@ -205,7 +205,6 @@ function applyTheme(name: ThemeName) {
   const grads = GRADIENTS[name];
   for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
   for (const [k, v] of Object.entries(grads)) root.style.setProperty(k, v);
-  // toggle .dark class for Tailwind dark-mode utilities
   if (name === "dark") {
     root.classList.add("dark");
   } else {
@@ -230,7 +229,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme(t);
   }, []);
 
-  // Apply on mount
   useEffect(() => { applyTheme(theme); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -248,8 +246,8 @@ export function useTheme() {
 
 /** Logo gradient colours per theme */
 export const LOGO_COLORS: Record<ThemeName, { from: string; mid: string; to: string; dot: string; dotEnd: string }> = {
-  light:  { from: "#00D4AA", mid: "#5BA88A", to: "#FF6B2C", dot: "#FF6B2C", dotEnd: "#FF8A50" },
-  dark:   { from: "#00D4AA", mid: "#5BA88A", to: "#FF6B2C", dot: "#FF6B2C", dotEnd: "#FF8A50" },
+  light:  { from: "#FF6B2B", mid: "#5BA88A", to: "#FF6B2C", dot: "#FF6B2C", dotEnd: "#FF8A50" },
+  dark:   { from: "#FF6B2B", mid: "#5BA88A", to: "#FF6B2C", dot: "#FF6B2C", dotEnd: "#FF8A50" },
   ocean:  { from: "#0D9488", mid: "#0AADAC", to: "#06B6D4", dot: "#0D9488", dotEnd: "#06B6D4" },
   sunset: { from: "#EA580C", mid: "#E43A2F", to: "#E11D48", dot: "#EA580C", dotEnd: "#FF8A50" },
 };

@@ -39,10 +39,12 @@ const Footer = () => (
       </div>
       <div className="border-t border-border/30 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Circlo. All rights reserved.</p>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-muted-foreground">Terms</span>
-          <span className="text-xs text-muted-foreground">Privacy</span>
-          <span className="text-xs text-muted-foreground">Contact</span>
+        <div className="flex items-center gap-4 flex-wrap justify-center">
+          <Link to="/legal/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
+          <Link to="/legal/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Privacy</Link>
+          <Link to="/legal/waiver" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Waiver</Link>
+          <Link to="/legal/coach-agreement" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Coach Agreement</Link>
+          <Link to="/legal/cookies" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Cookies</Link>
         </div>
       </div>
     </div>

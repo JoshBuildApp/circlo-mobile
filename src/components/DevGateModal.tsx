@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDevGate } from "@/contexts/DevGateContext";
 import { Lock, ShieldAlert, X, Loader2, Code2, LayoutDashboard, ArrowLeft, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { openExternal } from "@/lib/platform";
 
 const DASHBOARD_URL = "http://localhost:8080";
 const DEV_CODES = ["C1rcl0DevX992!", "BackupDev884!"];
@@ -73,7 +74,7 @@ const DevGateModal = () => {
   const openDashboard = () => {
     setScreen("dashboard-redirect");
     setTimeout(() => {
-      window.open(DASHBOARD_URL, "_blank");
+      openExternal(DASHBOARD_URL);
       handleClose();
     }, 800);
   };

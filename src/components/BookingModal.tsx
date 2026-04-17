@@ -6,12 +6,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import {
   CalendarDays, Clock, CreditCard, Loader2, ArrowLeft,
-  Check, ChevronRight, User, Zap, Sparkles, Package,
+  Check, ChevronRight, User, Zap, Sparkles, Package, AlertTriangle, ShieldAlert,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { useStripeCheckout } from "@/hooks/use-stripe-checkout";
+import { usePaymentIntent } from "@/hooks/use-payment-intent";
+import { useBookingLimits } from "@/hooks/use-rate-limits";
 import {
   useAvailability,
   useBlockedSlots,
@@ -85,12 +86,14 @@ export const BookingModal = ({
   const [time, setTime] = useState<string | undefined>(undefined);
   const [timeLabel, setTimeLabel] = useState("");
   const [notes, setNotes] = useState("");
+  const [waiverAccepted, setWaiverAccepted] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
   const [bookingMode, setBookingMode] = useState<BookingMode>("single");
   const [selectedPackage, setSelectedPackage] = useState<CoachPackage | null>(null);
   const [selectedUserPackage, setSelectedUserPackage] = useState<UserPackage | null>(null);
   const { toast } = useToast();
-  const { createCheckoutSession, loading: stripeLoading } = useStripeCheckout();
+  const { startPayment, loading: paymentLoading } = usePaymentIntent();
+  const bookingLimits = useBookingLimits();
   const { packages: coachPackages } = useCoachPackages(coachId);
   const { packages: userPackages, purchasePackage, useSession } = useUserPackages(coachId);
 
@@ -149,12 +152,14 @@ export const BookingModal = ({
         setDirection(1);
       }
       setNotes("");
+      setWaiverAccepted(false);
       setIsBooking(false);
     } else {
       setDate(undefined);
       setTime(undefined);
       setTimeLabel("");
       setNotes("");
+      setWaiverAccepted(false);
       setStep(1);
       setDirection(1);
       setIsBooking(false);
@@ -207,6 +212,28 @@ export const BookingModal = ({
 
   const handleConfirmAndPay = async () => {
     if (!date || !time) return;
+
+    if (!waiverAccepted) {
+      toast({
+        title: "Please accept the waiver",
+        description: "You must acknowledge the activity-risk waiver before booking.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check booking limits
+    if (!bookingLimits.canBook) {
+      toast({ title: "Booking Limit Reached", description: `You have ${bookingLimits.cap} pending requests — wait for a response or cancel one.`, variant: "destructive" });
+      return;
+    }
+
+    // Check duplicate pending with same coach
+    const hasDuplicate = await bookingLimits.hasPendingWithCoach(coachId);
+    if (hasDuplicate) {
+      toast({ title: "Duplicate Request", description: "You already have a pending request with this coach.", variant: "destructive" });
+      return;
+    }
 
     if (bookingMode === "buy-package" && !selectedPackage) {
       toast({ title: "Select a Package", description: "Please choose a package to purchase.", variant: "destructive" });
@@ -272,6 +299,7 @@ export const BookingModal = ({
         training_type: sessionType,
         price: bookingPrice,
         payment_method: bookingMode === "use-package" ? "package" : "bit",
+        waiver_accepted_at: new Date().toISOString(),
       };
       if (userPackageId) {
         bookingInsert.package_id = userPackageId;
@@ -279,11 +307,22 @@ export const BookingModal = ({
 
       const { data: booking, error: bookingError } = await supabase
         .from("bookings")
-        .insert(bookingInsert)
+        .insert(bookingInsert as any)
         .select("id")
         .single();
 
       if (bookingError) throw bookingError;
+
+      // Notify coach of new booking (fire-and-forget)
+      const athleteDisplayName = user.email?.split("@")[0] || "An athlete";
+      supabase.functions.invoke("send-push", {
+        body: {
+          user_id: coachId,
+          title: "New booking! 📅",
+          body: `${athleteDisplayName} booked a session with you`,
+          url: "/coach-dashboard",
+        },
+      }).catch(() => {});
 
       // Package bookings with existing credits skip payment
       if (bookingMode === "use-package") {
@@ -295,11 +334,10 @@ export const BookingModal = ({
         return;
       }
 
-      // Initiate payment
-      const paymentDesc = bookingMode === "buy-package" && selectedPackage
-        ? `${selectedPackage.name} (${selectedPackage.session_count} sessions)`
-        : `${sessionType} session`;
-      await createCheckoutSession(booking.id, coachId, paymentDesc, effectivePrice, effectiveCurrency.toLowerCase());
+      // Initiate payment via Make.com + Grow. The edge function generates
+      // an idempotency key, creates a payment_intents row, and redirects
+      // the browser to the Grow-hosted checkout URL returned by Make.com.
+      await startPayment(booking.id);
     } catch (error) {
       console.error("Booking error:", error);
       toast({ title: "Booking Failed", description: "There was an error. Please try again.", variant: "destructive" });
@@ -311,7 +349,7 @@ export const BookingModal = ({
   const formatPrice = (amount: number, curr: string) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: curr }).format(amount);
 
-  const isProcessing = isBooking || stripeLoading;
+  const isProcessing = isBooking || paymentLoading;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -697,10 +735,59 @@ export const BookingModal = ({
                   />
                 </div>
 
+                {/* Booking limit indicator */}
+                {!bookingLimits.loading && (
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-2">
+                    <span>{bookingLimits.pendingCount} / {bookingLimits.cap} pending slots used</span>
+                    {!bookingLimits.canBook && (
+                      <span className="text-destructive font-medium flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" /> Limit reached
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Activity-risk waiver — required */}
+                <button
+                  type="button"
+                  onClick={() => setWaiverAccepted((v) => !v)}
+                  className={cn(
+                    "w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all mb-3",
+                    waiverAccepted
+                      ? "border-primary/60 bg-primary/5"
+                      : "border-amber-500/40 bg-amber-500/5 hover:border-amber-500/60"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "h-5 w-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5",
+                      waiverAccepted
+                        ? "border-primary bg-primary"
+                        : "border-amber-500/60"
+                    )}
+                  >
+                    {waiverAccepted && <Check className="h-3 w-3 text-white" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <ShieldAlert className="h-3 w-3 text-amber-500" />
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                        Activity-risk waiver
+                      </p>
+                    </div>
+                    <p className="text-[11px] leading-snug text-muted-foreground">
+                      I understand physical activity carries risk of injury. I release Circlo and
+                      the coach from claims arising from this session. Circlo is a platform that
+                      connects athletes with independent coaches — it does not provide coaching
+                      services itself.
+                    </p>
+                  </div>
+                </button>
+
                 {/* Pay / Book button */}
                 <Button
                   onClick={handleConfirmAndPay}
-                  disabled={isProcessing}
+                  disabled={isProcessing || !bookingLimits.canBook || !waiverAccepted}
                   className="w-full h-12 rounded-xl font-heading font-bold text-sm bg-brand-gradient hover:brightness-110 transition-all"
                   size="lg"
                 >

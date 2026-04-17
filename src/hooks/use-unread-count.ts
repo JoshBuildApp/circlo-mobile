@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 /**
  * Lightweight hook that returns the total unread message count
  * for the current user, with realtime updates.
+ * Messages from archived conversations are excluded.
  */
 export function useUnreadCount() {
   const { user } = useAuth();
@@ -17,11 +18,28 @@ export function useUnreadCount() {
     }
 
     const fetchCount = async () => {
-      const { count: unread, error } = await supabase
+      // Fetch archived partner IDs to exclude from unread count
+      const { data: archived } = await supabase
+        .from("archived_conversations" as any)
+        .select("partner_id")
+        .eq("user_id", user.id);
+
+      const archivedSenderIds = (archived || []).map((r: any) => r.partner_id as string);
+
+      let query = supabase
         .from("messages")
         .select("*", { count: "exact", head: true })
         .eq("receiver_id", user.id)
         .eq("is_read", false);
+
+      // Exclude messages from archived conversations
+      if (archivedSenderIds.length > 0) {
+        for (const id of archivedSenderIds) {
+          query = query.neq("sender_id", id);
+        }
+      }
+
+      const { count: unread, error } = await query;
       if (!error && unread !== null) setCount(unread);
     };
 

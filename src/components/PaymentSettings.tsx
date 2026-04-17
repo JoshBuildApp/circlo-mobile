@@ -96,7 +96,7 @@ const PaymentSettings = ({ coachProfileId }: PaymentSettingsProps) => {
       {/* Header */}
       <div className="flex items-center gap-2.5">
         <div className="h-9 w-9 rounded-xl bg-accent/10 flex items-center justify-center">
-          <CreditCard className="h-4.5 w-4.5 text-accent" />
+          <CreditCard className="h-[18px] w-[18px] text-accent" />
         </div>
         <div>
           <h2 className="font-heading text-lg font-bold text-foreground">Payment Settings</h2>

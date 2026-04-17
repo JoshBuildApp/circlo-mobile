@@ -53,7 +53,7 @@ export const useOptimisticTasks = (initialTasks: Task[] = []) => {
 
       try {
         // Background DB update
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('tasks')
           .update({
             status: newStatus,
@@ -108,7 +108,7 @@ export const useOptimisticTasks = (initialTasks: Task[] = []) => {
       setIsLoading(true);
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('tasks')
           .insert([{
             title: newTask.title,
@@ -128,9 +128,9 @@ export const useOptimisticTasks = (initialTasks: Task[] = []) => {
           prevTasks.map(t =>
             t.id === optimisticTask.id
               ? {
-                  ...data,
-                  status: data.status as Task['status'],
-                  priority: data.priority as Task['priority'],
+                  ...(data as any),
+                  status: (data as any).status as Task['status'],
+                  priority: (data as any).priority as Task['priority'],
                 }
               : t
           )
@@ -165,7 +165,7 @@ export const useOptimisticTasks = (initialTasks: Task[] = []) => {
       setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
 
       try {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('tasks')
           .delete()
           .eq('id', taskId);
@@ -195,14 +195,14 @@ export const useOptimisticTasks = (initialTasks: Task[] = []) => {
   const refreshTasks = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tasks')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setTasks(
-        (data || []).map(row => ({
+        (data || []).map((row: any) => ({
           ...row,
           status: row.status as Task['status'],
           priority: row.priority as Task['priority'],

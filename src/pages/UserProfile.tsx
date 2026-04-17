@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Award,
+  Bell,
   Bookmark,
   Calendar,
   Camera,
@@ -20,6 +21,7 @@ import {
   MessageSquare,
   Play,
   Plus,
+  Search,
   Share2,
   Sparkles,
   Star,
@@ -31,6 +33,7 @@ import {
   Video,
   Zap,
   Shield,
+  CalendarDays,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +52,7 @@ import TraineeProgressDashboard from "@/components/TraineeProgressDashboard";
 import CoachCommunity from "@/components/CoachCommunity";
 import PageLab from "@/components/PageLab";
 import ShareSheet from "@/components/ShareSheet";
+import ProfileStatsAndAchievements from "@/components/profile/ProfileStatsAndAchievements";
 import { cn } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════
@@ -97,6 +101,28 @@ interface FollowedCoach {
   price: number | null;
   rating: number | null;
   is_verified: boolean;
+}
+
+interface SessionHistoryItem {
+  id: string;
+  coach_name: string;
+  date: string;
+  time_label: string;
+  training_type: string;
+  status: string;
+  price: number;
+}
+
+interface UserChallenge {
+  id: string;
+  progress: number;
+  created_at: string;
+  challenge: {
+    id: string;
+    title: string;
+    description: string | null;
+    duration_days: number;
+  };
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -175,10 +201,10 @@ const HighlightCircle = ({ label, icon: Icon, color, delay }: { label: string; i
 /* ═══════════════════════════════════════════════════════
    STAT PILL
    ═══════════════════════════════════════════════════════ */
-const StatPill = ({ value, label, icon: Icon, onClick }: { value: string; label: string; icon?: React.ElementType; onClick?: () => void }) => {
+const StatPill = ({ value, label, icon: Icon, onClick, className: extraClass }: { value: string; label: string; icon?: React.ElementType; onClick?: () => void; className?: string }) => {
   const Comp = onClick ? "button" : "div";
   return (
-    <Comp onClick={onClick} className="flex-1 text-center py-3.5 hover:bg-white/5 transition-colors first:rounded-l-2xl last:rounded-r-2xl">
+    <Comp onClick={onClick} className={cn("flex-1 text-center py-3.5 hover:bg-white/5 transition-colors first:rounded-l-2xl last:rounded-r-2xl", extraClass)}>
       {Icon && <Icon className="h-3.5 w-3.5 text-primary mx-auto mb-1" />}
       <p className="font-heading text-lg font-bold text-foreground leading-none">{value}</p>
       <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">{label}</p>
@@ -193,7 +219,7 @@ const SectionCard = React.forwardRef<
   HTMLElement,
   { icon: React.ElementType; title: string; count?: number; children: React.ReactNode }
 >(({ icon: Icon, title, count, children }, ref) => (
-  <section ref={ref} className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 shadow-sm">
+  <section ref={ref} className="rounded-2xl border border-border/10 bg-card p-4 shadow-sm">
     <div className="mb-3 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2">
         <Icon className="h-4 w-4 text-primary" />
@@ -229,9 +255,13 @@ const UserProfile = () => {
   const [followedCoaches, setFollowedCoaches] = useState<FollowedCoach[]>([]);
   const [followedLoading, setFollowedLoading] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
+  const [sessionHistory, setSessionHistory] = useState<SessionHistoryItem[]>([]);
+  const [sessionHistoryLoading, setSessionHistoryLoading] = useState(true);
+  const [userChallenges, setUserChallenges] = useState<UserChallenge[]>([]);
+  const [challengesLoading, setChallengesLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const isCoach = !!coachProfile && !(isDeveloper && activeRole === "user");
+  const isCoach = !!coachProfile;
 
   // Hooks for player tabs
   const { requests: bookings, loading: bookingsLoading } = useBookingRequests();
@@ -288,6 +318,60 @@ const UserProfile = () => {
     loadFollowed();
   }, [user]);
 
+  // Load session history (completed/cancelled bookings)
+  useEffect(() => {
+    if (!user) { setSessionHistoryLoading(false); return; }
+    const loadHistory = async () => {
+      setSessionHistoryLoading(true);
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("id, coach_name, date, time_label, training_type, status, price")
+        .eq("user_id", user.id)
+        .in("status", ["completed", "cancelled"])
+        .order("date", { ascending: false })
+        .limit(20);
+      if (!error) setSessionHistory((data as SessionHistoryItem[]) || []);
+      setSessionHistoryLoading(false);
+    };
+    loadHistory();
+  }, [user]);
+
+  // Load user's challenge participations
+  useEffect(() => {
+    if (!user) { setChallengesLoading(false); return; }
+    const loadChallenges = async () => {
+      setChallengesLoading(true);
+      const { data, error } = await supabase
+        .from("challenge_participants")
+        .select("id, progress, created_at, challenge_id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error || !data || data.length === 0) {
+        setUserChallenges([]);
+        setChallengesLoading(false);
+        return;
+      }
+      const challengeIds = [...new Set(data.map((d: any) => d.challenge_id))];
+      const { data: challenges } = await supabase
+        .from("challenges")
+        .select("id, title, description, duration_days")
+        .in("id", challengeIds);
+      const challengeMap = new Map((challenges || []).map((c: any) => [c.id, c]));
+      setUserChallenges(
+        data
+          .map((d: any) => ({
+            id: d.id,
+            progress: d.progress,
+            created_at: d.created_at,
+            challenge: challengeMap.get(d.challenge_id),
+          }))
+          .filter((d: any) => d.challenge) as UserChallenge[]
+      );
+      setChallengesLoading(false);
+    };
+    loadChallenges();
+  }, [user]);
+
   // Re-fetch on profile update
   useEffect(() => {
     const handler = () => { loadCoachProfile(); setBioLoaded(false); };
@@ -304,13 +388,17 @@ const UserProfile = () => {
     if (!coachProfile?.id) { setContent([]); setReviews([]); return; }
     const load = async () => {
       const [{ data: videoRows }, { data: reviewRows }] = await Promise.all([
-        supabase.from("coach_videos").select("id, title, media_url, thumbnail_url, media_type, likes_count, views").eq("coach_id", coachProfile.id).order("created_at", { ascending: false }),
+        supabase.from("coach_videos").select("id, title, description, media_url, thumbnail_url, media_type, likes_count, views, created_at").eq("coach_id", coachProfile.id).order("created_at", { ascending: false }),
         supabase.from("reviews").select("id, rating, comment, user_name").eq("coach_id", coachProfile.id).order("created_at", { ascending: false }),
       ]);
       setContent((videoRows as CoachContent[] | null) ?? []);
       setReviews((reviewRows as Review[] | null) ?? []);
     };
     load();
+    // Refresh content when a new post is created via NewContentCreator
+    const onUploaded = () => load();
+    window.addEventListener("content-uploaded", onUploaded);
+    return () => window.removeEventListener("content-uploaded", onUploaded);
   }, [coachProfile?.id]);
 
   const clips = useMemo(() => content.filter((i) => i.media_type === "video" || /\.(mp4|mov|webm|m4v|ogv)(\?|$)/i.test(i.media_url)), [content]);
@@ -357,7 +445,10 @@ const UserProfile = () => {
     if (!file || !user) return;
     setAvatarUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `avatars/${user.id}.${ext}`;
+    // Path must start with the user's UUID folder — the coach-videos bucket
+    // has RLS requiring `(storage.foldername(name))[1] = auth.uid()::text`
+    // (see 20260414000003_coach_videos_bucket_scope.sql).
+    const path = `${user.id}/avatar.${ext}`;
     const { error: uploadError } = await supabase.storage.from("coach-videos").upload(path, file, { upsert: true });
     if (uploadError) { toast.error("Upload failed"); setAvatarUploading(false); return; }
     const { data: urlData } = supabase.storage.from("coach-videos").getPublicUrl(path);
@@ -374,6 +465,70 @@ const UserProfile = () => {
   /* ─── Section renderer (coach only) ─── */
   const renderSection = (section: PageSection) => {
     switch (section.section_type) {
+      case "media":
+        return (
+          <SectionCard icon={Video} title="Media" count={content.length}>
+            {content.length === 0 ? (
+              <div className="text-center py-8">
+                <Video className="h-10 w-10 text-muted-foreground/20 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No content yet</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {clips.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Clips</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {clips.slice(0, 4).map((c) => (
+                        <div key={c.id} className="relative overflow-hidden rounded-2xl bg-secondary group">
+                          <video src={c.media_url} className="aspect-[3/4] w-full object-cover" muted playsInline preload="metadata" />
+                          <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                            <Play className="h-2.5 w-2.5 text-white fill-white ml-[1px]" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {posts.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Posts</p>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {posts.slice(0, 6).map((p) => (
+                        <img key={p.id} src={p.thumbnail_url || p.media_url} alt={p.title} className="aspect-square w-full rounded-xl object-cover" loading="lazy" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </SectionCard>
+        );
+      case "about":
+        return (
+          <SectionCard icon={Star} title="About">
+            <div className="space-y-3 text-sm text-muted-foreground">
+              {coachProfile?.bio ? <p className="whitespace-pre-wrap leading-relaxed">{coachProfile.bio}</p> : <p className="italic">No bio yet</p>}
+              {coachProfile?.specialties && coachProfile.specialties.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {coachProfile.specialties.map((s: string) => (
+                    <span key={s} className="px-2.5 py-1 rounded-full text-[11px] bg-primary/10 text-primary font-semibold border border-primary/20">{s}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </SectionCard>
+        );
+      case "schedule":
+        return (
+          <SectionCard icon={CalendarDays} title="Schedule">
+            <p className="text-sm text-muted-foreground">Your weekly availability is managed from the coach dashboard → Schedule tab.</p>
+          </SectionCard>
+        );
+      case "packages":
+        return null; // Packages render in their own section elsewhere
+      case "store":
+        return null; // Store render in its own section elsewhere
       case "clips":
         return (
           <SectionCard icon={Video} title="Clips" count={clips.length}>
@@ -672,7 +827,7 @@ const UserProfile = () => {
         transition={{ delay: 0.2 }}
         className="px-5 mt-5"
       >
-        <div className="bg-white/[0.03] border border-white/5 rounded-2xl flex divide-x divide-white/5">
+        <div className="bg-card border border-border/10 rounded-2xl flex divide-x divide-border/10">
           {isCoach ? (
             <>
               <StatPill value={fmt(followersCount)} label="Followers" icon={Users} onClick={() => { setFollowersModalTab("followers"); setFollowersModalOpen(true); }} />
@@ -684,7 +839,7 @@ const UserProfile = () => {
             <>
               <StatPill value={fmt(bookings.length)} label="Sessions" icon={Calendar} />
               <StatPill value={fmt(followingCount)} label="Following" icon={Heart} onClick={() => { setFollowersModalTab("following"); setFollowersModalOpen(true); }} />
-              <StatPill value={fmt(progress?.xp ?? 0)} label="XP" icon={Zap} />
+              <StatPill value={fmt(progress?.xp ?? 0)} label="XP" icon={Zap} className={(progress?.xp ?? 0) > 0 ? "bg-primary/[0.06]" : undefined} />
               <StatPill value={`Lv${progress?.level ?? 1}`} label="Level" icon={Trophy} />
             </>
           )}
@@ -732,7 +887,7 @@ const UserProfile = () => {
             </Link>
             <Link
               to={`/coach/${coachProfile!.id}`}
-              className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-foreground active:scale-95 transition-all flex-shrink-0"
+              className="h-12 w-12 rounded-2xl bg-secondary border border-border/20 flex items-center justify-center text-foreground active:scale-95 transition-all flex-shrink-0"
             >
               <Eye className="h-5 w-5" />
             </Link>
@@ -741,13 +896,104 @@ const UserProfile = () => {
         {!isCoach && (
           <button
             onClick={() => setShareOpen(true)}
-            className="h-12 px-5 rounded-2xl bg-white/5 border border-white/10 font-heading font-bold text-sm text-foreground active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+            className="h-12 px-5 rounded-2xl bg-secondary border border-border/20 font-heading font-bold text-sm text-foreground active:scale-[0.97] transition-all flex items-center justify-center gap-2"
           >
             <Share2 className="h-4 w-4" />
             Share
           </button>
         )}
       </motion.div>
+
+      {/* ═══════ PREVIEW PUBLIC PROFILE ═══════ */}
+      {isCoach && coachProfile && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="px-5 mt-2"
+        >
+          <Link
+            to={`/coach/${coachProfile.id}`}
+            className="w-full h-11 rounded-2xl bg-secondary border border-border/20 font-heading font-bold text-sm text-muted-foreground hover:text-foreground active:scale-[0.97] transition-all flex items-center justify-center gap-2"
+          >
+            <Eye className="h-4 w-4" />
+            Preview Public Profile
+          </Link>
+        </motion.div>
+      )}
+
+      {/* ═══════ HUB: QUICK ACCESS ═══════ */}
+      {!isCoach && (
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="px-5 mt-5"
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/discover" className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 active:scale-[0.97] transition-all">
+              <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                <Search className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Find Coach</p>
+                <p className="text-[11px] text-muted-foreground">Browse & book</p>
+              </div>
+            </Link>
+            <Link to="/schedule" className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/10 active:scale-[0.97] transition-all">
+              <div className="h-10 w-10 rounded-xl bg-accent/15 flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-accent" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Schedule</p>
+                <p className="text-[11px] text-muted-foreground">{upcomingBookings.length} upcoming</p>
+              </div>
+            </Link>
+            <Link to="/inbox" className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/30 border border-border/10 active:scale-[0.97] transition-all">
+              <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
+                <MessageSquare className="h-5 w-5 text-foreground/70" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Messages</p>
+                <p className="text-[11px] text-muted-foreground">Inbox</p>
+              </div>
+            </Link>
+            <Link to="/community" className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/30 border border-border/10 active:scale-[0.97] transition-all">
+              <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center">
+                <Users className="h-5 w-5 text-foreground/70" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Community</p>
+                <p className="text-[11px] text-muted-foreground">Groups & challenges</p>
+              </div>
+            </Link>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ═══════ STATS ENGINE + ACHIEVEMENTS (NEW) ═══════ */}
+      <div className="mt-4">
+        {isCoach ? (
+          <ProfileStatsAndAchievements
+            rating={coachProfile?.rating ?? 0}
+            totalSessions={coachProfile?.total_sessions ?? sessionsCount}
+            yearsExperience={coachProfile?.years_experience ?? 0}
+            followers={followersCount}
+            achievements={(coachProfile as any)?.achievements ?? []}
+            isPro={(coachProfile as any)?.is_pro ?? false}
+          />
+        ) : (
+          <ProfileStatsAndAchievements
+            variant="user"
+            sessionsBooked={bookings?.length ?? 0}
+            trainingStreak={(progress as any)?.streak_days ?? 0}
+            xp={(progress as any)?.xp ?? 0}
+            level={(progress as any)?.level ?? 1}
+            achievements={[]}
+            isPro={false}
+          />
+        )}
+      </div>
 
       {/* ═══════ COACH: QUICK INSIGHTS ═══════ */}
       {isCoach && (sessionsCount > 0 || followersCount > 0) && (
@@ -772,7 +1018,7 @@ const UserProfile = () => {
       {!isCoach && (
         <>
           {/* Tab bar */}
-          <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-white/5 mt-4">
+          <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border/20 mt-4">
             <div className="flex px-5">
               {PLAYER_TABS.map((tab) => {
                 const isActive = playerTab === tab.key;
@@ -785,7 +1031,7 @@ const UserProfile = () => {
                       isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground/60"
                     )}
                   >
-                    <tab.icon className="h-4.5 w-4.5" />
+                    <tab.icon className="h-[18px] w-[18px]" />
                     <span className="text-[10px] font-bold uppercase tracking-wider">{tab.label}</span>
                     {isActive && (
                       <motion.div
@@ -805,14 +1051,16 @@ const UserProfile = () => {
             {/* ── ACTIVITY TAB ── */}
             {playerTab === "activity" && (
               <motion.div key="activity" {...fadeUp} className="px-5 pt-5 pb-4 space-y-4">
-                <TraineeProgressCard userId={user.id} />
+                <div className="rounded-2xl bg-gradient-to-br from-primary/8 to-accent/5 border border-primary/10 p-1">
+                  <TraineeProgressCard userId={user.id} />
+                </div>
 
                 {/* Recent activity feed */}
                 {upcomingBookings.length > 0 && (
                   <SectionCard icon={Calendar} title="Upcoming Sessions" count={upcomingBookings.length}>
                     <div className="space-y-2.5">
                       {upcomingBookings.slice(0, 3).map((b) => (
-                        <motion.div key={b.id} variants={cardVariant} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                        <motion.div key={b.id} variants={cardVariant} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40 border border-border/10">
                           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                             <Calendar className="h-5 w-5 text-primary" />
                           </div>
@@ -835,7 +1083,7 @@ const UserProfile = () => {
                 {/* Upload Content CTA */}
                 <button
                   onClick={() => window.dispatchEvent(new CustomEvent("open-upload-flow"))}
-                  className="w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white/[0.02] p-4 flex items-center gap-4 active:scale-[0.98] transition-all"
+                  className="w-full rounded-2xl border-2 border-dashed border-primary/20 bg-secondary/20 p-4 flex items-center gap-4 active:scale-[0.98] transition-all"
                 >
                   <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-[#00B894] flex items-center justify-center shadow-lg shadow-primary/20 flex-shrink-0">
                     <Plus className="h-6 w-6 text-white" />
@@ -878,13 +1126,27 @@ const UserProfile = () => {
                   </div>
                 ) : (
                   <>
+                    {/* Next Session highlight */}
+                    {upcomingBookings.length > 0 && (
+                      <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-primary/15 via-primary/8 to-transparent border border-primary/15">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Sparkles className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Next Session</span>
+                        </div>
+                        <p className="text-base font-bold text-foreground">{upcomingBookings[0].coach_name || "Upcoming Session"}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {new Date(upcomingBookings[0].date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {upcomingBookings[0].time_label || upcomingBookings[0].time || "TBD"}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Upcoming */}
                     {upcomingBookings.length > 0 && (
                       <div>
                         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Upcoming</h3>
                         <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2.5">
                           {upcomingBookings.map((b) => (
-                            <motion.div key={b.id} variants={cardVariant} className="flex items-center gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                            <motion.div key={b.id} variants={cardVariant} className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/40 border border-border/10">
                               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                                 <Calendar className="h-6 w-6 text-primary" />
                               </div>
@@ -911,7 +1173,7 @@ const UserProfile = () => {
                         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Past Sessions</h3>
                         <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2">
                           {pastBookings.slice(0, 10).map((b) => (
-                            <motion.div key={b.id} variants={cardVariant} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 opacity-70">
+                            <motion.div key={b.id} variants={cardVariant} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/20 border border-border/10 opacity-70">
                               <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
                               </div>
@@ -946,7 +1208,7 @@ const UserProfile = () => {
                   <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-3">
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{savedItems.length} saved items</p>
                     {savedItems.slice(0, 12).map((item) => (
-                      <motion.div key={item.id} variants={cardVariant} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                      <motion.div key={item.id} variants={cardVariant} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40 border border-border/10">
                         <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <Bookmark className="h-4 w-4 text-primary" />
                         </div>
@@ -980,9 +1242,9 @@ const UserProfile = () => {
                 ) : (
                   <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-2.5">
                     {followedCoaches.map((coach) => (
-                      <motion.div key={coach.id} variants={cardVariant} className="flex items-center gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
+                      <motion.div key={coach.id} variants={cardVariant} className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/40 border border-border/10">
                         <Link to={`/coach/${coach.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                          <Avatar className="h-12 w-12 border-2 border-white/10">
+                          <Avatar className="h-12 w-12 border-2 border-border/20">
                             <AvatarImage src={coach.image_url || undefined} alt={coach.coach_name} />
                             <AvatarFallback className="bg-primary/10 text-primary font-bold">
                               {coach.coach_name?.charAt(0)?.toUpperCase() || "?"}
@@ -1029,7 +1291,7 @@ const UserProfile = () => {
           {/* Upload Content CTA */}
           <button
             onClick={() => window.dispatchEvent(new CustomEvent("open-upload-flow"))}
-            className="w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white/[0.02] p-4 flex items-center gap-4 active:scale-[0.98] transition-all"
+            className="w-full rounded-2xl border-2 border-dashed border-primary/20 bg-secondary/20 p-4 flex items-center gap-4 active:scale-[0.98] transition-all"
           >
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-[#00B894] flex items-center justify-center shadow-lg shadow-primary/20 flex-shrink-0">
               <Plus className="h-6 w-6 text-white" />
@@ -1043,7 +1305,7 @@ const UserProfile = () => {
           {/* Page Lab Sections */}
           <button
             onClick={() => setPageLabOpen(true)}
-            className="w-full h-11 rounded-2xl bg-white/5 border border-white/10 text-sm font-heading font-bold text-foreground flex items-center justify-center gap-2 active:scale-[0.97] transition-all"
+            className="w-full h-11 rounded-2xl bg-secondary border border-border/20 text-sm font-heading font-bold text-foreground flex items-center justify-center gap-2 active:scale-[0.97] transition-all"
           >
             <Sparkles className="h-4 w-4 text-primary" />
             {hasCustomLayout ? "Edit Layout" : "Build with Page Lab"}
@@ -1056,7 +1318,7 @@ const UserProfile = () => {
               {visibleSections.map((s) => <div key={s.id}>{renderSection(s)}</div>)}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-primary/20 bg-white/[0.02] p-8 text-center space-y-4">
+            <div className="rounded-2xl border border-dashed border-primary/20 bg-secondary/20 p-8 text-center space-y-4">
               <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <LayoutGrid className="h-8 w-8 text-primary" />
               </div>
@@ -1100,6 +1362,23 @@ const UserProfile = () => {
           )}
         </div>
       )}
+
+      {/* ═══════ NOTIFICATION PREFERENCES ═══════ */}
+      <div className="px-5 mt-4 mb-2">
+        <button
+          onClick={() => navigate("/notification-preferences")}
+          className="w-full flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/10 active:scale-[0.98] transition-all text-left"
+        >
+          <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Notifications</p>
+            <p className="text-[10px] text-muted-foreground">Control what you get notified about</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+        </button>
+      </div>
 
       {/* ═══════ DATA & PRIVACY ═══════ */}
       <div className="px-5 mt-4 mb-2">

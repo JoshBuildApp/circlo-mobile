@@ -9,17 +9,24 @@ import { format } from "date-fns";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { ActiveIndicator } from "@/components/ActiveIndicator";
 import { getActivityLabel } from "@/hooks/use-activity";
+import { useTypingIndicator } from "@/hooks/use-typing-indicator";
+import { usePresenceHeartbeat } from "@/hooks/use-presence-heartbeat";
+import { useMessageLimits } from "@/hooks/use-rate-limits";
+import { toast } from "sonner";
 
 const Chat = () => {
   const { partnerId } = useParams<{ partnerId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { messages, loading, loadingOlder, hasMore, sendMessage, loadOlder } = useMessages(partnerId || "");
+  const messageLimits = useMessageLimits(partnerId);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [partnerInfo, setPartnerInfo] = useState<{ name: string; avatar: string | null }>({ name: "Loading...", avatar: null });
   const partnerStatus = useOnlineStatus(partnerId);
   const partnerStatusLabel = getActivityLabel(partnerStatus.status);
+  const { isPartnerTyping, onKeystroke, stopTyping } = useTypingIndicator(partnerId);
+  usePresenceHeartbeat();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Load partner info
@@ -74,10 +81,37 @@ const Chat = () => {
 
   const handleSend = async () => {
     if (!text.trim() || sending) return;
+
+    // Check message limits for non-booked pairs
+    if (!messageLimits.hasBooking && !messageLimits.canSend) {
+      if (messageLimits.inboxFull) {
+        toast.error("This coach's inbox is full — try again later");
+      } else {
+        toast.error("You've reached your daily message limit. Book a session to unlock unlimited messaging");
+      }
+      return;
+    }
+
     const msg = text;
     setText("");
+    stopTyping();
     setSending(true);
-    await sendMessage(msg);
+    try {
+      await sendMessage(msg, undefined, {
+        canSend: messageLimits.canSend,
+        hasBooking: messageLimits.hasBooking,
+        inboxFull: messageLimits.inboxFull,
+        sentToday: messageLimits.sentToday,
+        cap: messageLimits.cap,
+        incrementMessageCount: messageLimits.incrementMessageCount,
+      });
+    } catch (err: any) {
+      if (err?.message === "INBOX_FULL") {
+        toast.error("This coach's inbox is full — try again later");
+      } else if (err?.message === "MESSAGE_LIMIT") {
+        toast.error("Daily message limit reached. Book a session for unlimited messaging");
+      }
+    }
     setSending(false);
   };
 
@@ -106,9 +140,11 @@ const Chat = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-foreground truncate">{partnerInfo.name}</p>
-            {partnerStatusLabel && (
+            {isPartnerTyping ? (
+              <p className="text-[10px] text-green-500 animate-pulse">Typing...</p>
+            ) : partnerStatusLabel ? (
               <p className={cn("text-[10px]", partnerStatus.status === "online" ? "text-green-500" : "text-muted-foreground")}>{partnerStatusLabel}</p>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -188,23 +224,51 @@ const Chat = () => {
               </div>
             );
           })}
+          {/* Typing indicator bubble */}
+          {isPartnerTyping && (
+            <div className="flex justify-start">
+              <div className="bg-secondary rounded-2xl rounded-bl-md px-4 py-2.5 flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:300ms]" />
+              </div>
+            </div>
+          )}
           </>
         )}
       </div>
 
       {/* Input */}
       <div className="sticky bottom-0 bg-background border-t border-border/10 px-4 py-3 safe-area-bottom">
+        {/* Message limit indicator */}
+        {!messageLimits.loading && !messageLimits.hasBooking && (
+          <div className="flex items-center justify-between mb-2 px-1">
+            <span className="text-[10px] text-muted-foreground">
+              {messageLimits.sentToday} / {messageLimits.cap} messages today
+            </span>
+            {messageLimits.inboxFull && (
+              <span className="text-[10px] text-amber-500 font-medium">High demand</span>
+            )}
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-            placeholder="Type a message..."
-            className="flex-1 h-11 px-4 rounded-2xl bg-secondary/70 border border-border/10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            placeholder={
+              !messageLimits.hasBooking && !messageLimits.canSend
+                ? "Daily message limit reached. Book a session to unlock unlimited messaging"
+                : messageLimits.inboxFull
+                  ? "This coach's inbox is full — try again later"
+                  : "Type a message..."
+            }
+            disabled={!messageLimits.hasBooking && (!messageLimits.canSend || messageLimits.inboxFull)}
+            className="flex-1 h-11 px-4 rounded-2xl bg-secondary/70 border border-border/10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all disabled:opacity-50"
           />
           <button
             onClick={handleSend}
-            disabled={!text.trim() || sending}
+            disabled={!text.trim() || sending || (!messageLimits.hasBooking && !messageLimits.canSend)}
             className="h-11 w-11 rounded-full bg-foreground flex items-center justify-center text-background disabled:opacity-30 active:scale-90 transition-all"
           >
             <Send className="h-4 w-4" />

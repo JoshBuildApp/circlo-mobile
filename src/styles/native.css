@@ -26,8 +26,10 @@ html.is-native body {
 }
 
 html.is-native body {
-  /* Lock the background so pull-to-refresh never shows white. */
-  background-color: #1a1a2e;
+  /* Match the active theme so the safe-area edges (behind the top nav's
+   * status-bar padding and the bottom nav's home-indicator padding) blend
+   * with the app instead of showing a hardcoded navy strip on light themes. */
+  background-color: hsl(var(--background));
 }
 
 /* Disable iOS text selection on non-input UI chrome. Forms stay selectable. */
@@ -45,12 +47,19 @@ html.is-native .select-text * {
 }
 
 /* Bottom nav on the web sits flush — on native it needs to clear the
- * home indicator. AppShell can opt-in with the `.app-bottom-nav` class. */
+ * home indicator. AppShell can opt-in with the `.app-bottom-nav` class.
+ * No extra buffer: `var(--safe-bottom)` already clears the home indicator. */
 html.is-native .app-bottom-nav {
-  padding-bottom: calc(var(--safe-bottom) + 8px);
+  padding-bottom: var(--safe-bottom);
+  /* The default `.glass` utility is semi-transparent — on native that means
+   * the body bg shows through the home-indicator padding area. Force an
+   * opaque card fill so the bar reads as a solid chrome strip edge-to-edge. */
+  background-color: hsl(var(--card));
 }
 
-/* Top header respects the notch. */
+/* Top header respects the notch. With StatusBar.setOverlaysWebView(false)
+ * the safe-top inset is usually 0, but keep the padding in case the plugin
+ * ever flips back to overlay mode. */
 html.is-native .app-top-nav {
   padding-top: var(--safe-top);
 }

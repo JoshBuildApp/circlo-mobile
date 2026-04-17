@@ -32,6 +32,7 @@ interface CoachProfileHeroProps {
   isOwner: boolean;
   following: boolean;
   coachUserId?: string;
+  isOnline?: boolean;
   onBooking: () => void;
   onToggleFollow: () => void;
   onPageLab: () => void;
@@ -45,12 +46,12 @@ const stagger = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 };
 
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.85 },
-  show: { opacity: 1, scale: 1, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
+  show: { opacity: 1, scale: 1, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 };
 
 const CoachProfileHero = memo(({
@@ -70,6 +71,7 @@ const CoachProfileHero = memo(({
   isOwner,
   following,
   coachUserId,
+  isOnline = false,
   onBooking,
   onToggleFollow,
   onPageLab,
@@ -88,9 +90,17 @@ const CoachProfileHero = memo(({
   }, [coverImage, introVideoUrl]);
 
   const handleShare = async () => {
-    try {
-      await navigator.share?.({ title: `${name} — Coach Profile`, url: window.location.href });
-    } catch { /* cancelled */ }
+    // Extract coach ID from URL
+    const pathParts = window.location.pathname.split("/");
+    const coachId = pathParts[pathParts.length - 1];
+    const shareUrl = `https://circloclub.com/coach/${coachId}`;
+    const shareData = { title: `${name} — ${sport} Coach | Circlo`, url: shareUrl };
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try { await navigator.share(shareData); } catch { /* cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(shareUrl).catch(() => {});
+      toast.success("Link copied to clipboard!");
+    }
   };
 
   // Sport tags: main sport + first 2 specialties
@@ -110,7 +120,7 @@ const CoachProfileHero = memo(({
             playsInline
             autoPlay
           />
-        ) : (
+        ) : coverImage ? (
           <img
             src={coverImage}
             alt={name}
@@ -118,6 +128,24 @@ const CoachProfileHero = memo(({
               imageLoaded ? "scale-100 opacity-100" : "scale-105 opacity-0"
             }`}
           />
+        ) : (
+          /* Dark brand gradient fallback with sport pattern */
+          <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0d1117 0%, #1a0a00 50%, #2d1200 100%)" }}>
+            <svg className="absolute inset-0 w-full h-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="hero-sport-grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M20 0 L40 20 L20 40 L0 20 Z" fill="none" stroke="#FF6B2C" strokeWidth="0.8" />
+                  <circle cx="20" cy="20" r="3" fill="#FF6B2C" />
+                  <circle cx="0" cy="0" r="1.5" fill="#FF6B2C" />
+                  <circle cx="40" cy="0" r="1.5" fill="#FF6B2C" />
+                  <circle cx="0" cy="40" r="1.5" fill="#FF6B2C" />
+                  <circle cx="40" cy="40" r="1.5" fill="#FF6B2C" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#hero-sport-grid)" />
+            </svg>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-40 rounded-full opacity-20" style={{ background: "radial-gradient(ellipse, #FF6B2C 0%, transparent 70%)" }} />
+          </div>
         )}
 
         {/* Gradient overlays */}
@@ -175,15 +203,33 @@ const CoachProfileHero = memo(({
           {/* Avatar + Name row */}
           <motion.div variants={fadeUp} className="flex items-end gap-4 mb-3">
             <motion.div variants={scaleIn} className="relative flex-shrink-0">
-              {/* Gradient ring around avatar */}
-              <div className="p-[3px] rounded-[22px] bg-brand-gradient shadow-2xl">
-                <div className="h-[76px] w-[76px] rounded-[20px] overflow-hidden bg-background">
+              {/* Brand orange ring if verified, else sport gradient */}
+              <div
+                className="p-[3px] rounded-full shadow-2xl"
+                style={{
+                  background: isVerified
+                    ? "linear-gradient(135deg, #FF6B2C, #FF8C4A, #FFB347)"
+                    : "var(--brand-gradient, linear-gradient(135deg, #00D4AA, #00B894))",
+                  boxShadow: isVerified ? "0 0 24px rgba(255,107,44,0.45)" : undefined,
+                }}
+              >
+                <div className="h-[96px] w-[96px] rounded-full overflow-hidden bg-background border-[3px] border-background">
                   <img src={image} alt={name} className="h-full w-full object-cover" />
                 </div>
               </div>
               {isVerified && (
-                <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-primary flex items-center justify-center shadow-lg ring-2 ring-background">
-                  <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
+                <div className="absolute -bottom-1 -right-1 rounded-full bg-background p-0.5">
+                  <div className="rounded-full p-1.5 flex items-center justify-center" style={{ background: "linear-gradient(135deg, #FF6B2C, #FF8C4A)", boxShadow: "0 4px 12px rgba(255,107,44,0.5)" }}>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                  </div>
+                </div>
+              )}
+              {isOnline && (
+                <div className="absolute top-1 right-1">
+                  <span className="relative flex h-3.5 w-3.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-400 border-2 border-background" />
+                  </span>
                 </div>
               )}
             </motion.div>
@@ -200,9 +246,13 @@ const CoachProfileHero = memo(({
 
           {/* Stats row: rating · followers · location */}
           <motion.div variants={fadeUp} className="flex items-center gap-3 text-[12px] mb-3">
-            <span className="flex items-center gap-1 text-foreground font-semibold">
-              <Star className="h-3.5 w-3.5 text-accent fill-accent" />
-              {rating}
+            <span className="flex items-center gap-1.5 text-foreground font-bold">
+              <div className="flex items-center gap-0.5">
+                {[1,2,3,4,5].map((i) => (
+                  <Star key={i} className={`h-3 w-3 ${i <= Math.round(parseFloat(rating)) ? "fill-yellow-400 text-yellow-400" : "text-white/20"}`} />
+                ))}
+              </div>
+              <span style={{ color: "#FF8C4A" }}>{rating}</span>
               <span className="text-muted-foreground font-normal">({reviewCount})</span>
             </span>
             <span className="text-muted-foreground/40">·</span>
@@ -222,12 +272,13 @@ const CoachProfileHero = memo(({
             )}
           </motion.div>
 
-          {/* Sport tags */}
+          {/* Sport tags — brand orange text */}
           <motion.div variants={fadeUp} className="flex flex-wrap gap-1.5 mb-4">
             {sportTags.map((tag) => (
               <Badge
                 key={tag}
-                className="px-3 py-1.5 text-[10px] rounded-full bg-white/15 backdrop-blur-md text-white border-0 font-semibold capitalize shadow-sm"
+                className="px-3 py-1.5 text-[10px] rounded-full backdrop-blur-md border-0 font-semibold capitalize shadow-sm"
+                style={{ background: "rgba(255,107,44,0.18)", color: "#FF8C4A", border: "1px solid rgba(255,107,44,0.28)" }}
               >
                 <Flame className="h-2.5 w-2.5 mr-1" />
                 {tag}
@@ -239,10 +290,11 @@ const CoachProfileHero = memo(({
           <motion.div variants={fadeUp} className="flex gap-2.5">
             <button
               onClick={onBooking}
-              className="flex-1 h-[52px] rounded-2xl font-heading font-bold text-[15px] bg-brand-gradient text-white shadow-brand-sm active:scale-[0.97] transition-all hover:brightness-110 flex items-center justify-center gap-2.5"
+              className="flex-1 h-[52px] rounded-2xl font-heading font-bold text-[15px] text-white active:scale-[0.97] transition-all hover:brightness-110 flex items-center justify-center gap-2.5"
+              style={{ background: "linear-gradient(135deg, #FF6B2C 0%, #FF8C4A 50%, #E55A1C 100%)", boxShadow: "0 8px 24px rgba(255,107,44,0.4)" }}
             >
               <Calendar className="h-[18px] w-[18px]" />
-              Book · ${price}
+              Book · ₪{price}
             </button>
             <button
               onClick={onToggleFollow}

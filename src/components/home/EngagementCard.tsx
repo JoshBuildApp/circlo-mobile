@@ -253,11 +253,11 @@ const EngagementCard = memo(({ item, variant = "full", initialLiked, initialLike
   if (variant === "compact") {
     const CompactWrapper = onPostClick ? "button" as const : Link;
     const compactProps = onPostClick
-      ? { onClick: () => onPostClick(item), className: "flex-shrink-0 w-[160px] md:w-[200px] rounded-2xl overflow-hidden bg-card border border-border/10 active:scale-[0.97] md:hover:shadow-md transition-all text-left" }
-      : { to: `/coach/${item.coachId}`, className: "flex-shrink-0 w-[160px] md:w-[200px] rounded-2xl overflow-hidden bg-card border border-border/10 active:scale-[0.97] md:hover:shadow-md transition-all" };
+      ? { onClick: () => onPostClick(item), className: "flex-shrink-0 w-[160px] md:w-full rounded-2xl overflow-hidden bg-card border border-border/10 active:scale-[0.97] md:hover:shadow-md transition-all text-left" }
+      : { to: `/coach/${item.coachId}`, className: "flex-shrink-0 w-[160px] md:w-full rounded-2xl overflow-hidden bg-card border border-border/10 active:scale-[0.97] md:hover:shadow-md transition-all" };
     return (
       <CompactWrapper ref={containerRef as any} {...compactProps as any}>
-        <div className="relative h-[130px] bg-secondary overflow-hidden">
+        <div className="relative h-[130px] md:h-[180px] bg-secondary overflow-hidden">
           {displayImage ? (
             <SafeImage src={displayImage} alt={item.caption} className="h-full w-full object-cover" loading="lazy" fallbackSrc={item.image && !isVideoUrl(item.image) ? item.image : undefined} displayWidth={200} srcSetWidths={[160, 320]} sizes="200px" />
           ) : (

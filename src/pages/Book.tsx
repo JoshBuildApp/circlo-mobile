@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import SectionHeader from "@/components/home/SectionHeader";
 import type { Coach } from "@/data/coaches";
 
@@ -75,7 +76,7 @@ const CoachCard = ({ coach, onClick, badge, subtitle }: {
   >
     <div className="h-24 bg-secondary relative">
       {coach.image_url ? (
-        <img src={coach.image_url} alt={coach.coach_name} className="h-full w-full object-cover" />
+        <img src={coach.image_url} alt={coach.coach_name} className="h-full w-full object-cover" loading="lazy" />
       ) : (
         <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#00D4AA]/20 to-[#FF6B2C]/20">
           <span className="text-2xl font-bold text-muted-foreground/40">{coach.coach_name.charAt(0)}</span>
@@ -353,7 +354,7 @@ const Book = () => {
         className="px-4 md:px-0 mb-8"
       >
         <div className="relative max-w-lg">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-muted-foreground/40" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted-foreground/40" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -493,7 +494,7 @@ const Book = () => {
                   {/* Coach image header */}
                   <div className="h-28 bg-secondary relative">
                     {c.image_url ? (
-                      <img src={c.image_url} alt={c.coach_name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <img src={c.image_url} alt={c.coach_name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#00D4AA]/10 to-[#FF6B2C]/10">
                         <span className="text-3xl font-bold text-muted-foreground/30">{c.coach_name.charAt(0)}</span>
@@ -501,9 +502,23 @@ const Book = () => {
                     )}
                     <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card to-transparent" />
                     {c.is_verified && (
-                      <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-[#00D4AA] text-white text-[9px] font-bold flex items-center gap-1">
-                        <Sparkles className="h-2.5 w-2.5" /> Verified
-                      </div>
+                      <TooltipProvider delayDuration={150}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-[#00D4AA] text-white text-[9px] font-bold flex items-center gap-1"
+                            >
+                              <Sparkles className="h-2.5 w-2.5" /> Verified
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[220px] text-[11px] leading-snug">
+                            Coach uploaded proof of professional liability insurance, reviewed by Circlo.
+                            Circlo is a platform, not an endorser — coaches are independent professionals.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </div>
                   <div className="p-4">
@@ -581,7 +596,7 @@ const Book = () => {
               >
                 <div className="h-12 w-12 rounded-xl overflow-hidden bg-secondary flex-shrink-0">
                   {c.image_url ? (
-                    <img src={c.image_url} alt={c.coach_name} className="h-full w-full object-cover" />
+                    <img src={c.image_url} alt={c.coach_name} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#00D4AA]/20 to-[#FF6B2C]/20">
                       <span className="text-sm font-bold text-muted-foreground/50">{c.coach_name.charAt(0)}</span>
@@ -638,7 +653,7 @@ const Book = () => {
               {/* Coach summary card */}
               <div className="relative h-40 bg-secondary">
                 {bookingCoach.image ? (
-                  <img src={bookingCoach.image} alt={bookingCoach.name} className="h-full w-full object-cover" />
+                  <img src={bookingCoach.image} alt={bookingCoach.name} className="h-full w-full object-cover" loading="lazy" />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-[#00D4AA]/20 to-[#FF6B2C]/20">
                     <span className="text-5xl font-bold text-muted-foreground/20">{bookingCoach.name.charAt(0)}</span>

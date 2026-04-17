@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -17,6 +18,8 @@ import {
 } from "lucide-react";
 import CircloLogo from "@/components/CircloLogo";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
+import { authRedirect } from "@/lib/platform";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const SPORTS = [
   { label: "Padel", emoji: "\uD83C\uDFBE" },
@@ -52,6 +55,7 @@ const slideVariants = {
 };
 
 const MobileSignup = () => {
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>(1);
   const [direction, setDirection] = useState(1);
   const [role, setRole] = useState<Role | null>(null);
@@ -93,21 +97,22 @@ const MobileSignup = () => {
     return checks.filter(Boolean).length;
   })();
 
-  const strengthLabel = ["", "Weak", "Fair", "Good", "Strong"][passwordStrength];
+  const strengthLabels = ["", t("signup.weak"), t("signup.fair"), t("signup.good"), t("signup.strong")];
+  const strengthLabel = strengthLabels[passwordStrength];
   const strengthColors = ["", "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-emerald-500"];
 
   const validateStep1 = () => {
     if (!username.trim() || !email.trim()) {
-      toast.error("Please fill in all fields");
+      toast.error(t("login.fillFields"));
       return false;
     }
     if (username.trim().length < 2) {
-      toast.error("Username must be at least 2 characters");
+      toast.error(t("signup.usernameMin"));
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address");
+      toast.error(t("signup.validEmail"));
       return false;
     }
     return true;
@@ -115,15 +120,15 @@ const MobileSignup = () => {
 
   const validateStep2 = () => {
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error(t("signup.passwordMin"));
       return false;
     }
     if (!/[0-9!@#$%^&*]/.test(password)) {
-      toast.error("Password must include a number or special character");
+      toast.error(t("signup.passwordChar"));
       return false;
     }
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("signup.passwordsMismatch"));
       return false;
     }
     return true;
@@ -150,7 +155,7 @@ const MobileSignup = () => {
 
   const handleSignup = async () => {
     if (selectedSports.length === 0) {
-      toast.error("Select at least one sport");
+      toast.error(t("mobileSignup.selectSport"));
       return;
     }
 
@@ -167,7 +172,7 @@ const MobileSignup = () => {
       password,
       options: {
         data: metadata,
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: authRedirect("/login"),
       },
     });
 
@@ -195,42 +200,42 @@ const MobileSignup = () => {
     setResending(true);
     const { error } = await supabase.auth.resend({ type: "signup", email });
     if (error) toast.error(error.message);
-    else toast.success("Verification email sent!");
+    else toast.success(t("signup.verificationSent"));
     setResending(false);
   };
 
   // Verification screen
   if (showVerification) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: "#0A0A0F" }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-card">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="w-full max-w-sm text-center"
         >
-          <div className="h-20 w-20 rounded-full bg-[#00D4AA]/10 flex items-center justify-center mx-auto mb-6">
-            <Mail className="h-10 w-10 text-[#00D4AA]" />
+          <div className="h-20 w-20 rounded-full bg-[#FF6B2B]/10 flex items-center justify-center mx-auto mb-6">
+            <Mail className="h-10 w-10 text-[#FF6B2B]" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Check your email</h1>
-          <p className="text-gray-400 text-sm mb-1">We sent a verification link to</p>
-          <p className="text-white font-medium text-sm mb-6">{email}</p>
-          <p className="text-gray-500 text-xs leading-relaxed mb-8">
-            Click the link in your email to verify your account. Check your spam folder too!
+          <h1 className="text-2xl font-bold text-foreground mb-2">{t("signup.checkEmail")}</h1>
+          <p className="text-muted-foreground text-sm mb-1">{t("signup.verificationSentTo")}</p>
+          <p className="text-foreground font-medium text-sm mb-6">{email}</p>
+          <p className="text-muted-foreground text-xs leading-relaxed mb-8">
+            {t("mobileSignup.verificationDescription")}
           </p>
           <button
             onClick={handleResendVerification}
             disabled={resending}
             className="w-full h-[52px] rounded-xl font-semibold text-sm text-white transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
-            style={{ background: "linear-gradient(135deg, #00D4AA, #00B894)" }}
+            style={{ background: "linear-gradient(135deg, #FF6B2B, #FF9D8A)" }}
           >
             <RefreshCw className={`h-4 w-4 ${resending ? "animate-spin" : ""}`} />
-            {resending ? "Sending..." : "Resend Verification Email"}
+            {resending ? t("signup.resending") : t("signup.resendVerification")}
           </button>
           <Link
             to="/login"
-            className="block w-full h-[52px] rounded-xl font-semibold text-sm text-white bg-[#1A1A2E] flex items-center justify-center transition-all active:scale-95"
+            className="block w-full h-[52px] rounded-xl font-semibold text-sm text-foreground bg-card border border-border flex items-center justify-center transition-all active:scale-95"
           >
-            Go to Login
+            {t("signup.goToLogin")}
           </Link>
         </motion.div>
       </div>
@@ -238,21 +243,25 @@ const MobileSignup = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden" style={{ background: "#0A0A0F" }}>
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-card">
       {/* Teal radial glow at top */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse at center, rgba(0,212,170,0.12) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse at center, rgba(255,107,43,0.12) 0%, transparent 70%)",
         }}
       />
 
       {/* Header */}
       <div className="relative z-10 pt-12 pb-4 px-6">
+        {/* Language switcher in top-right */}
+        <div className="absolute top-3 right-4">
+          <LanguageSwitcher variant="compact" />
+        </div>
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <Link to="/home">
-            <CircloLogo variant="full" size="lg" theme="white" tagline="Find Your Circle" />
+            <CircloLogo variant="full" size="lg" theme="white" tagline={t("mobileSignup.tagline")} />
           </Link>
         </div>
 
@@ -264,7 +273,7 @@ const MobileSignup = () => {
               className="h-2 rounded-full transition-all duration-500"
               style={{
                 width: s === step ? 24 : 8,
-                background: s <= step ? "#00D4AA" : "rgba(255,255,255,0.15)",
+                background: s <= step ? "#FF6B2B" : "rgba(255,255,255,0.15)",
               }}
             />
           ))}
@@ -278,10 +287,10 @@ const MobileSignup = () => {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={goBack}
-            className="flex items-center gap-1.5 text-sm text-gray-400 active:text-white transition-colors"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground active:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("common.back")}
           </motion.button>
         )}
       </div>
@@ -302,8 +311,8 @@ const MobileSignup = () => {
               className="space-y-5"
             >
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Create your account</h2>
-                <p className="text-sm text-gray-400">Let's start with the basics</p>
+                <h2 className="text-xl font-bold text-foreground mb-1">{t("mobileSignup.step1Title")}</h2>
+                <p className="text-sm text-muted-foreground">{t("mobileSignup.step1Subtitle")}</p>
               </div>
 
               {/* Social login options */}
@@ -311,45 +320,43 @@ const MobileSignup = () => {
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/10" />
+                  <div className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-3 text-gray-500" style={{ background: "#0A0A0F" }}>or sign up with email</span>
+                  <span className="px-3 text-muted-foreground bg-card">{t("signup.orSignUpWithEmail")}</span>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm text-gray-300 font-medium">Username</label>
+                  <label className="text-sm text-foreground font-medium">{t("signup.username")}</label>
                   <input
                     type="text"
-                    placeholder="Choose a username"
+                    placeholder={t("signup.usernamePlaceholder")}
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full h-[52px] rounded-xl px-4 text-white text-sm placeholder:text-gray-500 outline-none transition-all border border-white/10 focus:border-[#00D4AA]/50 focus:ring-2 focus:ring-[#00D4AA]/20"
-                    style={{ background: "#12121A" }}
+                    className="w-full h-[52px] rounded-xl px-4 text-foreground text-sm placeholder:text-muted-foreground/60 outline-none transition-all border border-border bg-card focus:border-[#FF6B2B]/50 focus:ring-2 focus:ring-[#FF6B2B]/20"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm text-gray-300 font-medium">Email</label>
+                  <label className="text-sm text-foreground font-medium">{t("signup.email")}</label>
                   <input
                     type="email"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full h-[52px] rounded-xl px-4 text-white text-sm placeholder:text-gray-500 outline-none transition-all border border-white/10 focus:border-[#00D4AA]/50 focus:ring-2 focus:ring-[#00D4AA]/20"
-                    style={{ background: "#12121A" }}
+                    className="w-full h-[52px] rounded-xl px-4 text-foreground text-sm placeholder:text-muted-foreground/60 outline-none transition-all border border-border bg-card focus:border-[#FF6B2B]/50 focus:ring-2 focus:ring-[#FF6B2B]/20"
                   />
                 </div>
               </div>
 
               <button
                 onClick={handleContinueStep1}
-                className="w-full h-[52px] rounded-xl font-semibold text-sm text-white transition-all active:scale-[0.98] shadow-lg shadow-[#00D4AA]/20"
-                style={{ background: "linear-gradient(135deg, #00D4AA, #00B894)" }}
+                className="w-full h-[52px] rounded-xl font-semibold text-sm text-white transition-all active:scale-[0.98] shadow-lg shadow-[#FF6B2B]/20"
+                style={{ background: "linear-gradient(135deg, #FF6B2B, #FF9D8A)" }}
               >
-                Continue
+                {t("signup.continue")}
               </button>
             </motion.div>
           )}
@@ -367,26 +374,25 @@ const MobileSignup = () => {
               className="space-y-5"
             >
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Secure your account</h2>
-                <p className="text-sm text-gray-400">Create a strong password</p>
+                <h2 className="text-xl font-bold text-foreground mb-1">{t("mobileSignup.step2Title")}</h2>
+                <p className="text-sm text-muted-foreground">{t("mobileSignup.step2Subtitle")}</p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm text-gray-300 font-medium">Password</label>
+                  <label className="text-sm text-foreground font-medium">{t("signup.password")}</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
-                      placeholder="At least 8 characters"
+                      placeholder={t("signup.atLeast8")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full h-[52px] rounded-xl px-4 pr-12 text-white text-sm placeholder:text-gray-500 outline-none transition-all border border-white/10 focus:border-[#00D4AA]/50 focus:ring-2 focus:ring-[#00D4AA]/20"
-                      style={{ background: "#12121A" }}
+                      className="w-full h-[52px] rounded-xl px-4 pr-12 text-foreground text-sm placeholder:text-muted-foreground/60 outline-none transition-all border border-border bg-card focus:border-[#FF6B2B]/50 focus:ring-2 focus:ring-[#FF6B2B]/20"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -400,41 +406,40 @@ const MobileSignup = () => {
                           <div
                             key={i}
                             className={`h-1 flex-1 rounded-full transition-all ${
-                              i <= passwordStrength ? strengthColors[passwordStrength] : "bg-white/10"
+                              i <= passwordStrength ? strengthColors[passwordStrength] : "bg-muted/50"
                             }`}
                           />
                         ))}
                       </div>
-                      <p className="text-[11px] text-gray-500">{strengthLabel} password</p>
+                      <p className="text-[11px] text-muted-foreground">{t("signup.passwordStrength", { level: strengthLabel })}</p>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm text-gray-300 font-medium">Confirm Password</label>
+                  <label className="text-sm text-foreground font-medium">{t("signup.confirmPassword")}</label>
                   <div className="relative">
                     <input
                       type={showConfirm ? "text" : "password"}
-                      placeholder="Re-enter your password"
+                      placeholder={t("signup.reenterPassword")}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full h-[52px] rounded-xl px-4 pr-12 text-white text-sm placeholder:text-gray-500 outline-none transition-all border border-white/10 focus:border-[#00D4AA]/50 focus:ring-2 focus:ring-[#00D4AA]/20"
-                      style={{ background: "#12121A" }}
+                      className="w-full h-[52px] rounded-xl px-4 pr-12 text-foreground text-sm placeholder:text-muted-foreground/60 outline-none transition-all border border-border bg-card focus:border-[#FF6B2B]/50 focus:ring-2 focus:ring-[#FF6B2B]/20"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                     >
                       {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                   {confirmPassword.length > 0 && password !== confirmPassword && (
-                    <p className="text-xs text-red-400">Passwords do not match</p>
+                    <p className="text-xs text-red-400">{t("signup.passwordsDontMatch")}</p>
                   )}
                   {confirmPassword.length > 0 && password === confirmPassword && password.length > 0 && (
                     <p className="text-xs text-emerald-400 flex items-center gap-1">
-                      <Check className="h-3 w-3" /> Passwords match
+                      <Check className="h-3 w-3" /> {t("mobileSignup.passwordsMatch")}
                     </p>
                   )}
                 </div>
@@ -442,10 +447,10 @@ const MobileSignup = () => {
 
               <button
                 onClick={handleContinueStep2}
-                className="w-full h-[52px] rounded-xl font-semibold text-sm text-white transition-all active:scale-[0.98] shadow-lg shadow-[#00D4AA]/20"
-                style={{ background: "linear-gradient(135deg, #00D4AA, #00B894)" }}
+                className="w-full h-[52px] rounded-xl font-semibold text-sm text-white transition-all active:scale-[0.98] shadow-lg shadow-[#FF6B2B]/20"
+                style={{ background: "linear-gradient(135deg, #FF6B2B, #FF9D8A)" }}
               >
-                Continue
+                {t("signup.continue")}
               </button>
             </motion.div>
           )}
@@ -463,8 +468,8 @@ const MobileSignup = () => {
               className="space-y-5"
             >
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Who are you?</h2>
-                <p className="text-sm text-gray-400">Choose your path in Circlo</p>
+                <h2 className="text-xl font-bold text-foreground mb-1">{t("mobileSignup.step3Title")}</h2>
+                <p className="text-sm text-muted-foreground">{t("mobileSignup.step3Subtitle")}</p>
               </div>
 
               <div className="space-y-4">
@@ -475,7 +480,7 @@ const MobileSignup = () => {
                   style={{
                     background:
                       role === "user"
-                        ? "linear-gradient(135deg, #00D4AA, #00B894)"
+                        ? "linear-gradient(135deg, #FF6B2B, #FF9D8A)"
                         : "rgba(255,255,255,0.08)",
                   }}
                 >
@@ -485,13 +490,13 @@ const MobileSignup = () => {
                   >
                     <div
                       className="h-16 w-16 rounded-2xl flex items-center justify-center mb-4"
-                      style={{ background: "rgba(0,212,170,0.1)" }}
+                      style={{ background: "rgba(255,107,43,0.1)" }}
                     >
-                      <Dumbbell className="h-8 w-8 text-[#00D4AA]" />
+                      <Dumbbell className="h-8 w-8 text-[#FF6B2B]" />
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-1">Athlete</h3>
-                    <p className="text-xs text-gray-400 text-center">
-                      Discover coaches & level up your game
+                    <h3 className="text-lg font-bold text-foreground mb-1">{t("mobileSignup.athlete")}</h3>
+                    <p className="text-xs text-muted-foreground text-center">
+                      {t("mobileSignup.athleteDesc")}
                     </p>
                   </div>
                 </button>
@@ -517,9 +522,9 @@ const MobileSignup = () => {
                     >
                       <GraduationCap className="h-8 w-8 text-[#FF6B2C]" />
                     </div>
-                    <h3 className="text-lg font-bold text-white mb-1">Coach</h3>
-                    <p className="text-xs text-gray-400 text-center">
-                      Build your brand & grow your community
+                    <h3 className="text-lg font-bold text-foreground mb-1">{t("mobileSignup.coach")}</h3>
+                    <p className="text-xs text-muted-foreground text-center">
+                      {t("mobileSignup.coachDesc")}
                     </p>
                   </div>
                 </button>
@@ -540,8 +545,8 @@ const MobileSignup = () => {
               className="space-y-5"
             >
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Pick your sports</h2>
-                <p className="text-sm text-gray-400">Select all that interest you</p>
+                <h2 className="text-xl font-bold text-foreground mb-1">{t("mobileSignup.step4Title")}</h2>
+                <p className="text-sm text-muted-foreground">{t("mobileSignup.step4Subtitle")}</p>
               </div>
 
               <div className="flex flex-wrap gap-2.5">
@@ -553,13 +558,13 @@ const MobileSignup = () => {
                       onClick={() => toggleSport(label)}
                       className="h-10 px-4 rounded-full text-sm font-medium transition-all active:scale-95 flex items-center gap-1.5 border"
                       style={{
-                        background: selected ? "rgba(0,212,170,0.15)" : "transparent",
-                        borderColor: selected ? "#00D4AA" : "rgba(255,255,255,0.1)",
-                        color: selected ? "#00D4AA" : "rgba(255,255,255,0.6)",
+                        background: selected ? "rgba(255,107,43,0.15)" : "transparent",
+                        borderColor: selected ? "#FF6B2B" : "rgba(255,255,255,0.1)",
+                        color: selected ? "#FF6B2B" : "rgba(255,255,255,0.6)",
                       }}
                     >
                       <span>{emoji}</span>
-                      {label}
+                      {t(`sports.${label.toLowerCase()}`, { defaultValue: label })}
                       {selected && <Check className="h-3.5 w-3.5 ml-0.5" />}
                     </button>
                   );
@@ -567,31 +572,31 @@ const MobileSignup = () => {
               </div>
 
               {selectedSports.length > 0 && (
-                <p className="text-xs text-gray-500">
-                  {selectedSports.length} sport{selectedSports.length !== 1 ? "s" : ""} selected
+                <p className="text-xs text-muted-foreground">
+                  {t("mobileSignup.sportsSelected", { count: selectedSports.length })}
                 </p>
               )}
 
               <button
                 onClick={handleSignup}
                 disabled={loading || selectedSports.length === 0}
-                className="w-full h-[52px] rounded-xl font-semibold text-sm text-white transition-all active:scale-[0.98] shadow-lg shadow-[#00D4AA]/20 disabled:opacity-40 disabled:shadow-none flex items-center justify-center gap-2"
-                style={{ background: "linear-gradient(135deg, #00D4AA, #00B894)" }}
+                className="w-full h-[52px] rounded-xl font-semibold text-sm text-white transition-all active:scale-[0.98] shadow-lg shadow-[#FF6B2B]/20 disabled:opacity-40 disabled:shadow-none flex items-center justify-center gap-2"
+                style={{ background: "linear-gradient(135deg, #FF6B2B, #FF9D8A)" }}
               >
                 {loading ? (
                   <>
                     <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Creating account...
+                    {t("mobileSignup.creatingAccount")}
                   </>
                 ) : role === "coach" ? (
                   <>
                     <Users className="h-4 w-4" />
-                    Launch My Profile
+                    {t("signup.launchProfile")}
                   </>
                 ) : (
                   <>
                     <Zap className="h-4 w-4" />
-                    Start Training
+                    {t("signup.startTraining")}
                   </>
                 )}
               </button>
@@ -602,13 +607,13 @@ const MobileSignup = () => {
 
       {/* Footer */}
       <div className="relative z-10 px-6 pb-8 space-y-4">
-        <p className="text-center text-xs text-gray-500">
-          Join 10,000+ athletes and coaches
+        <p className="text-center text-xs text-muted-foreground">
+          {t("mobileSignup.joinTagline")}
         </p>
-        <p className="text-center text-sm text-gray-400">
-          Already have an account?{" "}
-          <Link to="/login" className="text-[#00D4AA] font-medium">
-            Log in
+        <p className="text-center text-sm text-muted-foreground">
+          {t("signup.alreadyHaveAccount")}{" "}
+          <Link to="/login" className="text-[#FF6B2B] font-medium">
+            {t("signup.logIn")}
           </Link>
         </p>
       </div>

@@ -6,6 +6,8 @@ export interface HomeCoach {
   rating?: number;
   price?: number;
   is_verified?: boolean;
+  is_pro?: boolean;
+  is_boosted?: boolean;
   followers?: number;
   is_top_creator?: boolean;
   location?: string;
@@ -13,7 +15,7 @@ export interface HomeCoach {
   tagline?: string;
 }
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface HomeData {
@@ -42,7 +44,7 @@ export function useHomeData() {
         supabase.from('coach_profiles').select('*', { count: 'exact', head: true }),
         supabase.from('bookings').select('*', { count: 'exact', head: true }),
         supabase.from('coach_profiles').select(
-          'id, coach_name, sport, image_url, rating, price, is_verified, followers, is_top_creator, location, bio, tagline'
+          'id, coach_name, sport, image_url, rating, price, is_verified, is_pro, is_boosted, followers, is_top_creator, location, bio, tagline'
         ).limit(20),
       ]);
 
@@ -86,5 +88,6 @@ export function useHomeData() {
     }
   };
 
-  return { data, loading, refetch: fetchHomeData };
+  const stable = useMemo(() => ({ data, loading, refetch: fetchHomeData }), [data, loading]);
+  return stable;
 }

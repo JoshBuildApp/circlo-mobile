@@ -32,7 +32,7 @@ const DevRoleSwitcher = () => {
   if (!open) return null;
 
   return (
-    <div className="fixed bottom-20 right-3 z-[999] flex flex-col items-end gap-1.5 animate-fade-in">
+    <div className="fixed bottom-20 right-3 z-[10000] flex flex-col items-end gap-1.5 animate-fade-in">
       {/* Close button */}
       <button
         onClick={() => setOpen(false)}

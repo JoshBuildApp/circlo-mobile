@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { openExternal } from "@/lib/platform";
 
 interface LiveSession {
   id: string;
@@ -120,7 +121,7 @@ export default function LiveSessions() {
   };
 
   const handleJoinSession = (sessionLink: string) => {
-    window.open(sessionLink, '_blank');
+    openExternal(sessionLink);
   };
 
   const getSessionsToShow = (sessionsList: LiveSession[]) => {

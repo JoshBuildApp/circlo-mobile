@@ -137,6 +137,28 @@ const BookingsTab = ({ allBookings, pendingBookings, loading, coachProfileId, on
     onRefresh();
   };
 
+  const handleComplete = async (bookingId: string) => {
+    const { error } = await supabase.from("bookings").update({ status: "completed" }).eq("id", bookingId);
+    if (error) { toast.error("Failed to mark complete"); return; }
+    toast.success("Session marked complete!");
+    onRefresh();
+    // Trigger auto-payout edge function
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (token) {
+        fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-payout`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ booking_id: bookingId }),
+          }
+        ).catch(() => {/* silent — payout is non-blocking */});
+      }
+    } catch {/* silent */}
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -284,7 +306,16 @@ const BookingsTab = ({ allBookings, pendingBookings, loading, coachProfileId, on
                     <p className="text-xs font-semibold text-foreground truncate">{b.user_name || "Trainee"}</p>
                     <p className="text-[10px] text-muted-foreground">{b.date} · {b.time_label} · ${b.price}</p>
                   </div>
-                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{countdown}</span>
+                  {diffMs <= 0 ? (
+                    <button
+                      onClick={() => handleComplete(b.id)}
+                      className="text-[10px] font-bold text-green-600 bg-green-500/10 px-2 py-0.5 rounded-md hover:bg-green-500/20 transition-colors"
+                    >
+                      Mark Done
+                    </button>
+                  ) : (
+                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{countdown}</span>
+                  )}
                 </div>
               );
             })}
@@ -307,7 +338,7 @@ const BookingsTab = ({ allBookings, pendingBookings, loading, coachProfileId, on
               <div key={b.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50">
                 <div className="h-9 w-9 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
                   {b.avatar_url ? (
-                    <img src={b.avatar_url} alt="" className="h-full w-full object-cover" />
+                    <img src={b.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center text-muted-foreground text-sm font-bold">
                       {(b.user_name || "T")[0].toUpperCase()}

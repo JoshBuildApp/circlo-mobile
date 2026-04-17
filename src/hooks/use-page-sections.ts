@@ -13,27 +13,23 @@ export interface PageSection {
 }
 
 const DEFAULT_SECTIONS: Omit<PageSection, "id" | "coach_id">[] = [
-  { section_type: "clips", position: 0, layout_size: "full", is_visible: true, config: {} },
-  { section_type: "posts", position: 1, layout_size: "full", is_visible: true, config: {} },
-  { section_type: "store", position: 2, layout_size: "full", is_visible: true, config: {} },
-  { section_type: "community", position: 3, layout_size: "full", is_visible: true, config: {} },
-  { section_type: "articles", position: 4, layout_size: "full", is_visible: true, config: {} },
-  { section_type: "programs", position: 5, layout_size: "full", is_visible: true, config: {} },
-  { section_type: "reviews", position: 6, layout_size: "full", is_visible: true, config: {} },
+  { section_type: "media",     position: 0, layout_size: "full", is_visible: true, config: {} },
+  { section_type: "about",     position: 1, layout_size: "full", is_visible: true, config: {} },
+  { section_type: "reviews",   position: 2, layout_size: "full", is_visible: true, config: {} },
+  { section_type: "schedule",  position: 3, layout_size: "full", is_visible: true, config: {} },
+  { section_type: "packages",  position: 4, layout_size: "full", is_visible: true, config: {} },
+  { section_type: "store",     position: 5, layout_size: "full", is_visible: true, config: {} },
+  { section_type: "community", position: 6, layout_size: "full", is_visible: true, config: {} },
 ];
 
 export const SECTION_OPTIONS = [
-  { type: "clips", label: "Clips", icon: "Film", description: "Short training videos" },
-  { type: "posts", label: "Posts", icon: "Image", description: "Images & content" },
-  { type: "store", label: "Store", icon: "ShoppingBag", description: "Products & merchandise" },
-  { type: "community", label: "Community", icon: "Users", description: "Community feed" },
-  { type: "articles", label: "Articles", icon: "BookOpen", description: "Guides & written expertise" },
-  { type: "programs", label: "Programs", icon: "Dumbbell", description: "Structured training offers" },
-  { type: "reviews", label: "Reviews", icon: "Star", description: "User feedback" },
-  { type: "about", label: "About", icon: "Info", description: "Coach info & style" },
-  { type: "schedule", label: "Schedule", icon: "CalendarDays", description: "Booking calendar" },
-  { type: "achievements", label: "Achievements", icon: "Trophy", description: "Certs & awards" },
-  { type: "exclusive", label: "Exclusive", icon: "Lock", description: "Premium content teaser" },
+  { type: "media",     label: "Media",     icon: "Video",        description: "Featured clip, videos & photos" },
+  { type: "about",     label: "About",     icon: "Info",         description: "Bio, specialties, credentials" },
+  { type: "reviews",   label: "Reviews",   icon: "Star",         description: "Ratings & athlete feedback" },
+  { type: "schedule",  label: "Schedule",  icon: "CalendarDays", description: "Availability & booking" },
+  { type: "packages",  label: "Packages",  icon: "Package",      description: "Session bundles & pricing" },
+  { type: "store",     label: "Store",     icon: "ShoppingBag",  description: "Products & merchandise" },
+  { type: "community", label: "Community", icon: "Users",        description: "Fan discussion feed" },
 ];
 
 export function usePageSections(coachId: string | undefined) {

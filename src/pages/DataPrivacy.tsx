@@ -32,11 +32,15 @@ const DataPrivacy = () => {
   const handleExport = async () => {
     setExporting(true);
     try {
-      // Fetch all user data from relevant tables
+      // Fetch all user data from relevant tables.
+      // Messages use two separate .eq() queries instead of .or() with a
+      // template-literal filter — .or() does not parameterize and mixing
+      // user input with its string-based filter syntax is a footgun.
       const [
         { data: profile },
         { data: bookings },
-        { data: messages },
+        { data: sentMessages },
+        { data: receivedMessages },
         { data: likes },
         { data: comments },
         { data: follows },
@@ -45,13 +49,15 @@ const DataPrivacy = () => {
       ] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("bookings").select("*").eq("user_id", user.id),
-        supabase.from("messages").select("*").or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`),
+        supabase.from("messages").select("*").eq("sender_id", user.id),
+        supabase.from("messages").select("*").eq("receiver_id", user.id),
         supabase.from("likes").select("*").eq("user_id", user.id),
         supabase.from("comments").select("*").eq("user_id", user.id),
         supabase.from("user_follows").select("*").eq("user_id", user.id),
         supabase.from("saved_items").select("*").eq("user_id", user.id),
         supabase.from("trainee_progress").select("*").eq("user_id", user.id).maybeSingle(),
       ]);
+      const messages = [...(sentMessages ?? []), ...(receivedMessages ?? [])];
 
       const exportData = {
         exported_at: new Date().toISOString(),
@@ -106,7 +112,7 @@ const DataPrivacy = () => {
     const succeeded: string[] = [];
     const failed: string[] = [];
 
-    const deletionSteps: { label: string; run: () => Promise<{ error: unknown }> }[] = [
+    const deletionSteps: { label: string; run: () => any }[] = [
       {
         label: "Saved items",
         run: () => supabase.from("saved_items").delete().eq("user_id", user.id),
@@ -121,11 +127,15 @@ const DataPrivacy = () => {
       },
       {
         label: "Follows",
-        run: () =>
-          supabase
-            .from("user_follows")
-            .delete()
-            .or(`user_id.eq.${user.id},coach_id.eq.${user.id}`),
+        run: async () => {
+          // Split into two explicit .eq() deletes — see the messages comment
+          // in handleExport for why we avoid .or() with a template literal.
+          const [byUser, byCoach] = await Promise.all([
+            supabase.from("user_follows").delete().eq("user_id", user.id),
+            supabase.from("user_follows").delete().eq("coach_id", user.id),
+          ]);
+          return byUser.error ? byUser : byCoach;
+        },
       },
       {
         label: "Notifications",

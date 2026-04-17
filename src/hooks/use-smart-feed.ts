@@ -19,6 +19,10 @@ interface UserSignals {
   coachCounts: Record<string, number>;
   watchedIds: Set<string>;
   totalWatches: number;
+  /** Explicit sport preferences from user profile interests */
+  favoriteSports: Set<string>;
+  /** Coach IDs the user actively follows */
+  followedCoachIds: Set<string>;
 }
 
 const EMPTY_SIGNALS: UserSignals = {
@@ -26,19 +30,43 @@ const EMPTY_SIGNALS: UserSignals = {
   coachCounts: {},
   watchedIds: new Set(),
   totalWatches: 0,
+  favoriteSports: new Set(),
+  followedCoachIds: new Set(),
 };
 
-/** Fetch user watch history to build affinity signals */
+/** Fetch user watch history + explicit preferences to build affinity signals */
 async function fetchUserSignals(userId: string): Promise<UserSignals> {
-  // Get recent watches (last 200)
-  const { data: watches } = await supabase
-    .from("video_watches")
-    .select("video_id, watch_seconds")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(200);
+  // Fetch watch history, profile interests, and follows in parallel
+  const [watchesResult, profileResult, followsResult] = await Promise.all([
+    supabase
+      .from("video_watches")
+      .select("video_id, watch_seconds")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(200),
+    supabase
+      .from("profiles")
+      .select("interests")
+      .eq("user_id", userId)
+      .maybeSingle(),
+    supabase
+      .from("user_follows")
+      .select("coach_id")
+      .eq("user_id", userId),
+  ]);
 
-  if (!watches || watches.length === 0) return EMPTY_SIGNALS;
+  // Extract explicit preference signals
+  const favoriteSports = new Set<string>(
+    (profileResult.data?.interests ?? []).map((s: string) => s.toLowerCase())
+  );
+  const followedCoachIds = new Set<string>(
+    (followsResult.data ?? []).map((f: { coach_id: string }) => f.coach_id)
+  );
+
+  const watches = watchesResult.data;
+  if (!watches || watches.length === 0) {
+    return { ...EMPTY_SIGNALS, favoriteSports, followedCoachIds };
+  }
 
   const watchedIds = new Set(watches.map((w) => w.video_id));
 
@@ -49,7 +77,9 @@ async function fetchUserSignals(userId: string): Promise<UserSignals> {
     .select("id, coach_id")
     .in("id", videoIds);
 
-  if (!videos) return { ...EMPTY_SIGNALS, watchedIds, totalWatches: watches.length };
+  if (!videos) {
+    return { ...EMPTY_SIGNALS, watchedIds, totalWatches: watches.length, favoriteSports, followedCoachIds };
+  }
 
   // Build watch-time weighted affinity maps
   const watchMap: Record<string, number> = {};
@@ -77,7 +107,7 @@ async function fetchUserSignals(userId: string): Promise<UserSignals> {
     coachCounts[v.coach_id] = (coachCounts[v.coach_id] || 0) + weight;
   }
 
-  return { sportCounts, coachCounts, watchedIds, totalWatches: watches.length };
+  return { sportCounts, coachCounts, watchedIds, totalWatches: watches.length, favoriteSports, followedCoachIds };
 }
 
 /** Score a single video for a user */
@@ -115,6 +145,17 @@ function scoreVideo(
   // --- Boost bonus (monetization) ---
   const boostBonus = (video as any).is_boosted ? 0.15 : 0;
 
+  // --- Explicit preference: favorite sport match ---
+  // User explicitly listed this sport in their profile interests
+  const videoSportLower = (video.sport || "").toLowerCase();
+  const favoriteSportBonus = signals.favoriteSports.size > 0 && signals.favoriteSports.has(videoSportLower)
+    ? 0.2
+    : 0;
+
+  // --- Explicit preference: followed coach boost ---
+  // User actively chose to follow this coach — strong signal
+  const followedCoachBonus = signals.followedCoachIds.has(video.coach_id) ? 0.3 : 0;
+
   // --- Final weighted score ---
   // New users (totalWatches < 5): rely more on engagement + recency
   // Returning users: lean into affinity
@@ -128,6 +169,8 @@ function scoreVideo(
     affinity * affinityWeight +
     unseenBonus +
     boostBonus +
+    favoriteSportBonus +
+    followedCoachBonus +
     Math.random() * 0.05 // tiny random jitter for discovery
   );
 }

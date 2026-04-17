@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import CircloLogo from "@/components/CircloLogo";
 import { useNavigate } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
 import InsideTheCircle from "@/components/InsideTheCircle";
+import { CinematicHero } from "@/components/ui/cinematic-landing-hero";
+import PressMentions from "@/components/home/PressMentions";
+import TrustBadges from "@/components/home/TrustBadges";
 import {
   Menu,
   X,
@@ -17,8 +21,6 @@ import {
   Globe,
   AtSign,
   Hash,
-  Sun,
-  Moon,
 } from "lucide-react";
 // Rotating text animation for hero
 const rotatingWords = ["Padel", "Tennis", "Boxing", "Yoga", "Fitness", "Soccer"];
@@ -35,23 +37,23 @@ function RotatingText({ className = "" }: { className?: string }) {
 
   return (
     <span className={`inline-block relative ${className}`}>
+      {/* Invisible placeholder to reserve width */}
+      <span className="invisible">{rotatingWords.reduce((a, b) => a.length >= b.length ? a : b)}</span>
       {rotatingWords.map((word, i) => (
         <motion.span
           key={word}
-          className="absolute left-0 right-0"
+          className="absolute inset-0 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
           initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
           animate={
             i === index
               ? { opacity: 1, y: 0, filter: "blur(0px)" }
               : { opacity: 0, y: -30, filter: "blur(8px)" }
           }
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
         >
           {word}
         </motion.span>
       ))}
-      {/* Invisible spacer for consistent width */}
-      <span className="invisible">Fitness</span>
     </span>
   );
 }
@@ -185,7 +187,7 @@ const coaches = [
     reviews: 127,
     price: 45,
     initials: "SM",
-    gradient: "from-teal to-emerald-500",
+    gradient: "from-primary to-accent",
   },
   {
     name: "Marcus Johnson",
@@ -195,7 +197,7 @@ const coaches = [
     reviews: 89,
     price: 60,
     initials: "MJ",
-    gradient: "from-orange to-red-500",
+    gradient: "from-primary to-primary/70",
   },
   {
     name: "Elena Kovacs",
@@ -205,7 +207,7 @@ const coaches = [
     reviews: 203,
     price: 35,
     initials: "EK",
-    gradient: "from-purple-500 to-pink-500",
+    gradient: "from-primary to-accent/70",
   },
   {
     name: "David Park",
@@ -215,7 +217,7 @@ const coaches = [
     reviews: 156,
     price: 55,
     initials: "DP",
-    gradient: "from-blue-500 to-cyan-500",
+    gradient: "from-primary to-accent",
   },
   {
     name: "Aisha Williams",
@@ -225,7 +227,7 @@ const coaches = [
     reviews: 94,
     price: 50,
     initials: "AW",
-    gradient: "from-sky-500 to-blue-600",
+    gradient: "from-primary/70 to-primary",
   },
   {
     name: "Carlos Ruiz",
@@ -235,7 +237,7 @@ const coaches = [
     reviews: 112,
     price: 40,
     initials: "CR",
-    gradient: "from-green-500 to-emerald-600",
+    gradient: "from-accent to-primary",
   },
 ];
 
@@ -292,7 +294,7 @@ function FloatingIcons({ dark }: { dark: boolean }) {
           className={`absolute rounded-2xl flex items-center justify-center ${
             dark
               ? "bg-white/[0.04] border border-white/[0.06]"
-              : "bg-navy-deep/[0.04] border border-navy-deep/[0.06]"
+              : "bg-background/[0.04] border border-foreground/[0.06]"
           }`}
           style={{
             left: icon.x,
@@ -318,6 +320,7 @@ function FloatingIcons({ dark }: { dark: boolean }) {
 /* ─── Coach Carousel ─── */
 
 function CoachCarousel({ dark }: { dark: boolean }) {
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
   const totalPages = Math.ceil(coaches.length / 3);
@@ -354,8 +357,8 @@ function CoachCarousel({ dark }: { dark: boolean }) {
         onClick={() => scroll("left")}
         className={`absolute -left-4 sm:-left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
           dark
-            ? "bg-navy-card border border-white/10 text-white hover:bg-navy-light"
-            : "bg-white border border-gray-200 text-navy-deep hover:bg-gray-50 shadow-sm"
+            ? "bg-card border border-border text-foreground hover:bg-secondary"
+            : "bg-white border border-gray-200 text-foreground hover:bg-gray-50 shadow-sm"
         }`}
         aria-label="Previous coaches"
       >
@@ -365,8 +368,8 @@ function CoachCarousel({ dark }: { dark: boolean }) {
         onClick={() => scroll("right")}
         className={`absolute -right-4 sm:-right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
           dark
-            ? "bg-navy-card border border-white/10 text-white hover:bg-navy-light"
-            : "bg-white border border-gray-200 text-navy-deep hover:bg-gray-50 shadow-sm"
+            ? "bg-card border border-border text-foreground hover:bg-secondary"
+            : "bg-white border border-gray-200 text-foreground hover:bg-gray-50 shadow-sm"
         }`}
         aria-label="Next coaches"
       >
@@ -375,7 +378,8 @@ function CoachCarousel({ dark }: { dark: boolean }) {
 
       <div
         ref={scrollRef}
-        className="flex gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4"
+        className="flex gap-6 overflow-x-auto overflow-y-visible hide-scrollbar snap-x snap-mandatory py-4"
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         {coaches.map((coach) => (
           <motion.div
@@ -384,63 +388,70 @@ function CoachCarousel({ dark }: { dark: boolean }) {
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className={`snap-start flex-shrink-0 w-[calc(100%-1rem)] sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] rounded-2xl border overflow-hidden ${
               dark
-                ? "bg-navy-card border-white/5 hover:border-teal/20 hover:shadow-lg hover:shadow-teal/5"
-                : "bg-white border-gray-200 hover:border-teal/40 shadow-sm hover:shadow-lg"
+                ? "bg-card border-white/5 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+                : "bg-white border-gray-200 hover:border-primary/40 shadow-sm hover:shadow-lg"
             }`}
           >
             <div
-              className={`h-48 bg-gradient-to-br ${coach.gradient} flex items-center justify-center`}
+              className={`relative h-48 bg-gradient-to-br ${coach.gradient} flex items-center justify-center overflow-hidden`}
             >
-              <span className="text-5xl font-bold text-white/30">
+              <span className="text-7xl font-bold text-white/20 select-none">
                 {coach.initials}
               </span>
+              {/* Sport badge */}
+              <div className="absolute top-3 right-3 backdrop-blur-sm bg-black/30 text-white text-[10px] font-semibold px-2 py-1 rounded-full">
+                {coach.sport}
+              </div>
             </div>
 
             <div className="p-5">
               <div className="flex items-center gap-2 mb-1">
                 <h3
                   className={`text-lg font-semibold ${
-                    dark ? "text-white" : "text-navy-deep"
+                    dark ? "text-white" : "text-foreground"
                   }`}
                 >
                   {coach.name}
                 </h3>
-                <BadgeCheck className="w-4 h-4 text-teal" />
+                <BadgeCheck className="w-4 h-4 text-primary" />
               </div>
 
-              <div className="flex gap-2 mb-3">
+              <div className="flex gap-2 mb-4">
                 {coach.tags.map((tag) => (
                   <span
                     key={tag}
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      dark
-                        ? "bg-teal/10 text-teal"
-                        : "bg-teal/10 text-teal-dark"
-                    }`}
+                    className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary"
                   >
                     {tag}
                   </span>
                 ))}
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                   <span
                     className={`text-sm font-medium ${
-                      dark ? "text-white" : "text-navy-deep"
+                      dark ? "text-white" : "text-foreground"
                     }`}
                   >
                     {coach.rating}
                   </span>
                   <span className="text-sm text-gray-500">
-                    ({coach.reviews})
+                    ({coach.reviews} reviews)
                   </span>
                 </div>
-                <span className="text-lg font-semibold text-teal">
-                  Starting ${coach.price}
+                <span className="text-sm font-semibold text-primary">
+                  From ${coach.price}
                 </span>
               </div>
+
+              <button
+                onClick={() => navigate("/signup")}
+                className="w-full py-2.5 rounded-xl bg-brand-gradient text-white text-sm font-semibold transition-all hover:brightness-110 hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]"
+              >
+                Book Session
+              </button>
             </div>
           </motion.div>
         ))}
@@ -452,7 +463,7 @@ function CoachCarousel({ dark }: { dark: boolean }) {
             key={i}
             className={`w-2 h-2 rounded-full transition-all ${
               i === activeIdx
-                ? "bg-teal w-6"
+                ? "bg-primary w-6"
                 : dark
                   ? "bg-white/20"
                   : "bg-gray-300"
@@ -474,59 +485,88 @@ function CoachCarousel({ dark }: { dark: boolean }) {
   );
 }
 
+/* ─── 3D Testimonial Card ─── */
+
+function TestimonialCard3D({ t, dark }: { t: typeof testimonials[0]; dark: boolean }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const rotateX = ((y - cy) / cy) * -10;
+    const rotateY = ((x - cx) / cx) * 10;
+    card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03,1.03,1.03)`;
+    const shine = card.querySelector<HTMLDivElement>(".card-shine");
+    if (shine) {
+      shine.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255,107,43,0.12) 0%, transparent 65%)`;
+    }
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform = "perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)";
+    const shine = card.querySelector<HTMLDivElement>(".card-shine");
+    if (shine) shine.style.background = "transparent";
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="snap-start flex-shrink-0 w-[calc(100%-2rem)] sm:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)] relative cursor-default"
+      style={{ transition: "transform 0.15s ease-out", transformStyle: "preserve-3d" }}
+    >
+      {/* glow border */}
+      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/30 via-transparent to-transparent pointer-events-none" />
+      {/* card body */}
+      <div className={`relative rounded-2xl border overflow-hidden p-6 h-full ${
+        dark ? "bg-card/80 border-border backdrop-blur-sm" : "bg-white border-gray-200 shadow-md"
+      }`}>
+        {/* shine overlay */}
+        <div className="card-shine absolute inset-0 rounded-2xl pointer-events-none transition-all duration-200" />
+
+        <div className="flex gap-0.5 mb-3">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+          ))}
+        </div>
+        <Quote className="w-6 h-6 mb-4 text-primary/40" />
+        <p className={`leading-relaxed mb-6 ${dark ? "text-gray-300" : "text-gray-600"}`}>
+          &ldquo;{t.quote}&rdquo;
+        </p>
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
+            style={{ background: "linear-gradient(135deg, hsl(18,100%,59%), hsl(5,100%,75%))" }}
+          >
+            {t.name.split(" ").map((n) => n[0]).join("")}
+          </div>
+          <div>
+            <p className={`text-sm font-semibold ${dark ? "text-white" : "text-foreground"}`}>
+              {t.name}
+            </p>
+            <p className="text-xs text-gray-500">{t.role} &middot; {t.sport}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Testimonial Carousel ─── */
 
 function TestimonialScroll({ dark }: { dark: boolean }) {
   return (
-    <div className="flex gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 -mx-6 px-6">
+    <div className="flex gap-6 overflow-x-auto overflow-y-visible hide-scrollbar snap-x snap-mandatory py-4 -mx-6 px-6" style={{ WebkitOverflowScrolling: "touch" }}>
       {testimonials.map((t) => (
-        <div
-          key={t.name}
-          className={`snap-start flex-shrink-0 w-[calc(100%-2rem)] sm:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1rem)] p-6 rounded-2xl border ${
-            dark
-              ? "bg-navy-card/50 border-white/5"
-              : "bg-white border-gray-200 shadow-sm"
-          }`}
-        >
-          <Quote
-            className={`w-8 h-8 mb-4 ${
-              dark ? "text-teal/20" : "text-teal/30"
-            }`}
-          />
-          <p
-            className={`leading-relaxed mb-6 ${
-              dark ? "text-gray-300" : "text-gray-600"
-            }`}
-          >
-            &ldquo;{t.quote}&rdquo;
-          </p>
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                dark
-                  ? "bg-teal/10 text-teal"
-                  : "bg-teal/10 text-teal-dark"
-              }`}
-            >
-              {t.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </div>
-            <div>
-              <p
-                className={`text-sm font-semibold ${
-                  dark ? "text-white" : "text-navy-deep"
-                }`}
-              >
-                {t.name}
-              </p>
-              <p className="text-xs text-gray-500">
-                {t.role} &middot; {t.sport}
-              </p>
-            </div>
-          </div>
-        </div>
+        <TestimonialCard3D key={t.name} t={t} dark={dark} />
       ))}
     </div>
   );
@@ -537,102 +577,80 @@ function TestimonialScroll({ dark }: { dark: boolean }) {
 export default function LandingPage() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dark, setDark] = useState(true);
+  const dark = false;
 
-  const bg = dark ? "bg-navy-deep" : "bg-[#F8FAFC]";
-  const textPrimary = dark ? "text-white" : "text-navy-deep";
-  const textSecondary = dark ? "text-gray-400" : "text-gray-600";
-  const textMuted = dark ? "text-gray-500" : "text-gray-400";
-  const sectionAlt = dark ? "bg-navy-card/30" : "bg-gray-50";
+  // Safety: if GSAP ScrollTrigger pinning leaves body styles dirty on unmount, reset them.
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+    };
+  }, []);
+
+  const bg = "bg-background";
+  const textPrimary = "text-foreground";
+  const textSecondary = "text-foreground/70";
+  const textMuted = "text-muted-foreground";
+  const sectionAlt = "bg-card/50";
+  const hoverText = "hover:text-foreground";
 
   return (
     <div
-      className={`min-h-screen ${bg} ${
-        dark ? "text-gray-300" : "text-gray-700"
-      } overflow-x-hidden transition-colors duration-300`}
+      dir="ltr"
+      className={`min-h-[100dvh] ${bg} text-foreground/80 overflow-x-hidden transition-colors duration-300 scroll-smooth relative`}
     >
       {/* ── NAV ── */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-colors duration-300 ${
-          dark
-            ? "bg-navy-deep/80 border-white/5"
-            : "bg-white/80 border-gray-200"
-        }`}
+        className="sticky top-0 left-0 right-0 z-50 backdrop-blur-xl border-b transition-colors duration-300 bg-card/95 border-border/40 shadow-sm"
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span
-            className={`text-2xl font-bold tracking-tight ${textPrimary}`}
-          >
-            Circlo
-            <span className="text-teal">.</span>
-          </span>
+          <CircloLogo variant="full" size="md" theme="auto" />
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">
             <a
               href="#how-it-works"
-              className={`text-sm ${textSecondary} hover:text-white transition-colors`}
+              className={`text-sm ${textSecondary} ${hoverText} transition-colors`}
             >
               How It Works
             </a>
             <a
               href="#coaches"
-              className={`text-sm ${textSecondary} hover:text-white transition-colors`}
+              className={`text-sm ${textSecondary} ${hoverText} transition-colors`}
             >
               Coaches
             </a>
             <a
               href="#sports"
-              className={`text-sm ${textSecondary} hover:text-white transition-colors`}
+              className={`text-sm ${textSecondary} ${hoverText} transition-colors`}
             >
               Sports
             </a>
             <a
               href="#for-coaches"
-              className={`text-sm ${textSecondary} hover:text-white transition-colors`}
+              className={`text-sm ${textSecondary} ${hoverText} transition-colors`}
             >
               For Coaches
             </a>
 
             <button
-              onClick={() => setDark(!dark)}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                dark
-                  ? "bg-white/10 text-yellow-300 hover:bg-white/15"
-                  : "bg-navy-deep/10 text-navy-deep hover:bg-navy-deep/15"
-              }`}
-              aria-label="Toggle theme"
-            >
-              {dark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-
-            <button
               onClick={() => navigate("/login")}
-              className={`text-sm font-medium ${textSecondary} hover:text-white transition-colors`}
+              className={`text-sm font-semibold ${textSecondary} ${hoverText} transition-colors`}
             >
               Log In
             </button>
             <button
               onClick={() => navigate("/signup")}
-              className="text-sm font-medium text-teal hover:text-teal-dark transition-colors"
+              className="text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 px-5 py-2 rounded-xl transition-all active:scale-95"
             >
               Sign Up Free
             </button>
           </div>
 
-          {/* Mobile: theme + hamburger */}
+          {/* Mobile: hamburger */}
           <div className="flex md:hidden items-center gap-3">
-            <button
-              onClick={() => setDark(!dark)}
-              className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                dark
-                  ? "bg-white/10 text-yellow-300"
-                  : "bg-navy-deep/10 text-navy-deep"
-              }`}
-              aria-label="Toggle theme"
-            >
-              {dark ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
             <button
               className={textPrimary}
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -648,11 +666,7 @@ export default function LandingPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`md:hidden backdrop-blur-xl border-b px-6 pb-6 flex flex-col gap-4 ${
-              dark
-                ? "bg-navy-deep/95 border-white/5"
-                : "bg-white/95 border-gray-200"
-            }`}
+            className="md:hidden backdrop-blur-xl border-b px-6 pb-6 flex flex-col gap-4 bg-card/95 border-border/40"
           >
             {[
               { label: "How It Works", href: "#how-it-works" },
@@ -663,7 +677,7 @@ export default function LandingPage() {
               <a
                 key={link.href}
                 href={link.href}
-                className={`${textSecondary} hover:text-white transition-colors`}
+                className={`${textSecondary} ${hoverText} transition-colors`}
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}
@@ -671,13 +685,13 @@ export default function LandingPage() {
             ))}
             <button
               onClick={() => { setMobileOpen(false); navigate("/login"); }}
-              className={`text-left ${textSecondary} hover:text-white transition-colors`}
+              className={`text-left ${textSecondary} ${hoverText} transition-colors`}
             >
               Log In
             </button>
             <button
               onClick={() => { setMobileOpen(false); navigate("/signup"); }}
-              className="text-left text-teal font-medium"
+              className="text-left text-primary font-medium"
             >
               Sign Up Free
             </button>
@@ -685,155 +699,59 @@ export default function LandingPage() {
         )}
       </nav>
 
-      {/* ── HERO ── */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16">
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full blur-[150px] ${
-              dark ? "bg-teal/[0.08]" : "bg-teal/5"
-            }`}
-          />
-          <div
-            className={`absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[120px] ${
-              dark ? "bg-orange/5" : "bg-orange/[0.03]"
-            }`}
-          />
-        </div>
-
-        <FloatingIcons dark={dark} />
-
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <span
-              className={`inline-block px-4 py-1.5 mb-8 text-xs font-medium tracking-wider uppercase border rounded-full ${
-                dark
-                  ? "text-teal border-teal/20 bg-teal/5"
-                  : "text-teal-dark border-teal/30 bg-teal/10"
-              }`}
-            >
-              The sports coaching marketplace
-            </span>
-          </motion.div>
-
-          <motion.h1
-            tabIndex={-1}
-            className={`text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold leading-[1.05] tracking-tight uppercase ${textPrimary}`}
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.8,
-              delay: 0.15,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-          >
-            Your{" "}
-            <span className="bg-gradient-to-r from-teal to-emerald-400 bg-clip-text text-transparent">
-              <RotatingText />
-            </span>
-            <br />
-            Coach Awaits
-          </motion.h1>
-
-          <motion.p
-            className={`mt-6 text-lg sm:text-xl max-w-2xl mx-auto ${textSecondary}`}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.8,
-              delay: 0.3,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-          >
-            Connect with top sports coaches near you. Book sessions, track your
-            progress, and join a community of athletes who push each other to be
-            better.
-          </motion.p>
-
-          <motion.div
-            className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.8,
-              delay: 0.45,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-          >
-            <button
-              onClick={() => navigate("/signup")}
-              className="group px-8 py-4 bg-teal text-navy-deep font-semibold rounded-xl hover:bg-teal-dark transition-all shadow-lg shadow-teal/20 flex items-center justify-center gap-2"
-            >
-              Find a Coach
-              <ChevronRight
-                size={18}
-                className="group-hover:translate-x-0.5 transition-transform"
-              />
-            </button>
-            <button
-              onClick={() => navigate("/signup")}
-              className="px-8 py-4 bg-orange text-white font-semibold rounded-xl hover:bg-orange-dark transition-all shadow-lg shadow-orange/20 flex items-center justify-center gap-2"
-            >
-              Join as a Coach
-            </button>
-          </motion.div>
-        </div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div
-            className={`w-6 h-10 border-2 rounded-full flex justify-center pt-2 ${
-              dark ? "border-white/20" : "border-navy-deep/20"
-            }`}
-          >
-            <div className="w-1 h-2 bg-teal rounded-full" />
-          </div>
-        </motion.div>
-      </section>
+      {/* ── CINEMATIC HERO ── */}
+      <CinematicHero
+        onFindCoach={() => navigate("/signup")}
+        onJoinAsCoach={() => navigate("/signup")}
+      />
 
       {/* ── SOCIAL PROOF BAR ── */}
       <Section
-        className={`py-16 border-y transition-colors duration-300 ${
-          dark ? "border-white/5 bg-navy-deep" : "border-gray-200 bg-white"
+        className={`border-y transition-colors duration-300 ${
+          dark ? "border-white/5 bg-background" : "border-gray-200 bg-white"
         }`}
       >
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-6 sm:gap-12">
+        {/* Brand accent line */}
+        <div className="h-[3px] bg-brand-gradient" />
+        <div className="py-14 max-w-6xl mx-auto px-6">
+          <p className={`text-center text-[11px] font-semibold uppercase tracking-widest mb-10 ${dark ? "text-white/30" : "text-gray-400"}`}>
+            Trusted by athletes &amp; coaches worldwide
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center items-center sm:divide-x sm:divide-white/10">
             {[
-              { value: 12, suffix: "", label: "Sports Available" },
-              { value: 24, suffix: "/7", label: "Booking Available" },
-              { value: 100, suffix: "%", label: "Free to Start" },
+              { value: 500, suffix: "+", label: "Sessions Booked" },
+              { value: 12, suffix: "+", label: "Sports Available" },
+              { value: 90, suffix: "%", label: "Coaches Keep" },
             ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p
-                  className={`text-2xl sm:text-3xl font-extrabold ${textPrimary}`}
-                >
+              <div key={stat.label} className="text-center px-10 sm:px-16 py-4">
+                <p className="text-5xl sm:text-6xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent leading-none">
                   <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                 </p>
-                <p className={`text-sm mt-1 ${textMuted}`}>{stat.label}</p>
+                <p className={`text-sm mt-3 font-medium ${textMuted}`}>{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
       </Section>
 
+      {/* ── PRESS MENTIONS ── */}
+      <Section className="py-12 sm:py-16">
+        <PressMentions />
+      </Section>
+
       {/* ── HOW IT WORKS ── */}
-      <Section id="how-it-works" className="py-24 sm:py-32">
+      <Section id="how-it-works" className="py-20 sm:py-28 lg:py-32">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <span className="text-xs font-medium tracking-wider uppercase text-teal">
-              How It Works
+            <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-primary">
+              <Zap className="w-3.5 h-3.5" /> How It Works
             </span>
             <h2 className={`mt-4 text-3xl sm:text-4xl font-bold ${textPrimary}`}>
               Three steps to your first session
             </h2>
+            <p className={`mt-4 max-w-md mx-auto text-sm ${textSecondary}`}>
+              From discovery to your first training session — we make it simple.
+            </p>
           </div>
 
           <Stagger className="grid md:grid-cols-3 gap-8" stagger={0.15}>
@@ -842,40 +760,47 @@ export default function LandingPage() {
                 icon: <Search className="w-6 h-6" />,
                 step: "01",
                 title: "Discover",
-                desc: "Browse verified coaches by sport, location, and rating. Read reviews from real athletes.",
+                desc: "Browse verified coaches by sport, location, and rating. Every coach is real, reviewed, and ready.",
               },
               {
                 icon: <Calendar className="w-6 h-6" />,
                 step: "02",
                 title: "Book",
-                desc: "Pick a time that works for you. Instant confirmation, no back-and-forth messaging.",
+                desc: "Pick a time that works for you. Instant confirmation — no back-and-forth, no waiting.",
               },
               {
                 icon: <Zap className="w-6 h-6" />,
                 step: "03",
                 title: "Train",
-                desc: "Show up, train hard, and leave a review. Track your progress over time.",
+                desc: "Show up, work hard, and level up. Track your progress and build momentum every session.",
               },
             ].map((item) => (
               <StaggerChild key={item.step}>
                 <div
-                  className={`group relative p-8 rounded-2xl border transition-all duration-300 ${
+                  className={`group relative p-8 rounded-2xl border transition-all duration-300 overflow-hidden ${
                     dark
-                      ? "bg-navy-card/50 border-white/5 hover:border-teal/20"
-                      : "bg-white border-gray-200 hover:border-teal/40 shadow-sm"
+                      ? "bg-card/50 border-white/5 hover:border-primary/30"
+                      : "bg-white border-gray-200 hover:border-primary/40 shadow-sm"
                   }`}
                 >
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal/10 text-teal mb-6 text-xl font-bold">
+                  {/* Ghost step number */}
+                  <span className="absolute top-4 right-5 text-8xl font-black bg-gradient-to-b from-primary/10 to-transparent bg-clip-text text-transparent select-none leading-none pointer-events-none">
                     {item.step}
+                  </span>
+                  {/* Hover glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none" />
+
+                  <div className="relative z-10">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-gradient text-white mb-6 shadow-lg shadow-primary/20">
+                      {item.icon}
+                    </div>
+                    <h3 className={`text-xl font-bold mb-3 ${textPrimary}`}>
+                      {item.title}
+                    </h3>
+                    <p className={`${textSecondary} leading-relaxed`}>
+                      {item.desc}
+                    </p>
                   </div>
-                  <h3
-                    className={`text-xl font-semibold mb-3 ${textPrimary}`}
-                  >
-                    {item.title}
-                  </h3>
-                  <p className={`${textSecondary} leading-relaxed`}>
-                    {item.desc}
-                  </p>
                 </div>
               </StaggerChild>
             ))}
@@ -887,15 +812,18 @@ export default function LandingPage() {
       <InsideTheCircle dark={dark} />
 
       {/* ── FEATURED COACHES CAROUSEL ── */}
-      <Section id="coaches" className={`py-24 sm:py-32 ${sectionAlt}`}>
+      <Section id="coaches" className={`py-20 sm:py-28 lg:py-32 ${sectionAlt}`}>
         <div className="max-w-6xl mx-auto px-6 sm:px-12">
           <div className="text-center mb-16">
-            <span className="text-xs font-medium tracking-wider uppercase text-teal">
-              Top Rated
+            <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-primary">
+              <Star className="w-3.5 h-3.5 fill-primary" /> Top Rated
             </span>
             <h2 className={`mt-4 text-3xl sm:text-4xl font-bold ${textPrimary}`}>
-              Featured Coaches
+              Meet your next coach
             </h2>
+            <p className={`mt-4 max-w-md mx-auto text-sm ${textSecondary}`}>
+              Every coach is verified, reviewed by real athletes, and ready to help you level up.
+            </p>
           </div>
 
           <CoachCarousel dark={dark} />
@@ -903,15 +831,18 @@ export default function LandingPage() {
       </Section>
 
       {/* ── SPORTS GRID ── */}
-      <Section id="sports" className="py-24 sm:py-32">
+      <Section id="sports" className="py-20 sm:py-28 lg:py-32">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <span className="text-xs font-medium tracking-wider uppercase text-teal">
-              12 Sports
+            <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-primary">
+              🏅 12 Sports
             </span>
             <h2 className={`mt-4 text-3xl sm:text-4xl font-bold ${textPrimary}`}>
-              Find your sport
+              Whatever your sport, we've got your coach
             </h2>
+            <p className={`mt-4 max-w-sm mx-auto text-sm ${textSecondary}`}>
+              From padel courts to boxing gyms — find expert coaching in any discipline.
+            </p>
           </div>
 
           <Stagger
@@ -921,22 +852,26 @@ export default function LandingPage() {
             {sports.map((sport) => (
               <StaggerChild key={sport.name}>
                 <button
-                  className={`group w-full text-left p-5 rounded-2xl border transition-all duration-300 ${
+                  className={`group relative w-full text-left p-5 rounded-2xl border transition-all duration-300 overflow-hidden min-h-[80px] ${
                     dark
-                      ? "bg-navy-card/50 border-white/5 hover:border-teal/30 hover:bg-navy-card"
-                      : "bg-white border-gray-200 hover:border-teal/40 hover:bg-gray-50 shadow-sm"
+                      ? "bg-card/50 border-white/5 hover:border-primary/30"
+                      : "bg-white border-gray-200 hover:border-primary/30 shadow-sm"
                   }`}
                 >
-                  <span className="text-3xl block mb-3">{sport.emoji}</span>
-                  <h3
-                    className={`text-sm font-semibold mb-1 ${textPrimary}`}
-                  >
-                    {sport.name}
-                  </h3>
-                  <p className="text-xs text-gray-500 group-hover:text-teal transition-colors">
-                    Browse coaches{" "}
-                    <ChevronRight className="inline w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                  </p>
+                  {/* Brand hover glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/8 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none" />
+                  <div className="relative z-10">
+                    <span className="text-3xl block mb-3 group-hover:scale-110 transition-transform duration-200 origin-left">
+                      {sport.emoji}
+                    </span>
+                    <h3 className={`text-sm font-semibold mb-1 break-words ${textPrimary}`}>
+                      {sport.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 group-hover:text-primary transition-colors">
+                      Browse coaches{" "}
+                      <ChevronRight className="inline w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                    </p>
+                  </div>
                 </button>
               </StaggerChild>
             ))}
@@ -945,17 +880,17 @@ export default function LandingPage() {
       </Section>
 
       {/* ── COACH BENEFITS SPLIT ── */}
-      <Section id="for-coaches" className={`py-24 sm:py-32 ${sectionAlt}`}>
+      <Section id="for-coaches" className={`py-20 sm:py-28 lg:py-32 ${sectionAlt}`}>
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             <div
               className={`p-8 sm:p-10 rounded-2xl border ${
                 dark
-                  ? "bg-navy-card border-white/5"
+                  ? "bg-card border-white/5"
                   : "bg-white border-gray-200 shadow-sm"
               }`}
             >
-              <span className="text-xs font-medium tracking-wider uppercase text-orange">
+              <span className="text-xs font-medium tracking-wider uppercase text-primary">
                 For Coaches
               </span>
               <h2
@@ -979,7 +914,7 @@ export default function LandingPage() {
                 ].map((benefit) => (
                   <StaggerChild key={benefit}>
                     <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-teal/10 text-teal flex items-center justify-center mt-0.5">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center mt-0.5">
                         <Check size={14} />
                       </div>
                       <p className={`${textSecondary}`}>{benefit}</p>
@@ -990,74 +925,115 @@ export default function LandingPage() {
 
               <button
                 onClick={() => navigate("/signup")}
-                className="inline-flex items-center gap-2 mt-10 px-8 py-4 bg-orange text-white font-semibold rounded-xl hover:bg-orange-dark transition-all shadow-lg shadow-orange/20"
+                className="inline-flex items-center gap-2 mt-10 px-8 py-4 bg-primary text-white font-semibold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20"
               >
                 Start Coaching
                 <ChevronRight size={18} />
               </button>
             </div>
 
+            {/* Coach earnings dashboard mockup */}
             <div className="relative hidden lg:block">
-              <div
-                className={`aspect-[4/5] rounded-2xl overflow-hidden ${
-                  dark ? "bg-navy-light" : "bg-gray-200"
-                }`}
-              >
-                <div className="w-full h-full bg-gradient-to-br from-teal/20 to-orange/20 flex items-center justify-center">
-                  <div className="text-center">
-                    <span className="text-8xl block mb-4">{"\u{1F3CB}"}</span>
-                    <p
-                      className={`text-lg font-semibold ${textPrimary}`}
-                    >
-                      Coach on Circlo
-                    </p>
-                    <p className={`text-sm mt-1 ${textMuted}`}>
-                      Start coaching today
-                    </p>
+              <div className={`rounded-2xl border p-8 ${dark ? "bg-card border-white/5" : "bg-white border-gray-200 shadow-sm"}`}>
+                {/* Revenue header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className={`text-[11px] font-semibold uppercase tracking-wider mb-1 ${textMuted}`}>Monthly Revenue</p>
+                    <p className="text-4xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">$3,240</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center text-2xl">
+                    📈
                   </div>
                 </div>
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  {[
+                    { label: "Active Clients", value: "14", icon: "👥" },
+                    { label: "Sessions / Month", value: "28", icon: "📅" },
+                    { label: "Avg Rating", value: "4.9 ★", icon: "⭐" },
+                    { label: "Total Earned", value: "$18.4k", icon: "💰" },
+                  ].map((stat) => (
+                    <div key={stat.label} className={`p-4 rounded-xl ${dark ? "bg-secondary/50" : "bg-gray-50"}`}>
+                      <p className="text-lg mb-1">{stat.icon}</p>
+                      <p className={`text-lg font-bold ${textPrimary}`}>{stat.value}</p>
+                      <p className={`text-xs ${textMuted}`}>{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Upcoming sessions */}
+                <div>
+                  <p className={`text-[11px] font-semibold uppercase tracking-wider mb-3 ${textMuted}`}>Upcoming Sessions</p>
+                  {[
+                    { initials: "AR", name: "Alex Rivera", sport: "Padel", time: "Today, 10:00 AM" },
+                    { initials: "PP", name: "Priya Patel", sport: "CrossFit", time: "Tomorrow, 7:30 AM" },
+                    { initials: "JC", name: "James Chen", sport: "Tennis", time: "Fri, 5:00 PM" },
+                  ].map((session) => (
+                    <div key={session.name} className={`flex items-center gap-3 py-3 border-b last:border-0 ${dark ? "border-white/5" : "border-gray-100"}`}>
+                      <div className="w-9 h-9 rounded-full bg-brand-gradient flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {session.initials}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold truncate ${textPrimary}`}>{session.name}</p>
+                        <p className={`text-xs ${textMuted}`}>{session.sport}</p>
+                      </div>
+                      <p className={`text-xs ${textMuted} flex-shrink-0`}>{session.time}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-orange/5 to-teal/5 blur-2xl -z-10" />
+              <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/10 to-accent/5 blur-3xl -z-10" />
             </div>
           </div>
         </div>
       </Section>
 
       {/* ── TESTIMONIALS ── */}
-      <Section className="py-24 sm:py-32">
+      <Section className="py-20 sm:py-28 lg:py-32">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <span className="text-xs font-medium tracking-wider uppercase text-teal">
-              Testimonials
+            <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-primary">
+              <Star className="w-3.5 h-3.5 fill-primary" /> Real Stories
             </span>
             <h2 className={`mt-4 text-3xl sm:text-4xl font-bold ${textPrimary}`}>
-              Loved by athletes and coaches
+              Athletes and coaches love Circlo
             </h2>
+            <p className={`mt-4 max-w-sm mx-auto text-sm ${textSecondary}`}>
+              Real results, real people — from first session to tournament wins.
+            </p>
           </div>
 
           <TestimonialScroll dark={dark} />
         </div>
       </Section>
 
+      {/* ── TRUST BADGES ── */}
+      <Section className="pb-8 sm:pb-12">
+        <div className="max-w-4xl mx-auto px-6">
+          <TrustBadges />
+        </div>
+      </Section>
+
       {/* ── CTA GRADIENT BANNER ── */}
-      <Section id="get-started" className="py-24 sm:py-32">
+      <Section id="get-started" className="py-20 sm:py-28 lg:py-32">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-teal to-orange p-12 sm:p-16 text-center">
+          <div className="relative overflow-hidden rounded-3xl bg-brand-gradient p-12 sm:p-16 text-center">
             <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/10 blur-3xl -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white/10 blur-3xl translate-y-1/2 -translate-x-1/2" />
 
             <div className="relative z-10">
-              <h2 className="text-3xl sm:text-5xl font-extrabold text-white uppercase mb-6">
-                Get Started Now
+              <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-4">Join the circle</p>
+              <h2 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight mb-6">
+                Your next great session<br />starts here.
               </h2>
               <p className="text-white/80 text-lg mb-10 max-w-xl mx-auto">
-                Whether you're an athlete looking for your next coach or a coach
-                ready to grow &mdash; getting started costs nothing.
+                Whether you're an athlete hungry for progress or a coach ready to grow your business &mdash; getting started costs nothing.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() => navigate("/signup")}
-                  className="group px-10 py-5 bg-white text-navy-deep font-bold text-lg rounded-2xl hover:shadow-lg hover:shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 inline-flex items-center justify-center gap-2"
+                  className="group px-10 py-5 bg-white text-foreground font-bold text-lg rounded-2xl hover:shadow-lg hover:shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 inline-flex items-center justify-center gap-2"
                 >
                   Find a Coach
                   <ChevronRight
@@ -1087,13 +1063,9 @@ export default function LandingPage() {
         }`}
       >
         <div className="max-w-6xl mx-auto px-6">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-10 mb-12">
             <div className="lg:col-span-1">
-              <span
-                className={`text-2xl font-bold tracking-tight ${textPrimary}`}
-              >
-                circlo<span className="text-teal">.</span>
-              </span>
+              <CircloLogo variant="full" size="md" theme={dark ? "dark" : "light"} />
               <p className={`mt-3 text-sm ${textMuted} leading-relaxed`}>
                 The sports coaching marketplace.
                 <br />
@@ -1112,7 +1084,7 @@ export default function LandingPage() {
                   <li key={link}>
                     <a
                       href="#"
-                      className={`text-sm ${textSecondary} hover:text-white transition-colors`}
+                      className={`text-sm ${textSecondary} ${hoverText} transition-colors`}
                     >
                       {link}
                     </a>
@@ -1133,7 +1105,7 @@ export default function LandingPage() {
                     <li key={link}>
                       <a
                         href="#"
-                        className={`text-sm ${textSecondary} hover:text-white transition-colors`}
+                        className={`text-sm ${textSecondary} ${hoverText} transition-colors`}
                       >
                         {link}
                       </a>
@@ -1154,7 +1126,7 @@ export default function LandingPage() {
                   <li key={link}>
                     <a
                       href="#"
-                      className={`text-sm ${textSecondary} hover:text-white transition-colors`}
+                      className={`text-sm ${textSecondary} ${hoverText} transition-colors`}
                     >
                       {link}
                     </a>
@@ -1174,7 +1146,7 @@ export default function LandingPage() {
                   <li key={link}>
                     <a
                       href="#"
-                      className={`text-sm ${textSecondary} hover:text-white transition-colors`}
+                      className={`text-sm ${textSecondary} ${hoverText} transition-colors`}
                     >
                       {link}
                     </a>
@@ -1201,7 +1173,7 @@ export default function LandingPage() {
                 <a
                   key={social.label}
                   href="#"
-                  className={`${textMuted} hover:text-white transition-colors`}
+                  className={`${textMuted} ${hoverText} transition-colors`}
                   aria-label={social.label}
                 >
                   {social.icon}

@@ -25,14 +25,14 @@ const ForYouStrip = ({ items }: ForYouStripProps) => {
   if (items.length === 0) return null;
 
   return (
-    <div className="px-4">
+    <div className="px-4 md:px-6">
       <SectionHeader title="For You" linkTo="/reels" linkLabel="More" />
-      <div className="flex w-full max-w-full gap-3 overflow-x-auto hide-scrollbar pb-1">
+      <div className="flex w-full max-w-full gap-3 md:gap-4 overflow-x-auto hide-scrollbar pb-1 md:grid md:grid-cols-3 lg:grid-cols-4 md:overflow-visible">
         {items.slice(0, 8).map((item) => (
           <Link
             key={item.id}
             to={`/coach/${item.coachId}`}
-            className="flex-shrink-0 w-[140px] active:scale-[0.97] transition-transform duration-150"
+            className="flex-shrink-0 w-[140px] md:w-full active:scale-[0.97] transition-transform duration-150"
           >
             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-secondary">
               {item.image ? (

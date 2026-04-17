@@ -82,8 +82,12 @@ const ResetPassword = () => {
               placeholder="At least 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              aria-invalid={password.length > 0 && password.length < 8}
               className="h-12 rounded-xl bg-secondary border-border/50 focus:border-primary/50"
             />
+            {password.length > 0 && password.length < 8 && (
+              <p className="text-xs text-destructive mt-1">Password must be at least 8 characters</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm" className="text-sm text-foreground">Confirm Password</Label>
@@ -93,8 +97,12 @@ const ResetPassword = () => {
               placeholder="Repeat your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              aria-invalid={confirmPassword.length > 0 && password !== confirmPassword}
               className="h-12 rounded-xl bg-secondary border-border/50 focus:border-primary/50"
             />
+            {confirmPassword.length > 0 && password !== confirmPassword && (
+              <p className="text-xs text-destructive mt-1">Passwords do not match</p>
+            )}
           </div>
 
           <button

@@ -83,9 +83,9 @@ export interface OverviewTabProps {
   revenueByType: RevenueByType[];
   payoutHistory: PayoutRecord[];
   todayBookings: TodayBooking[];
-  upcomingBookings: UpcomingBooking[];
-  newFollowersCount: number;
-  recentReviews: RecentReview[];
+  upcomingBookings?: UpcomingBooking[];
+  newFollowersCount?: number;
+  recentReviews?: RecentReview[];
   totalViews: number;
   totalLikes: number;
   followers: number;
@@ -104,8 +104,8 @@ export interface OverviewTabProps {
 const OverviewTab = ({
   totalEarnings, weeklyEarnings, monthlyEarnings, yearlyEarnings,
   pendingEarnings, receivedEarnings, earningsChart, revenueByType,
-  payoutHistory, todayBookings, upcomingBookings, newFollowersCount,
-  recentReviews, totalViews, totalLikes, followers,
+  payoutHistory, todayBookings, upcomingBookings = [], newFollowersCount = 0,
+  recentReviews = [], totalViews, totalLikes, followers,
   clientsCount, videosCount, weeklyGrowthPct, loading, isPro, isVerified,
   verificationStatus, onUpload, onVerify, onSetTab,
 }: OverviewTabProps) => {
@@ -411,7 +411,7 @@ const OverviewTab = ({
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="h-7 w-7 rounded-full bg-secondary overflow-hidden flex-shrink-0">
                     {r.reviewer_avatar ? (
-                      <img src={r.reviewer_avatar} alt="" className="h-full w-full object-cover" />
+                      <img src={r.reviewer_avatar} alt="" className="h-full w-full object-cover" loading="lazy" />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                         {r.reviewer_username[0]?.toUpperCase() || "?"}

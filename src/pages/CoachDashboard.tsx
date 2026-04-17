@@ -2,20 +2,28 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   CheckCircle, Clock, Bell, Bot, TrendingUp,
-  CalendarDays, DollarSign, Users, Video, BarChart3, CalendarRange, CalendarCog,
+  CalendarDays, DollarSign, Users, Video, BarChart3, CalendarCog,
+  Eye, Mic, CreditCard, Package,
 } from "lucide-react";
 import VideoUploadModal from "@/components/VideoUploadModal";
 import VerificationWizard from "@/components/VerificationWizard";
 import CoachOnboardingChecklist from "@/components/dashboard/CoachOnboardingChecklist";
+import StripeConnectSetup from "@/components/StripeConnectSetup";
+import DigitalProductsSection from "@/components/DigitalProductsSection";
+import CoachAMA from "@/components/CoachAMA";
 import OverviewTab, { type RecentReview } from "@/components/dashboard/OverviewTab";
 import BookingsTab, { type BookingRecord } from "@/components/dashboard/BookingsTab";
 import ClientsTab, { type ClientRecord } from "@/components/dashboard/ClientsTab";
 import ContentTab, { type VideoRecord } from "@/components/dashboard/ContentTab";
 import AnalyticsTab from "@/components/dashboard/AnalyticsTab";
 import BobAITab, { type CoachBusinessData } from "@/components/dashboard/BobAITab";
+import NotificationsTab from "@/components/dashboard/NotificationsTab";
 import CalendarTab from "@/components/dashboard/CalendarTab";
+import { useCoachStats } from "@/hooks/use-coach-stats";
+import CoachHubPreview from "@/components/CoachHubPreview";
 import VisualAvailabilityManager from "@/components/VisualAvailabilityManager";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/hooks/use-notifications";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -28,17 +36,19 @@ import {
   AnalyticsSkeleton,
 } from "@/components/CoachDashboardSkeleton";
 
-type Tab = "overview" | "bookings" | "calendar" | "schedule" | "clients" | "content" | "analytics" | "bob";
+type Tab = "overview" | "notifications" | "bookings" | "calendar" | "schedule" | "clients" | "content" | "analytics" | "bob" | "ama" | "payouts";
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "notifications", label: "Notifications", icon: Bell },
   { id: "bookings", label: "Bookings", icon: CalendarDays },
-  { id: "calendar", label: "Calendar", icon: CalendarRange },
   { id: "schedule", label: "Schedule", icon: CalendarCog },
   { id: "clients", label: "Clients", icon: Users },
   { id: "content", label: "Content", icon: Video },
   { id: "analytics", label: "Analytics", icon: TrendingUp },
+  { id: "ama", label: "AMA", icon: Mic },
   { id: "bob", label: "Bob AI", icon: Bot },
+  { id: "payouts", label: "Payouts", icon: CreditCard },
 ];
 
 interface CoachProfile {
@@ -61,6 +71,7 @@ const CoachDashboard = () => {
   const [tab, setTab] = useState<Tab>(initialTab);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [profile, setProfile] = useState<CoachProfile | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
 
@@ -74,7 +85,11 @@ const CoachDashboard = () => {
   const [recentReviews, setRecentReviews] = useState<RecentReview[]>([]);
   const [dashLoading, setDashLoading] = useState(true);
 
+  const { unreadCount: notifUnreadCount } = useNotifications();
   const coachId = user?.id || "";
+
+  // Pre-computed stats from materialized view
+  const { stats: coachStats, loading: statsLoading } = useCoachStats(coachId || undefined);
 
   // Fetch coach profile
   useEffect(() => {
@@ -110,7 +125,7 @@ const CoachDashboard = () => {
 
       const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
 
-      const [bookingsRes, videosRes, followersRes, reviewsRes] = await Promise.all([
+      const [bookingsRes, videosRes, reviewsRes] = await Promise.all([
         supabase
           .from("bookings")
           .select("id, user_id, date, time, time_label, status, price, training_type, is_group")
@@ -121,11 +136,6 @@ const CoachDashboard = () => {
           .select("id, title, media_url, thumbnail_url, views, likes_count, comments_count, created_at, category")
           .eq("coach_id", profile.id)
           .order("created_at", { ascending: false }),
-        supabase
-          .from("user_follows")
-          .select("id", { count: "exact", head: true })
-          .eq("coach_id", profile.id)
-          .gte("created_at", weekAgo),
         supabase
           .from("reviews")
           .select("id, rating, comment, created_at, user_id, user_name")
@@ -204,6 +214,11 @@ const CoachDashboard = () => {
       setClients(clientList);
 
       // New followers count (last 7 days)
+      const followersRes = await supabase
+        .from("community_members")
+        .select("id", { count: "exact", head: true })
+        .eq("coach_id", profile.id)
+        .gte("created_at", weekAgo);
       setNewFollowersCount(followersRes.count || 0);
 
       // Recent reviews — enrich with reviewer profiles
@@ -479,10 +494,22 @@ const CoachDashboard = () => {
               </div>
             )}
             <button
-              onClick={() => navigate("/inbox")}
-              className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center"
+              onClick={() => setPreviewOpen(true)}
+              className="h-9 px-3 rounded-xl bg-accent/10 border border-accent/20 flex items-center gap-1.5 text-accent text-xs font-bold hover:bg-accent/20 transition-colors"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Edit Hub
+            </button>
+            <button
+              onClick={() => setTab("notifications")}
+              className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center relative"
             >
               <Bell className="h-4 w-4 text-muted-foreground" />
+              {notifUnreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
+                  {notifUnreadCount > 99 ? "99+" : notifUnreadCount}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -504,6 +531,16 @@ const CoachDashboard = () => {
             >
               <t.icon className="h-3.5 w-3.5" />
               {t.label}
+              {t.id === "notifications" && notifUnreadCount > 0 && (
+                <span className={cn(
+                  "ml-0.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center text-[9px] font-bold px-1",
+                  tab === "notifications"
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-destructive text-destructive-foreground"
+                )}>
+                  {notifUnreadCount > 99 ? "99+" : notifUnreadCount}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -566,20 +603,17 @@ const CoachDashboard = () => {
           />
         )}
 
+        {tab === "notifications" && profile && (
+          <NotificationsTab coachProfileId={profile.id} />
+        )}
+
+
         {tab === "bookings" && dashLoading && <BookingsSkeleton />}
         {tab === "bookings" && !dashLoading && profile && (
           <BookingsTab
             allBookings={allBookings}
             pendingBookings={pendingBookings}
             loading={dashLoading}
-            coachProfileId={profile.id}
-            onRefresh={refreshBookings}
-          />
-        )}
-
-        {tab === "calendar" && !dashLoading && profile && (
-          <CalendarTab
-            allBookings={allBookings}
             coachProfileId={profile.id}
             onRefresh={refreshBookings}
           />
@@ -623,12 +657,23 @@ const CoachDashboard = () => {
           />
         )}
 
+        {tab === "ama" && profile && (
+          <CoachAMA coachId={profile.id} isCoach={true} />
+        )}
+
         {tab === "bob" && profile && (
           <BobAITab
             coachData={bobCoachData}
             coachName={profile.coach_name}
             sport={profile.sport}
           />
+        )}
+
+        {tab === "payouts" && profile && (
+          <div className="space-y-5">
+            <StripeConnectSetup coachProfileId={profile.id} />
+            <DigitalProductsSection coachProfileId={profile.id} isOwner={true} />
+          </div>
         )}
       </div>
 
@@ -650,6 +695,14 @@ const CoachDashboard = () => {
             setVerifyOpen(false);
             setVerificationStatus("pending");
           }}
+        />
+      )}
+
+      {profile && (
+        <CoachHubPreview
+          coachProfileId={profile.id}
+          open={previewOpen}
+          onClose={() => setPreviewOpen(false)}
         />
       )}
     </div>

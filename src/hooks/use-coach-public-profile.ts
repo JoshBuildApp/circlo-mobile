@@ -9,7 +9,7 @@ export const useCoachPublicProfile = (coachId: string | undefined) => {
 
       const { data, error } = await supabase
         .from('coach_profiles')
-        .select('id, user_id, coach_name, sport, bio, tagline, image_url, cover_media, location, price, rating, followers, total_sessions, years_experience, is_verified, specialties, certifications, achievements, intro_video_url, session_duration, training_style, ideal_for, languages, response_time')
+        .select('id, user_id, coach_name, sport, bio, tagline, image_url, cover_media, location, price, rating, followers, total_sessions, years_experience, is_verified, specialties, certifications, achievements, intro_video_url, session_duration, training_style, ideal_for, languages, response_time, updated_at')
         .eq('id', coachId)
         .maybeSingle();
 
@@ -24,7 +24,7 @@ export const useCoachPublicProfile = (coachId: string | undefined) => {
         .maybeSingle();
 
       return {
-        ...data,
+        ...(data as any),
         username: profile?.username,
         profile_avatar: profile?.avatar_url,
         profile_bio: profile?.bio,

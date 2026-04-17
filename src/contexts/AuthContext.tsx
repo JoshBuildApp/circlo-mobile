@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { DEVELOPER_EMAIL, ADMIN_EMAILS } from "@/config/dev";
+import { ADMIN_EMAILS } from "@/config/dev";
 
 type AppRole = "admin" | "user" | "coach" | "developer";
 
@@ -113,7 +113,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     window.location.href = "/login";
   };
 
-  const isDeveloper = role === "developer" || (user?.email?.toLowerCase() === DEVELOPER_EMAIL.toLowerCase());
+  // Developer status is determined ONLY by the user_roles table — no email
+  // fallback. The DB row is the source of truth so a compromised frontend
+  // bundle can't grant itself privileges.
+  const isDeveloper = role === "developer";
 
   // For dev users, use the simulated activeRole; for everyone else, use real role
   const effectiveRole = isDeveloper && activeRole ? activeRole : role;
@@ -122,7 +125,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!isDeveloper) return;
     setActiveRoleState(r);
     localStorage.setItem("circlo_active_role", r);
-    console.log(`[DevRoleSwitch] Role switched to: ${r}`);
 
     // Auto-create coach profile if switching to coach and none exists
     if (r === "coach" && user) {
@@ -137,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               user_id: user.id,
               coach_name: profile?.username || "Dev Coach",
               sport: "Multi-Sport",
-            }).then(() => console.log("[DevRoleSwitch] Auto-created coach profile"));
+            });
           }
         });
     }

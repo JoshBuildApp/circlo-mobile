@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 const GlassCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div className={`rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4 ${className}`}>
+  <div className={`rounded-2xl border border-border bg-card/50 backdrop-blur p-4 ${className}`}>
     {children}
   </div>
 );

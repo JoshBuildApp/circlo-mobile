@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Download, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { openExternal } from '@/lib/platform';
 
 interface ChatMessageProps {
   id: string;
@@ -98,7 +99,7 @@ export const ChatMessage = ({
                   setImageLoading(false);
                   setImageError(true);
                 }}
-                onClick={() => window.open(file_url, '_blank')}
+                onClick={() => openExternal(file_url)}
               />
             )}
             {content && (

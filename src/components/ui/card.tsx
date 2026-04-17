@@ -3,9 +3,28 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-2xl border bg-card text-card-foreground shadow-card transition-all duration-150 hover:shadow-card-hover hover:bg-light-orange/30", className)} {...props} />
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-2xl border border-border/40 bg-card text-card-foreground shadow-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/15 hover:-translate-y-1",
+      className
+    )}
+    {...props}
+  />
 ));
 Card.displayName = "Card";
+
+const CardPremium = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-2xl border border-border/30 bg-gradient-to-br from-card via-card to-light-orange/30 text-card-foreground shadow-card transition-all duration-300 hover:shadow-glow hover:border-primary/20 hover:-translate-y-1.5",
+      className
+    )}
+    {...props}
+  />
+));
+CardPremium.displayName = "CardPremium";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
@@ -40,4 +59,4 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardFooter.displayName = "CardFooter";
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+export { Card, CardPremium, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };

@@ -145,7 +145,6 @@ export const useReferral = () => {
         .single();
 
       if (referrerError || !referrer) {
-        console.log("Invalid referrer code:", referrerCode);
         return false;
       }
 
@@ -183,7 +182,6 @@ export const useReferral = () => {
         .single();
 
       if (bookingError || !booking) {
-        console.log("Booking not found:", bookingId);
         return false;
       }
 
@@ -194,7 +192,6 @@ export const useReferral = () => {
         .maybeSingle();
 
       if (!profile) {
-        console.log("No referrer for this booking");
         return false;
       }
 
@@ -208,12 +205,10 @@ export const useReferral = () => {
       if (prevError) throw prevError;
 
       if (previousBookings && previousBookings.length > 0) {
-        console.log("Not the first booking for this user");
         return false;
       }
 
       const creditAmount = bookingAmount * 0.1;
-      console.log("Referral credit processing skipped - feature not fully implemented");
       return true;
     } catch (error) {
       console.error("Error processing referral credit:", error);

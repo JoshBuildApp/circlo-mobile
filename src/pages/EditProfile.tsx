@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Camera,
   Check,
   Globe,
@@ -9,7 +8,10 @@ import {
   Loader2,
   Phone,
   ImageIcon,
+  ShieldCheck,
+  FileCheck2,
 } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -106,6 +108,13 @@ const EditProfile = () => {
   const [website, setWebsite] = useState("");
   const [phone, setPhone] = useState("");
 
+  // Insurance (coach)
+  const [insuranceDocUrl, setInsuranceDocUrl] = useState("");
+  const [insuranceExpiry, setInsuranceExpiry] = useState("");
+  const [insuranceVerifiedAt, setInsuranceVerifiedAt] = useState<string | null>(null);
+  const [insuranceUploading, setInsuranceUploading] = useState(false);
+  const insuranceRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (!user) return;
     const load = async () => {
@@ -127,7 +136,7 @@ const EditProfile = () => {
       // Load coach profile if exists
       const { data: coach } = await supabase
         .from("coach_profiles")
-        .select("id, coach_name, sport, bio, tagline, image_url, cover_media, price, years_experience, specialties, location, payment_phone, training_style, ideal_for, languages, response_time")
+        .select("id, coach_name, sport, bio, tagline, image_url, cover_media, price, years_experience, specialties, location, payment_phone, training_style, ideal_for, languages, response_time, insurance_doc_url, insurance_expiry_date, insurance_verified_at")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -149,6 +158,9 @@ const EditProfile = () => {
         setIdealFor(c.ideal_for ?? "");
         setLanguagesStr((c.languages ?? []).join(", "));
         setResponseTime(c.response_time ?? "");
+        setInsuranceDocUrl(c.insurance_doc_url ?? "");
+        setInsuranceExpiry(c.insurance_expiry_date ?? "");
+        setInsuranceVerifiedAt(c.insurance_verified_at ?? null);
         if (c.image_url) setAvatarUrl(c.image_url);
       }
 
@@ -195,6 +207,32 @@ const EditProfile = () => {
     setCoverUploading(false);
   };
 
+  const handleInsuranceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large — max 10MB");
+      return;
+    }
+    setInsuranceUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/insurance/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("coach-videos")
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (error) {
+      toast.error("Insurance upload failed");
+      setInsuranceUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("coach-videos").getPublicUrl(path);
+    setInsuranceDocUrl(urlData.publicUrl);
+    // New upload requires re-verification
+    setInsuranceVerifiedAt(null);
+    toast.success("Insurance document uploaded — pending admin review");
+    setInsuranceUploading(false);
+  };
+
   const handleSave = async () => {
     if (!user) return;
     if (!username.trim()) {
@@ -229,7 +267,7 @@ const EditProfile = () => {
         .map((s) => s.trim())
         .filter(Boolean);
 
-      const coachUpdate: Record<string, string | number | string[]> = {
+      const coachUpdate: Record<string, string | number | string[] | null> = {
         coach_name: coachName.trim() || username.trim(),
         sport: sport || "Other",
         bio: coachBio.trim(),
@@ -243,6 +281,8 @@ const EditProfile = () => {
         ideal_for: idealFor.trim(),
         languages: languagesStr.split(",").map((s) => s.trim()).filter(Boolean),
         response_time: responseTime.trim() || "Under 1 hour",
+        insurance_doc_url: insuranceDocUrl || null,
+        insurance_expiry_date: insuranceExpiry || null,
       };
       if (avatarUrl) coachUpdate.image_url = avatarUrl;
       if (coverUrl) coachUpdate.cover_media = coverUrl;
@@ -260,7 +300,6 @@ const EditProfile = () => {
         setSaving(false);
         return;
       }
-      console.log("Saved coach profile:", savedCoach);
     }
 
     await refreshProfile();
@@ -293,15 +332,15 @@ const EditProfile = () => {
       {/* Hidden file inputs */}
       <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
       <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+      <input ref={insuranceRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={handleInsuranceUpload} />
 
-      {/* Top bar */}
-      <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-xl border-b border-border/10">
-        <button onClick={() => navigate(-1)} className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-transform">
-          <ArrowLeft className="h-5 w-5 text-foreground" />
-        </button>
-        <h1 className="font-heading text-base font-bold text-foreground">Edit Profile</h1>
-        <div className="w-10" />
-      </div>
+      <PageHeader
+        title="Edit Profile"
+        showBack
+        sticky
+        centerTitle
+        className="px-4 py-3"
+      />
 
       {/* Cover banner */}
       {isCoach && (
@@ -538,6 +577,85 @@ const EditProfile = () => {
                   className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-primary/30"
                 />
               </div>
+            </FieldCard>
+          </div>
+        )}
+
+        {/* Insurance */}
+        {isCoach && (
+          <div>
+            <SectionTitle>Liability Insurance</SectionTitle>
+            <FieldCard>
+              <div className="flex items-start gap-2.5">
+                <ShieldCheck className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">
+                    Professional liability insurance
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                    Required to take bookings on Circlo. Upload proof of your active
+                    ביטוח אחריות מקצועית. An admin reviews each upload before the
+                    Verified badge appears on your profile.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => insuranceRef.current?.click()}
+                disabled={insuranceUploading}
+                className="w-full h-12 rounded-xl bg-secondary/50 border border-border/50 hover:border-amber-500/50 transition-colors flex items-center justify-center gap-2 text-sm font-medium text-foreground disabled:opacity-60"
+              >
+                {insuranceUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uploading…
+                  </>
+                ) : insuranceDocUrl ? (
+                  <>
+                    <FileCheck2 className="h-4 w-4 text-emerald-500" />
+                    Document on file — replace
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-4 w-4 text-amber-500" />
+                    Upload insurance document
+                  </>
+                )}
+              </button>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="insurance_expiry">Policy expiry date</Label>
+                <Input
+                  id="insurance_expiry"
+                  type="date"
+                  value={insuranceExpiry}
+                  onChange={(e) => setInsuranceExpiry(e.target.value)}
+                  className="rounded-xl bg-secondary/50 border-0 focus-visible:ring-amber-500/30"
+                />
+              </div>
+
+              {insuranceDocUrl && (
+                <div
+                  className={`flex items-center gap-2 text-[11px] font-medium px-3 py-2 rounded-lg ${
+                    insuranceVerifiedAt
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                  }`}
+                >
+                  {insuranceVerifiedAt ? (
+                    <>
+                      <Check className="h-3.5 w-3.5" />
+                      Verified by Circlo on {new Date(insuranceVerifiedAt).toLocaleDateString()}
+                    </>
+                  ) : (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Pending admin review
+                    </>
+                  )}
+                </div>
+              )}
             </FieldCard>
           </div>
         )}

@@ -83,27 +83,29 @@ export function useAuditLog(options: UseAuditLogOptions = {}) {
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, username, full_name")
+          .select("id, username")
           .in("id", userIds);
 
         const profileMap = new Map(
-          (profiles ?? []).map((p) => [p.id, p])
+          (profiles ?? []).map((p: any) => [p.id, p])
         );
 
-        const enriched = data.map((entry) => ({
+        const enriched = data.map((entry: any) => ({
           ...entry,
+          ip_address: String(entry.ip_address ?? ''),
           metadata: (entry.metadata ?? {}) as Record<string, unknown>,
           old_value: entry.old_value as Record<string, unknown> | null,
           new_value: entry.new_value as Record<string, unknown> | null,
           user_name: entry.user_id
-            ? profileMap.get(entry.user_id)?.full_name ?? profileMap.get(entry.user_id)?.username ?? "Unknown"
+            ? profileMap.get(entry.user_id)?.username ?? "Unknown"
             : "System",
         }));
 
         setEntries(enriched);
       } else {
-        setEntries(data.map((entry) => ({
+        setEntries(data.map((entry: any) => ({
           ...entry,
+          ip_address: String(entry.ip_address ?? ''),
           metadata: (entry.metadata ?? {}) as Record<string, unknown>,
           old_value: entry.old_value as Record<string, unknown> | null,
           new_value: entry.new_value as Record<string, unknown> | null,
@@ -138,7 +140,7 @@ export async function logAuditEvent(
     _target_id: targetId ?? null,
     _old_value: null,
     _new_value: null,
-    _metadata: metadata ?? {},
+    _metadata: (metadata ?? {}) as any,
   });
 
   if (error) {

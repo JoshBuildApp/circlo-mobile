@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLike, trackView } from "@/hooks/use-feed";
 import { useFollow } from "@/hooks/use-follow";
+import { useSavedItems } from "@/hooks/use-saved-items";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CoachAvatar } from "@/components/ui/coach-avatar";
@@ -29,7 +30,6 @@ const FeedVideoCard = memo(({ video, isActive }: FeedVideoCardProps) => {
   const [viewTracked, setViewTracked] = useState(false);
   const [heartAnim, setHeartAnim] = useState(false);
   const [bookmarkAnim, setBookmarkAnim] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
   const [paused, setPaused] = useState(false);
   const [buffering, setBuffering] = useState(false);
   const [videoError, setVideoError] = useState(false);
@@ -37,6 +37,8 @@ const FeedVideoCard = memo(({ video, isActive }: FeedVideoCardProps) => {
 
   const { liked, count: likesCount, toggleLike } = useLike(isActive ? video.id : "");
   const { following, toggleFollow } = useFollow(isActive ? video.coach_id : undefined);
+  const { isItemSaved, saveItem, unsaveItem } = useSavedItems();
+  const bookmarked = isItemSaved(video.id);
 
   // Auto-play/pause based on active state
   useEffect(() => {
@@ -187,7 +189,7 @@ const FeedVideoCard = memo(({ video, isActive }: FeedVideoCardProps) => {
         <button
           onClick={() => {
             setBookmarkAnim(true);
-            setBookmarked(b => !b);
+            if (bookmarked) { unsaveItem.mutate(video.id); } else { saveItem.mutate({ contentId: video.id }); }
             setTimeout(() => setBookmarkAnim(false), 500);
           }}
           className="flex flex-col items-center gap-1 min-w-[44px] min-h-[44px] justify-center"
@@ -312,7 +314,7 @@ const LazyCommentsSheet = ({ videoId, onClose }: { videoId: string; onClose: () 
               <div key={c.id} className="flex gap-3 group">
                 <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {c.avatar_url ? (
-                    <img src={c.avatar_url} alt="" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
+                    <img src={c.avatar_url} alt="" className="h-full w-full object-cover" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
                   ) : null}
                   <span className={`text-[10px] font-bold text-muted-foreground ${c.avatar_url ? 'hidden' : ''}`}>{c.username.charAt(0).toUpperCase()}</span>
                 </div>

@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import { Link } from "react-router-dom";
 import { Flame, Sparkles, TrendingUp, ChevronRight, Star, Users, CheckCircle2 } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
+import { resolveCoachImage } from "@/lib/coach-placeholders";
 import type { HomeCoach } from "@/hooks/use-home-data";
 
 const fmt = (n: number) =>
@@ -32,7 +33,7 @@ const DiscoveryMoment = forwardRef<HTMLDivElement, DiscoveryMomentProps>(({ type
   const Icon = iconMap[type];
 
   return (
-    <div ref={ref} className="py-4 px-4 bg-secondary/30 border-y border-border/5">
+    <div ref={ref} className="col-span-full py-4 px-4 md:px-6 lg:px-8 bg-secondary/30 border-y border-border/5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Icon className={`h-4 w-4 ${colorMap[type]}`} />
@@ -45,16 +46,16 @@ const DiscoveryMoment = forwardRef<HTMLDivElement, DiscoveryMomentProps>(({ type
           See all <ChevronRight className="h-3 w-3" />
         </Link>
       </div>
-      <div className="flex w-full max-w-full gap-3 overflow-x-auto hide-scrollbar pb-1">
+      <div className="flex w-full max-w-full gap-3 md:gap-4 overflow-x-auto hide-scrollbar pb-1 md:grid md:grid-cols-4 lg:grid-cols-5 md:overflow-visible">
         {coaches.slice(0, 8).map((c) => (
           <Link
             key={c.id}
             to={`/coach/${c.id}`}
-            className="flex-shrink-0 w-[130px] active:scale-[0.97] transition-transform"
+            className="flex-shrink-0 w-[130px] md:w-full active:scale-[0.97] transition-transform"
           >
-            <div className="relative h-[130px] w-full rounded-2xl overflow-hidden bg-secondary mb-2">
+            <div className="relative h-[130px] md:h-[160px] w-full rounded-2xl overflow-hidden bg-secondary mb-2">
               <SafeImage
-                src={c.image_url || undefined}
+                src={resolveCoachImage(c.image_url, c.id)}
                 alt={c.coach_name}
                 className="h-full w-full object-cover"
                 loading="lazy"

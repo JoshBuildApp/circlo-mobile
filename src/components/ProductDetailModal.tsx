@@ -91,7 +91,7 @@ const ProductDetailModal = ({ product, coachName, onClose }: ProductDetailModalP
           onClick={handleShare}
           className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-transform"
         >
-          <Share2 className="h-4.5 w-4.5 text-foreground" />
+          <Share2 className="h-[18px] w-[18px] text-foreground" />
         </button>
       </div>
 

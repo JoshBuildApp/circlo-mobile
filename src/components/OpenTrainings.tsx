@@ -65,7 +65,7 @@ const OpenTrainings = ({ coachProfileId, onJoin }: OpenTrainingsProps) => {
                 "h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0",
                 isFull ? "bg-secondary text-muted-foreground" : "bg-primary/10 text-primary"
               )}>
-                <Icon className="h-4.5 w-4.5" />
+                <Icon className="h-[18px] w-[18px]" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-foreground truncate">{session.title || "Open Training"}</p>

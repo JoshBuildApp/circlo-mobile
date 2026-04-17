@@ -11,7 +11,18 @@ export interface Conversation {
   unreadCount: number;
 }
 
-export type MessageType = "text" | "image" | "voice";
+export type MessageType = "text" | "image" | "voice" | "booking_request";
+
+export interface BookingMetadata {
+  booking_id: string;
+  coach_name: string;
+  sport: string;
+  date: string;
+  time: string;
+  price: number;
+  status: string;
+  training_type?: string;
+}
 
 export interface Message {
   id: string;
@@ -21,10 +32,19 @@ export interface Message {
   is_read: boolean;
   read_at: string | null;
   message_type: MessageType;
+  file_url: string | null;
+  metadata: BookingMetadata | null;
   created_at: string;
   /** Client-only: true while optimistically inserted but not yet confirmed */
   _pending?: boolean;
 }
+
+// Canonical UUID guard — used to gate every .or() / filter-string path in
+// this file. .or() does not parameterize its argument, so any ID that flows
+// into it MUST be a well-formed UUID. RLS blocks actual data leakage, but
+// this closes the belt-and-suspenders gap.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (v: unknown): v is string => typeof v === "string" && UUID_RE.test(v);
 
 /* ─────────────────────────────────────────────
    useConversations — inbox list with realtime
@@ -36,13 +56,18 @@ export const useConversations = () => {
 
   const refresh = useCallback(async () => {
     if (!user) { setLoading(false); return; }
+    if (!UUID_RE.test(user.id)) { setLoading(false); return; }
     setLoading(true);
 
-    const { data: msgs } = await supabase
-      .from("messages")
-      .select("*")
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-      .order("created_at", { ascending: false });
+    // Two separate queries instead of a single .or() with template literals.
+    // .or() does not parameterize — even with a trusted auth.uid() today, a
+    // future refactor could pass unvalidated input into the same code path.
+    const [{ data: sent }, { data: received }] = await Promise.all([
+      supabase.from("messages").select("*").eq("sender_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("messages").select("*").eq("receiver_id", user.id).order("created_at", { ascending: false }),
+    ]);
+    const msgs = [...(sent ?? []), ...(received ?? [])]
+      .sort((a: any, b: any) => (b.created_at > a.created_at ? 1 : -1));
 
     if (!msgs || msgs.length === 0) {
       setConversations([]);
@@ -129,6 +154,11 @@ export const useMessages = (partnerId: string) => {
 
   const refresh = useCallback(async () => {
     if (!user || !partnerId) return;
+    if (!isUuid(partnerId) || !isUuid(user.id)) {
+      setLoading(false);
+      setMessages([]);
+      return;
+    }
     setLoading(true);
 
     const filter = `and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`;
@@ -154,7 +184,7 @@ export const useMessages = (partnerId: string) => {
       .order("created_at", { ascending: true })
       .range(from, to);
 
-    setMessages((data as Message[]) || []);
+    setMessages((data as unknown as Message[]) || []);
     setHasMore(from > 0);
     setLoading(false);
 
@@ -170,6 +200,7 @@ export const useMessages = (partnerId: string) => {
 
   const loadOlder = useCallback(async () => {
     if (!user || !partnerId || loadingOlder || !hasMore) return;
+    if (!isUuid(partnerId) || !isUuid(user.id)) return;
     setLoadingOlder(true);
 
     const filter = `and(sender_id.eq.${user.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${user.id})`;
@@ -193,7 +224,7 @@ export const useMessages = (partnerId: string) => {
 
     if (data && data.length > 0) {
       offsetRef.current = newFrom;
-      setMessages((prev) => [...(data as Message[]), ...prev]);
+      setMessages((prev) => [...(data as unknown as Message[]), ...prev]);
       setHasMore(newFrom > 0);
     } else {
       setHasMore(false);
@@ -240,8 +271,30 @@ export const useMessages = (partnerId: string) => {
     return () => { supabase.removeChannel(channel); };
   }, [user, partnerId]);
 
-  const sendMessage = useCallback(async (content: string) => {
-    if (!user || !partnerId || !content.trim() || pendingSendRef.current) return;
+  const sendMessage = useCallback(async (
+    content: string,
+    options?: {
+      message_type?: MessageType;
+      file_url?: string;
+      metadata?: BookingMetadata;
+    },
+    messageLimitCheck?: { canSend: boolean; hasBooking: boolean; inboxFull: boolean; sentToday: number; cap: number; incrementMessageCount: () => Promise<void> }
+  ) => {
+    if (!user || !partnerId || pendingSendRef.current) return;
+
+    // Check message limits if provided (non-booked pairs only)
+    if (messageLimitCheck && !messageLimitCheck.hasBooking) {
+      if (messageLimitCheck.inboxFull) {
+        throw new Error("INBOX_FULL");
+      }
+      if (!messageLimitCheck.canSend) {
+        throw new Error("MESSAGE_LIMIT");
+      }
+    }
+
+    const type = options?.message_type || "text";
+    // Text messages require content; image messages can have empty content
+    if (type === "text" && !content.trim()) return;
     pendingSendRef.current = true;
 
     const tempId = `temp-${Date.now()}`;
@@ -252,7 +305,9 @@ export const useMessages = (partnerId: string) => {
       content: content.trim(),
       is_read: false,
       read_at: null,
-      message_type: "text",
+      message_type: type,
+      file_url: options?.file_url || null,
+      metadata: options?.metadata || null,
       created_at: new Date().toISOString(),
       _pending: true,
     };
@@ -261,9 +316,18 @@ export const useMessages = (partnerId: string) => {
     setMessages((prev) => [...prev, optimisticMsg]);
 
     try {
+      const insertPayload: Record<string, unknown> = {
+        sender_id: user.id,
+        receiver_id: partnerId,
+        content: content.trim() || (type === "image" ? "Sent an image" : ""),
+        message_type: type,
+      };
+      if (options?.file_url) insertPayload.file_url = options.file_url;
+      if (options?.metadata) insertPayload.metadata = options.metadata;
+
       const { data, error } = await supabase
         .from("messages")
-        .insert({ sender_id: user.id, receiver_id: partnerId, content: content.trim() })
+        .insert(insertPayload as any)
         .select()
         .single();
 
@@ -271,18 +335,37 @@ export const useMessages = (partnerId: string) => {
 
       // Replace temp message with real one
       setMessages((prev) =>
-        prev.map((m) => m.id === tempId ? { ...(data as Message), _pending: false } : m)
+        prev.map((m) => m.id === tempId ? { ...(data as unknown as Message), _pending: false } : m)
       );
 
+      // Increment daily message counter for non-booked pairs
+      if (messageLimitCheck && !messageLimitCheck.hasBooking) {
+        messageLimitCheck.incrementMessageCount();
+      }
+
       // Fire-and-forget notification for the receiver
+      const notifBody = type === "image" ? "Sent you a photo"
+        : type === "booking_request" ? "Sent a booking request"
+        : content.trim().slice(0, 100);
+
       supabase.rpc("create_notification", {
         _user_id: partnerId,
         _type: "message",
         _title: "New Message",
-        _body: content.trim().slice(0, 100),
+        _body: notifBody,
         _reference_id: user.id,
         _reference_type: "chat",
       }).then(() => {});
+
+      // Push notification to recipient
+      supabase.functions.invoke("send-push", {
+        body: {
+          user_id: partnerId,
+          title: "New Message",
+          body: notifBody,
+          url: `/chat/${user.id}`,
+        },
+      }).catch(() => {});
     } catch {
       // Remove optimistic message on failure
       setMessages((prev) => prev.filter((m) => m.id !== tempId));

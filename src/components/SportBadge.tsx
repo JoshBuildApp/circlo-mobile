@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 interface SportBadgeProps {
@@ -7,7 +8,7 @@ interface SportBadgeProps {
 }
 
 const sportColors = {
-  padel: "bg-teal-100 text-teal-800 border-teal-200",
+  padel: "bg-primary/100 text-primary/800 border-primary/200",
   boxing: "bg-red-100 text-red-800 border-red-200",
   yoga: "bg-purple-100 text-purple-800 border-purple-200",
   tennis: "bg-green-100 text-green-800 border-green-200",
@@ -25,7 +26,7 @@ const sportColors = {
 
 const defaultColor = "bg-gray-100 text-gray-800 border-gray-200";
 
-export function SportBadge({ sport, size = "md", className }: SportBadgeProps) {
+export const SportBadge = memo(function SportBadge({ sport, size = "md", className }: SportBadgeProps) {
   const normalizedSport = sport.toLowerCase().replace(/\s+/g, "_") as keyof typeof sportColors;
   const colorClasses = sportColors[normalizedSport] || defaultColor;
   
@@ -47,4 +48,4 @@ export function SportBadge({ sport, size = "md", className }: SportBadgeProps) {
       {sport}
     </span>
   );
-}
+});

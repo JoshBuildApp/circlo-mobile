@@ -23,6 +23,7 @@ import { useTrainingSessions, SESSION_TYPES, type TrainingSession } from "@/hook
 import { formatHour } from "@/hooks/use-availability";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { openExternal } from "@/lib/platform";
 
 interface Booking {
   id: string;
@@ -493,9 +494,8 @@ const MySchedule = () => {
   const handleGoogleCalendar = (booking: Booking) => {
     const dateStr = booking.date.replace(/-/g, "");
     const timeStr = booking.time.replace(/:/g, "");
-    window.open(
+    openExternal(
       `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Training with ${booking.coach_name}`)}&dates=${dateStr}T${timeStr}00/${dateStr}T${timeStr}00&details=${encodeURIComponent(`${booking.time_label} session - ₪${booking.price}`)}`,
-      "_blank"
     );
   };
 
@@ -617,7 +617,7 @@ const MySchedule = () => {
 
         {/* ─── Mode Toggle (Coach) ─── */}
         {isCoach && (
-          <div className="flex gap-1 p-1 bg-[#1A1A2E]/60 dark:bg-[#1A1A2E] rounded-2xl mb-4 border border-white/5">
+          <div className="flex gap-1 p-1 bg-muted/50 rounded-2xl mb-4 border border-border">
             <button
               onClick={() => setMode("coach")}
               className={cn(
@@ -635,7 +635,7 @@ const MySchedule = () => {
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all",
                 mode === "personal"
-                  ? "bg-white/10 text-foreground shadow-md backdrop-blur-sm"
+                  ? "bg-muted/50 text-foreground shadow-md backdrop-blur-sm"
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -652,7 +652,7 @@ const MySchedule = () => {
           transition={{ duration: 0.4 }}
           className="grid grid-cols-3 gap-2 mb-4"
         >
-          <div className="bg-[#1A1A2E]/40 dark:bg-[#1A1A2E]/60 backdrop-blur-sm rounded-2xl p-3 border border-white/5">
+          <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-3 border border-border">
             <div className="flex items-center gap-1.5 mb-1">
               <div className="h-5 w-5 rounded-md bg-[#00D4AA]/15 flex items-center justify-center">
                 <TrendingUp className="h-3 w-3 text-[#00D4AA]" />
@@ -663,7 +663,7 @@ const MySchedule = () => {
             <p className="text-[9px] text-muted-foreground mt-0.5">sessions</p>
           </div>
 
-          <div className="bg-[#1A1A2E]/40 dark:bg-[#1A1A2E]/60 backdrop-blur-sm rounded-2xl p-3 border border-white/5">
+          <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-3 border border-border">
             <div className="flex items-center gap-1.5 mb-1">
               <div className="h-5 w-5 rounded-md bg-[#FF6B2C]/15 flex items-center justify-center">
                 <Flame className="h-3 w-3 text-[#FF6B2C]" />
@@ -674,7 +674,7 @@ const MySchedule = () => {
             <p className="text-[9px] text-muted-foreground mt-0.5">days</p>
           </div>
 
-          <div className="bg-[#1A1A2E]/40 dark:bg-[#1A1A2E]/60 backdrop-blur-sm rounded-2xl p-3 border border-white/5">
+          <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-3 border border-border">
             <div className="flex items-center gap-1.5 mb-1">
               <div className="h-5 w-5 rounded-md bg-purple-500/15 flex items-center justify-center">
                 <Timer className="h-3 w-3 text-purple-400" />
@@ -690,12 +690,12 @@ const MySchedule = () => {
 
         {/* ─── Calendar Navigation ─── */}
         <div className="flex items-center justify-between mb-2">
-          <motion.button whileTap={{ scale: 0.85 }} onClick={navigatePrev} className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground active:bg-white/10 transition-colors">
+          <motion.button whileTap={{ scale: 0.85 }} onClick={navigatePrev} className="h-9 w-9 rounded-xl bg-card/50 flex items-center justify-center text-muted-foreground active:bg-muted/50 transition-colors">
             <ChevronLeft className="h-4 w-4" />
           </motion.button>
           <div className="flex items-center gap-3">
             <p className="text-sm font-bold text-foreground">{navigationLabel()}</p>
-            <div className="flex gap-0.5 bg-[#1A1A2E]/40 dark:bg-[#1A1A2E] rounded-xl p-0.5 border border-white/5">
+            <div className="flex gap-0.5 bg-muted/50 rounded-xl p-0.5 border border-border">
               {(["day", "week", "month"] as ViewMode[]).map((v) => (
                 <button
                   key={v}
@@ -717,7 +717,7 @@ const MySchedule = () => {
               ))}
             </div>
           </div>
-          <motion.button whileTap={{ scale: 0.85 }} onClick={navigateNext} className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground active:bg-white/10 transition-colors">
+          <motion.button whileTap={{ scale: 0.85 }} onClick={navigateNext} className="h-9 w-9 rounded-xl bg-card/50 flex items-center justify-center text-muted-foreground active:bg-muted/50 transition-colors">
             <ChevronRight className="h-4 w-4" />
           </motion.button>
         </div>
@@ -765,9 +765,9 @@ const MySchedule = () => {
                           : today
                             ? "bg-[#00D4AA]/10 text-[#00D4AA] ring-1 ring-[#00D4AA]/30"
                             : count > 0
-                              ? "bg-white/5 text-foreground"
+                              ? "bg-card/50 text-foreground"
                               : isCurrentMonth
-                                ? "text-foreground/70 hover:bg-white/5"
+                                ? "text-foreground/70 hover:bg-card/50"
                                 : "text-muted-foreground/20"
                       )}
                     >
@@ -874,7 +874,7 @@ const MySchedule = () => {
                           ? "bg-gradient-to-b from-[#00D4AA] to-[#00B896] text-white shadow-lg shadow-[#00D4AA]/25"
                           : today
                             ? "bg-[#00D4AA]/10 text-foreground"
-                            : "bg-[#1A1A2E]/30 dark:bg-[#1A1A2E]/50 text-foreground border border-white/5"
+                            : "bg-card/50 text-foreground border border-border"
                       )}
                     >
                       <span className={cn(
@@ -1052,7 +1052,7 @@ const MySchedule = () => {
                       </div>
 
                       {/* Timeline + events */}
-                      <div className="flex-1 border-l-2 border-white/5 pl-4 pb-2 relative">
+                      <div className="flex-1 border-l-2 border-border pl-4 pb-2 relative">
                         {/* Current time indicator */}
                         {isToday(selectedDate) && new Date().getHours() === hour && (
                           <div className="absolute -left-[5px] top-2 flex items-center gap-0 z-10 w-full">
@@ -1116,10 +1116,10 @@ const MySchedule = () => {
       {/* Create Session Sheet (Coach) */}
       {sheet === "create-session" && (
         <SheetBackdrop onClose={() => { setSheet("none"); resetSessionForm(); }}>
-          <div className="w-10 h-1 rounded-full bg-white/10 mx-auto mb-4" />
+          <div className="w-10 h-1 rounded-full bg-border mx-auto mb-4" />
           <div className="flex items-center justify-between mb-5">
             <p className="text-lg font-black text-foreground">New Training Session</p>
-            <button onClick={() => { setSheet("none"); resetSessionForm(); }} className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground">
+            <button onClick={() => { setSheet("none"); resetSessionForm(); }} className="h-9 w-9 rounded-xl bg-card/50 flex items-center justify-center text-muted-foreground">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -1138,7 +1138,7 @@ const MySchedule = () => {
                       "flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all",
                       active
                         ? "bg-[#00D4AA]/10 border-[#00D4AA]/30 text-[#00D4AA]"
-                        : "bg-[#1A1A2E]/40 border-white/5 text-muted-foreground"
+                        : "bg-card/50 border-border text-muted-foreground"
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -1148,13 +1148,13 @@ const MySchedule = () => {
               })}
             </div>
 
-            <Input value={sessionTitle} onChange={(e) => setSessionTitle(e.target.value)} placeholder="Session title" className="rounded-xl h-12 bg-[#1A1A2E]/40 border-white/5 text-foreground placeholder:text-muted-foreground/50" />
-            <Input value={sessionDesc} onChange={(e) => setSessionDesc(e.target.value)} placeholder="Description (optional)" className="rounded-xl h-12 bg-[#1A1A2E]/40 border-white/5 text-foreground placeholder:text-muted-foreground/50" />
+            <Input value={sessionTitle} onChange={(e) => setSessionTitle(e.target.value)} placeholder="Session title" className="rounded-xl h-12 bg-card/50 border-border text-foreground placeholder:text-muted-foreground/50" />
+            <Input value={sessionDesc} onChange={(e) => setSessionDesc(e.target.value)} placeholder="Description (optional)" className="rounded-xl h-12 bg-card/50 border-border text-foreground placeholder:text-muted-foreground/50" />
 
             <div className="grid grid-cols-2 gap-3">
-              <Input type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} min={new Date().toISOString().split("T")[0]} className="rounded-xl h-12 bg-[#1A1A2E]/40 border-white/5" />
+              <Input type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} min={new Date().toISOString().split("T")[0]} className="rounded-xl h-12 bg-card/50 border-border" />
               <Select value={sessionTime} onValueChange={setSessionTime}>
-                <SelectTrigger className="h-12 rounded-xl bg-[#1A1A2E]/40 border-white/5"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-12 rounded-xl bg-card/50 border-border"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {HOURS.map((h) => <SelectItem key={h.value} value={h.value}>{h.label}</SelectItem>)}
                 </SelectContent>
@@ -1164,11 +1164,11 @@ const MySchedule = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] text-muted-foreground font-semibold mb-1.5 block uppercase tracking-wider">Max Capacity</label>
-                <Input type="number" value={sessionCapacity} onChange={(e) => setSessionCapacity(Math.max(1, parseInt(e.target.value) || 1))} min={1} className="rounded-xl h-12 bg-[#1A1A2E]/40 border-white/5" />
+                <Input type="number" value={sessionCapacity} onChange={(e) => setSessionCapacity(Math.max(1, parseInt(e.target.value) || 1))} min={1} className="rounded-xl h-12 bg-card/50 border-border" />
               </div>
               <div>
                 <label className="text-[10px] text-muted-foreground font-semibold mb-1.5 block uppercase tracking-wider">Price (₪)</label>
-                <Input type="number" value={sessionPrice} onChange={(e) => setSessionPrice(parseInt(e.target.value) || 0)} min={0} className="rounded-xl h-12 bg-[#1A1A2E]/40 border-white/5" />
+                <Input type="number" value={sessionPrice} onChange={(e) => setSessionPrice(parseInt(e.target.value) || 0)} min={0} className="rounded-xl h-12 bg-card/50 border-border" />
               </div>
             </div>
 
@@ -1182,10 +1182,10 @@ const MySchedule = () => {
       {/* Pick Coach Sheet (Personal) */}
       {sheet === "pick-coach" && (
         <SheetBackdrop onClose={() => setSheet("none")}>
-          <div className="w-10 h-1 rounded-full bg-white/10 mx-auto mb-4" />
+          <div className="w-10 h-1 rounded-full bg-border mx-auto mb-4" />
           <div className="flex items-center justify-between mb-5">
             <p className="text-lg font-black text-foreground">Choose a Coach</p>
-            <button onClick={() => setSheet("none")} className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground">
+            <button onClick={() => setSheet("none")} className="h-9 w-9 rounded-xl bg-card/50 flex items-center justify-center text-muted-foreground">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -1201,7 +1201,7 @@ const MySchedule = () => {
                     onClick={() => handleBookWithCoach(lastCoach)}
                     className="w-full flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-[#00D4AA]/10 to-[#00D4AA]/5 border border-[#00D4AA]/20 text-left"
                   >
-                    <div className="h-14 w-14 rounded-2xl overflow-hidden bg-[#1A1A2E] flex-shrink-0">
+                    <div className="h-14 w-14 rounded-2xl overflow-hidden bg-muted flex-shrink-0">
                       {lastCoach.image_url ? <img src={lastCoach.image_url} alt="" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} /> : null}
                       <div className={`h-full w-full flex items-center justify-center text-lg font-black text-[#00D4AA] bg-[#00D4AA]/10 ${lastCoach.image_url ? 'hidden' : ''}`}>{lastCoach.coach_name.charAt(0).toUpperCase()}</div>
                     </div>
@@ -1221,7 +1221,7 @@ const MySchedule = () => {
                   {followedCoaches.length > 3 && (
                     <div className="relative mb-2">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                      <input type="text" value={coachSearch} onChange={(e) => setCoachSearch(e.target.value)} placeholder="Search coaches..." className="w-full h-10 rounded-xl bg-[#1A1A2E]/60 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 border border-white/5 outline-none focus:ring-1 focus:ring-[#00D4AA]/30" />
+                      <input type="text" value={coachSearch} onChange={(e) => setCoachSearch(e.target.value)} placeholder="Search coaches..." className="w-full h-10 rounded-xl bg-card/50 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 border border-border outline-none focus:ring-1 focus:ring-[#00D4AA]/30" />
                     </div>
                   )}
                   <div className="space-y-1.5">
@@ -1230,9 +1230,9 @@ const MySchedule = () => {
                         key={coach.id}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => handleBookWithCoach(coach)}
-                        className="w-full flex items-center gap-3 p-3.5 rounded-2xl bg-[#1A1A2E]/30 border border-white/5 text-left"
+                        className="w-full flex items-center gap-3 p-3.5 rounded-2xl bg-card/50 border border-border text-left"
                       >
-                        <div className="h-11 w-11 rounded-xl overflow-hidden bg-[#1A1A2E] flex-shrink-0">
+                        <div className="h-11 w-11 rounded-xl overflow-hidden bg-muted flex-shrink-0">
                           {coach.image_url ? <img src={coach.image_url} alt="" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} /> : null}
                           <div className={`h-full w-full flex items-center justify-center text-xs font-bold text-[#00D4AA] bg-[#00D4AA]/10 ${coach.image_url ? 'hidden' : ''}`}>{coach.coach_name.charAt(0).toUpperCase()}</div>
                         </div>
@@ -1251,7 +1251,7 @@ const MySchedule = () => {
               )}
               {!lastCoach && followedCoaches.length === 0 && (
                 <div className="flex flex-col items-center py-8 gap-4">
-                  <div className="h-16 w-16 rounded-2xl bg-[#1A1A2E]/60 flex items-center justify-center"><Search className="h-7 w-7 text-muted-foreground" /></div>
+                  <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center"><Search className="h-7 w-7 text-muted-foreground" /></div>
                   <div className="text-center">
                     <p className="text-base font-bold text-foreground">Discover coaches</p>
                     <p className="text-xs text-muted-foreground mt-1">Find the right coach for you</p>
@@ -1274,10 +1274,10 @@ const MySchedule = () => {
       {/* Session Detail Sheet (Personal) */}
       {sheet === "detail" && selectedBooking && (
         <SheetBackdrop onClose={() => { setSheet("none"); setSelectedBooking(null); }}>
-          <div className="w-10 h-1 rounded-full bg-white/10 mx-auto mb-4" />
+          <div className="w-10 h-1 rounded-full bg-border mx-auto mb-4" />
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-black text-foreground">Session Details</h2>
-            <button onClick={() => { setSheet("none"); setSelectedBooking(null); }} className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground">
+            <button onClick={() => { setSheet("none"); setSelectedBooking(null); }} className="h-9 w-9 rounded-xl bg-card/50 flex items-center justify-center text-muted-foreground">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -1300,7 +1300,7 @@ const MySchedule = () => {
               ].map((item) => {
                 const style = item.isStatus ? getStatusStyle(selectedBooking.status) : null;
                 return (
-                  <div key={item.label} className="bg-[#1A1A2E]/40 rounded-2xl p-3.5 border border-white/5">
+                  <div key={item.label} className="bg-card/80 rounded-2xl p-3.5 border border-border">
                     <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold mb-1.5">{item.label}</p>
                     <p className={cn("text-sm font-bold capitalize", style ? style.text : "text-foreground")}>
                       {item.value}
@@ -1315,14 +1315,14 @@ const MySchedule = () => {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleGoogleCalendar(selectedBooking)}
-                  className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl bg-[#1A1A2E]/60 border border-white/5 text-sm font-semibold text-foreground"
+                  className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl bg-card/80 border border-border text-sm font-semibold text-foreground"
                 >
                   <ExternalLink className="h-4 w-4" /> Google
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleExportICS(selectedBooking)}
-                  className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl bg-[#1A1A2E]/60 border border-white/5 text-sm font-semibold text-foreground"
+                  className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl bg-card/80 border border-border text-sm font-semibold text-foreground"
                 >
                   <Download className="h-4 w-4" /> Export .ics
                 </motion.button>
@@ -1447,7 +1447,7 @@ const SessionCard = ({ event: ev, index, mode, large, onTap, onConfirm, onCancel
                   <motion.button
                     whileTap={{ scale: 0.85 }}
                     onClick={(e) => { e.stopPropagation(); onCancel(ev.data); }}
-                    className="h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground"
+                    className="h-8 w-8 rounded-xl bg-card/50 flex items-center justify-center text-muted-foreground"
                   >
                     <X className="h-3.5 w-3.5" />
                   </motion.button>
@@ -1468,7 +1468,7 @@ const SessionCard = ({ event: ev, index, mode, large, onTap, onConfirm, onCancel
           {/* Capacity bar */}
           {isSession && ev.data?.max_capacity > 0 && (
             <div className="mt-3 flex items-center gap-2">
-              <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+              <div className="flex-1 h-1.5 rounded-full bg-card/50 overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(100, (ev.data.current_bookings / ev.data.max_capacity) * 100)}%` }}
@@ -1509,7 +1509,7 @@ const UpcomingCard = ({ event: ev, index, onTap }: UpcomingCardProps) => {
       initial="hidden"
       animate="visible"
       onClick={onTap}
-      className="flex items-center gap-3 p-3 rounded-xl bg-[#1A1A2E]/30 border border-white/5 cursor-pointer active:bg-white/5 transition-colors"
+      className="flex items-center gap-3 p-3 rounded-xl bg-card/50 border border-border cursor-pointer active:bg-muted/50 transition-colors"
     >
       {/* Date block */}
       <div className="flex-shrink-0 w-12 text-center">
@@ -1546,7 +1546,7 @@ const EmptyDayState = ({ mode, onAction }: { mode: ScheduleMode; onAction: () =>
     className="flex flex-col items-center py-10 gap-4"
   >
     <div className="relative">
-      <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-[#1A1A2E]/80 to-[#1A1A2E]/40 flex items-center justify-center border border-white/5">
+      <div className="h-20 w-20 rounded-3xl bg-muted/50 flex items-center justify-center border border-border">
         <CalendarDays className="h-9 w-9 text-muted-foreground/30" />
       </div>
       <motion.div
@@ -1590,7 +1590,7 @@ const SheetBackdrop = ({ children, onClose }: { children: React.ReactNode; onClo
       animate={{ y: 0 }}
       exit={{ y: "100%" }}
       transition={{ type: "spring", damping: 30, stiffness: 300 }}
-      className="absolute bottom-0 left-0 right-0 bg-card rounded-t-3xl p-5 pb-10 border-t border-white/10"
+      className="absolute bottom-0 left-0 right-0 bg-card rounded-t-3xl p-5 pb-10 border-t border-border"
       onClick={(e) => e.stopPropagation()}
     >
       {children}

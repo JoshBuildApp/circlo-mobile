@@ -1,73 +1,155 @@
-import { Link } from "react-router-dom";
-import { Users, Star, CheckCircle2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { memo, useEffect, useMemo, useState } from "react";
 import SectionHeader from "./SectionHeader";
-import { SafeImage } from "@/components/ui/safe-image";
+import { CoachCard } from "@/components/CoachCard";
+import { CoachPreviewHover } from "@/components/discover/CoachPreviewHover";
+import {
+  useCoachAvailabilityPreview,
+  formatSlotDay,
+  formatSlotTime,
+} from "@/hooks/use-coach-availability-preview";
+import type { DiscoverCoach } from "@/hooks/use-discover-coaches";
+import { geocodeLocation, haversineKm, type LatLng } from "@/lib/geocode";
+import { cn } from "@/lib/utils";
 import type { HomeCoach } from "@/hooks/use-home-data";
 
 interface TopCoachesProps {
   coaches: HomeCoach[];
 }
 
-const TopCoaches = ({ coaches }: TopCoachesProps) => {
+type FilterKey = "all" | "verified" | "pro" | "nearby";
+
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "verified", label: "Verified" },
+  { key: "pro", label: "Pro" },
+  { key: "nearby", label: "Nearby" },
+];
+
+const NEARBY_MAX_KM = 50;
+
+function toDiscoverCoach(c: HomeCoach): DiscoverCoach {
+  return {
+    id: c.id,
+    name: c.coach_name,
+    sport: c.sport,
+    image: c.image_url || "",
+    tagline: c.tagline || c.bio || "",
+    rating: c.rating ?? 0,
+    price: c.price ?? 0,
+    isVerified: !!c.is_verified,
+    isPro: !!c.is_pro,
+    isBoosted: !!c.is_boosted,
+    followers: c.followers ?? 0,
+    location: c.location || "",
+    coords: geocodeLocation(c.location),
+  };
+}
+
+const TopCoaches = memo(({ coaches }: TopCoachesProps) => {
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [userCoords, setUserCoords] = useState<LatLng | null>(null);
+
+  // Best-effort geolocation for the Nearby filter and hover preview distance.
+  useEffect(() => {
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserCoords([pos.coords.latitude, pos.coords.longitude]),
+      () => {},
+      { maximumAge: 5 * 60 * 1000, timeout: 4000 },
+    );
+  }, []);
+
+  const coachIds = useMemo(() => coaches.map((c) => c.id), [coaches]);
+  const { availability } = useCoachAvailabilityPreview(coachIds);
+
+  const filtered = useMemo(() => {
+    return coaches.filter((c) => {
+      if (filter === "verified") return !!c.is_verified;
+      if (filter === "pro") return !!c.is_pro;
+      if (filter === "nearby") {
+        if (!userCoords) return true;
+        const coords = geocodeLocation(c.location);
+        if (!coords) return false;
+        return haversineKm(userCoords, coords) <= NEARBY_MAX_KM;
+      }
+      return true;
+    });
+  }, [coaches, filter, userCoords]);
+
   if (coaches.length === 0) return null;
 
   return (
-    <div className="px-4">
-      <SectionHeader title="Top Coaches" linkTo="/discover" linkLabel="Explore" />
-      <div className="flex w-full max-w-full gap-3 overflow-x-auto hide-scrollbar pb-2 snap-x snap-mandatory -mx-4 px-4">
-        {coaches.map((c, i) => (
-          <motion.div
-            key={c.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05, duration: 0.3 }}
+    <div className="px-4 md:px-6 lg:px-8">
+      <SectionHeader title="Coaches near you" linkTo="/discover" linkLabel="Explore" />
+      <p className="text-sm text-muted-foreground -mt-2 mb-4">
+        Find elite guidance tailored to your goals
+      </p>
+
+      {/* Filter tabs */}
+      <div className="flex items-center gap-2 mb-4 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={cn(
+              "flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 border",
+              filter === f.key
+                ? "bg-[#FF6B2B] text-white border-[#FF6B2B] shadow-md shadow-[#FF6B2B]/25"
+                : "bg-card text-foreground/70 border-border hover:border-[#FF6B2B]/40 hover:text-foreground",
+            )}
           >
-            <Link
-              to={`/coach/${c.id}`}
-              className="flex-shrink-0 w-[150px] bg-card rounded-2xl overflow-hidden active:scale-[0.96] transition-transform duration-150 border border-border/40 shadow-sm hover:shadow-md block"
-            >
-              <div className="h-[110px] bg-secondary relative">
-                <SafeImage
-                  src={c.image_url || undefined}
-                  alt={c.coach_name}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                  displayWidth={200}
-                  srcSetWidths={[160, 320]}
-                  sizes="160px"
-                  fallbackIcon={<Users className="h-8 w-8 text-muted-foreground/20" />}
-                />
-                {c.is_verified && (
-                  <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-[#00D4AA] flex items-center justify-center shadow-sm">
-                    <CheckCircle2 className="h-3 w-3 text-white" />
-                  </div>
-                )}
-                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/30 to-transparent" />
-              </div>
-              <div className="p-2.5">
-                <p className="text-[13px] font-bold text-foreground truncate leading-tight">{c.coach_name}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{c.sport}</p>
-                <div className="flex items-center justify-between mt-1.5">
-                  <div className="flex items-center gap-0.5">
-                    {c.rating && (
-                      <>
-                        <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                        <span className="text-[10px] text-muted-foreground font-semibold">{c.rating}</span>
-                      </>
-                    )}
-                  </div>
-                  {c.price != null && c.price > 0 && (
-                    <span className="text-[11px] font-bold text-[#00D4AA]">₪{c.price}</span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          </motion.div>
+            {f.label}
+          </button>
         ))}
       </div>
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-8 text-center">
+          No coaches match this filter yet.
+        </p>
+      ) : (
+        <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8 snap-x snap-mandatory scrollbar-hide">
+          {filtered.map((c, i) => {
+            const discoverCoach = toDiscoverCoach(c);
+            const slots = availability[c.id] || [];
+            const firstSlot = slots[0];
+            const nextSlotLabel = firstSlot
+              ? `${formatSlotDay(firstSlot.day_of_week)} ${formatSlotTime(firstSlot.start_time)}`
+              : null;
+
+            return (
+              <CoachPreviewHover
+                key={c.id}
+                coach={discoverCoach}
+                availability={availability}
+                userCoords={userCoords}
+              >
+                <div className="snap-start flex-shrink-0">
+                  <CoachCard
+                    id={c.id}
+                    coach_name={c.coach_name}
+                    sport={c.sport}
+                    image_url={c.image_url}
+                    rating={c.rating}
+                    price={c.price}
+                    is_verified={c.is_verified}
+                    is_pro={c.is_pro}
+                    location={c.location}
+                    followers={c.followers}
+                    tagline={c.tagline}
+                    nextSlotLabel={nextSlotLabel}
+                    index={i}
+                  />
+                </div>
+              </CoachPreviewHover>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
-};
+});
+
+TopCoaches.displayName = "TopCoaches";
 
 export default TopCoaches;

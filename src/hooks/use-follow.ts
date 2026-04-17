@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useFeedActionLimits } from "@/hooks/use-rate-limits";
 
 export const useFollow = (coachId: string | undefined) => {
   const { user } = useAuth();
   const [following, setFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const pendingRef = useRef(false);
+  const { checkAction } = useFeedActionLimits();
 
   useEffect(() => {
     if (!user || !coachId) { setLoading(false); return; }
@@ -47,6 +49,16 @@ export const useFollow = (coachId: string | undefined) => {
 
   const toggleFollow = useCallback(async () => {
     if (!user || !coachId || pendingRef.current) return;
+
+    // Only check rate limit when following (not unfollowing)
+    if (!following) {
+      const limits = await checkAction("follow");
+      if (!limits.canAct) {
+        toast.error("Daily follow limit reached");
+        return;
+      }
+    }
+
     pendingRef.current = true;
 
     const wasFollowing = following;

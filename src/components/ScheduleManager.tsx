@@ -235,7 +235,7 @@ const ScheduleManager = ({ coachProfileId }: ScheduleManagerProps) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-            <CalendarDays className="h-4.5 w-4.5 text-primary" />
+            <CalendarDays className="h-[18px] w-[18px] text-primary" />
           </div>
           <div>
             <h2 className="font-heading text-lg font-bold text-foreground">My Schedule</h2>

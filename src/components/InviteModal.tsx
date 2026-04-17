@@ -3,6 +3,7 @@ import { X, UserPlus, Users, Copy, Check, MessageCircle, Sparkles } from "lucide
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { openExternal, shareUrl as buildShareUrl } from "@/lib/platform";
 
 interface InviteModalProps {
   open: boolean;
@@ -15,7 +16,7 @@ const InviteModal = ({ open, onClose }: InviteModalProps) => {
 
   if (!open) return null;
 
-  const inviteUrl = `${window.location.origin}/signup`;
+  const inviteUrl = buildShareUrl("/signup");
   const isCoach = role === "coach";
 
   const handleCopy = async () => {
@@ -26,7 +27,7 @@ const InviteModal = ({ open, onClose }: InviteModalProps) => {
   };
 
   const handleWhatsApp = (message: string) => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(`${message}\n${inviteUrl}`)}`, "_blank");
+    openExternal(`https://wa.me/?text=${encodeURIComponent(`${message}\n${inviteUrl}`)}`);
   };
 
   const inviteOptions = [

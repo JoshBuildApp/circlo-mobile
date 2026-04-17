@@ -71,7 +71,9 @@ const PlayerProfile = () => {
 
     setAvatarUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `avatars/${user.id}.${ext}`;
+    // Path must start with the user's UUID folder — coach-videos bucket has
+    // RLS requiring `(storage.foldername(name))[1] = auth.uid()::text`.
+    const path = `${user.id}/avatar.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from("coach-videos")

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,8 +9,10 @@ import { toast } from "sonner";
 import { Dumbbell, GraduationCap, ArrowLeft, Zap, Users, Mail, RefreshCw } from "lucide-react";
 import CircloLogo from "@/components/CircloLogo";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import MobileSignup from "@/components/MobileSignup";
 import { useMobile } from "@/hooks/use-mobile";
+import { authRedirect } from "@/lib/platform";
 
 
 const INTERESTS = [
@@ -27,6 +30,7 @@ type Step = "account" | "role" | "trainee-profile" | "coach-profile";
 type Role = "user" | "coach";
 
 const Signup = () => {
+  const { t } = useTranslation();
   const isMobile = useMobile();
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("account");
@@ -57,30 +61,31 @@ const Signup = () => {
   const handleAccountContinue = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || !username) {
-      toast.error("Please fill in all fields");
+      toast.error(t("signup.fillFields", { defaultValue: t("login.fillFields") }));
       return;
     }
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address");
+      toast.error(t("signup.validEmail"));
       return;
     }
     if (username.length < 2) {
-      toast.error("Username must be at least 2 characters");
+      toast.error(t("signup.usernameMin"));
       return;
     }
     // Password strength: min 8 chars
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error(t("signup.passwordMin"));
       return;
     }
     // Password strength: must have a number or special char
     if (!/[0-9!@#$%^&*]/.test(password)) {
-      toast.error("Password must include a number or special character");
+      toast.error(t("signup.passwordChar"));
       return;
     }
     if (password !== confirmPassword) {
+      toast.error(t("signup.passwordsMismatch"));
       return;
     }
     setStep("role");
@@ -101,20 +106,20 @@ const Signup = () => {
     // Validate based on role
     if (role === "user") {
       if (!age || parseInt(age) < 13) {
-        toast.error("You must be at least 13 years old");
+        toast.error(t("signup.ageMin"));
         return;
       }
       if (selectedInterests.length === 0) {
-        toast.error("Select at least one interest");
+        toast.error(t("signup.selectInterest"));
         return;
       }
     } else {
       if (!coachName.trim()) {
-        toast.error("Please enter your coach name");
+        toast.error(t("signup.enterCoachName"));
         return;
       }
       if (!sport) {
-        toast.error("Please select your sport");
+        toast.error(t("signup.selectSport"));
         return;
       }
     }
@@ -140,7 +145,7 @@ const Signup = () => {
       password,
       options: {
         data: metadata,
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: authRedirect("/login"),
       },
     });
 
@@ -178,7 +183,7 @@ const Signup = () => {
     setResending(true);
     const { error } = await supabase.auth.resend({ type: "signup", email });
     if (error) toast.error(error.message);
-    else toast.success("Verification email sent! Check your inbox.");
+    else toast.success(t("signup.verificationSent"));
     setResending(false);
   };
 
@@ -194,15 +199,14 @@ const Signup = () => {
             <Mail className="h-10 w-10 text-primary" />
           </div>
           <h1 className="font-heading text-2xl font-bold text-foreground mb-2">
-            Check your email
+            {t("signup.checkEmail")}
           </h1>
           <p className="text-muted-foreground text-sm leading-relaxed mb-2">
-            We sent a verification link to
+            {t("signup.verificationSentTo")}
           </p>
           <p className="text-foreground font-medium text-sm mb-6">{email}</p>
           <p className="text-muted-foreground text-xs leading-relaxed mb-8">
-            Click the link in your email to verify your account and start using CIRCLO.
-            Don't forget to check your spam folder!
+            {t("signup.verificationDescription")}
           </p>
           <button
             onClick={handleResendVerification}
@@ -210,13 +214,13 @@ const Signup = () => {
             className="w-full h-12 bg-primary text-primary-foreground rounded-xl font-heading font-semibold text-sm tracking-wide transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-95 glow-primary disabled:opacity-50 flex items-center justify-center gap-2 mb-3"
           >
             <RefreshCw className={`h-4 w-4 ${resending ? "animate-spin" : ""}`} />
-            {resending ? "Sending…" : "Resend Verification Email"}
+            {resending ? t("signup.resending") : t("signup.resendVerification")}
           </button>
           <Link
             to="/login"
             className="block w-full h-12 bg-secondary text-foreground rounded-xl font-heading font-semibold text-sm tracking-wide transition-all duration-200 hover:bg-secondary/80 active:scale-95 flex items-center justify-center"
           >
-            Go to Login
+            {t("signup.goToLogin")}
           </Link>
         </div>
       </div>
@@ -224,19 +228,29 @@ const Signup = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-6 relative">
+      <Link
+        to="/"
+        className="absolute top-5 left-5 z-10 flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        {t("common.back")}
+      </Link>
+      <div className="absolute top-4 right-5 z-10">
+        <LanguageSwitcher variant="compact" />
+      </div>
       <div className="w-full max-w-sm animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="sr-only" tabIndex={-1}>Sign up for Circlo</h1>
+          <h1 className="sr-only" tabIndex={-1}>{t("signup.title")}</h1>
           <Link to="/home" className="inline-flex items-center justify-center">
-            <CircloLogo variant="full" size="lg" theme="light" tagline="Join the Circle" />
+            <CircloLogo variant="full" size="lg" theme="light" tagline={t("signup.tagline")} />
           </Link>
           <p className="text-muted-foreground text-sm mt-4">
-            {step === "account" && "Create your account"}
-            {step === "role" && "Choose your path"}
-            {step === "trainee-profile" && "Tell us about yourself"}
-            {step === "coach-profile" && "Set up your coach profile"}
+            {step === "account" && t("signup.createAccount")}
+            {step === "role" && t("signup.choosePath")}
+            {step === "trainee-profile" && t("signup.tellAboutYou")}
+            {step === "coach-profile" && t("signup.setupCoach")}
           </p>
         </div>
 
@@ -254,7 +268,7 @@ const Signup = () => {
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("common.back")}
           </button>
         )}
 
@@ -269,23 +283,23 @@ const Signup = () => {
                 <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-background px-3 text-muted-foreground">or sign up with email</span>
+                <span className="bg-background px-3 text-muted-foreground">{t("signup.orSignUpWithEmail")}</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm text-foreground">Username</Label>
+              <Label htmlFor="username" className="text-sm text-foreground">{t("signup.username")}</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Choose a username"
+                placeholder={t("signup.usernamePlaceholder")}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="h-12 rounded-xl bg-secondary border-border/50 focus:border-primary/50"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm text-foreground">Email</Label>
+              <Label htmlFor="email" className="text-sm text-foreground">{t("signup.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -296,11 +310,11 @@ const Signup = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm text-foreground">Password</Label>
+              <Label htmlFor="password" className="text-sm text-foreground">{t("signup.password")}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="At least 8 characters"
+                placeholder={t("signup.atLeast8")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 rounded-xl bg-secondary border-border/50 focus:border-primary/50"
@@ -308,30 +322,31 @@ const Signup = () => {
               {/* Password strength indicator */}
               {password.length > 0 && (() => {
                 const strength = [password.length >= 8, /[A-Z]/.test(password), /[0-9]/.test(password), /[!@#$%^&*]/.test(password)].filter(Boolean).length;
-                const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+                const labels = [t("signup.weak"), t("signup.fair"), t("signup.good"), t("signup.strong")];
                 const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-400'];
                 return (
                   <div className="mt-1.5">
                     <div className="flex gap-1 mb-1">
                       {[0,1,2,3].map(i => <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < strength ? colors[strength-1] : 'bg-muted/30'}`} />)}
                     </div>
-                    <p className="text-[10px] text-muted-foreground">{labels[Math.max(0, strength-1)]} password</p>
+                    <p className="text-[10px] text-muted-foreground">{t("signup.passwordStrength", { level: labels[Math.max(0, strength-1)] })}</p>
                   </div>
                 );
               })()}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm text-foreground">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-sm text-foreground">{t("signup.confirmPassword")}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Re-enter your password"
+                placeholder={t("signup.reenterPassword")}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                aria-invalid={confirmPassword.length > 0 && password !== confirmPassword}
                 className="h-12 rounded-xl bg-secondary border-border/50 focus:border-primary/50"
               />
               {confirmPassword.length > 0 && password !== confirmPassword && (
-                <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                <p className="text-xs text-destructive mt-1">{t("signup.passwordsDontMatch")}</p>
               )}
             </div>
             <button
@@ -339,7 +354,7 @@ const Signup = () => {
               disabled={confirmPassword.length > 0 && password !== confirmPassword}
               className="w-full h-12 bg-primary text-primary-foreground rounded-xl font-heading font-semibold text-sm tracking-wide transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-95 glow-primary disabled:opacity-50"
             >
-              Continue
+              {t("signup.continue")}
             </button>
           </form>
         )}
@@ -360,9 +375,9 @@ const Signup = () => {
                   <Dumbbell className="h-7 w-7 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-heading font-bold text-foreground text-lg mb-1">I want to train</h3>
+                  <h3 className="font-heading font-bold text-foreground text-lg mb-1">{t("signup.iWantToTrain")}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Discover coaches, book sessions, and level up your game.
+                    {t("signup.iWantToTrainDesc")}
                   </p>
                 </div>
               </div>
@@ -381,9 +396,9 @@ const Signup = () => {
                   <GraduationCap className="h-7 w-7 text-accent" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-heading font-bold text-foreground text-lg mb-1">I am a coach</h3>
+                  <h3 className="font-heading font-bold text-foreground text-lg mb-1">{t("signup.iAmCoach")}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Build your brand, upload content, and grow your community.
+                    {t("signup.iAmCoachDesc")}
                   </p>
                 </div>
               </div>
@@ -395,13 +410,13 @@ const Signup = () => {
         {step === "trainee-profile" && (
           <div className="space-y-5 animate-fade-in">
             <div className="space-y-2">
-              <Label htmlFor="age" className="text-sm text-foreground">Age</Label>
+              <Label htmlFor="age" className="text-sm text-foreground">{t("signup.age")}</Label>
               <Input
                 id="age"
                 type="number"
                 min={13}
                 max={99}
-                placeholder="Your age"
+                placeholder={t("signup.agePlaceholder")}
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
                 className="h-12 rounded-xl bg-secondary border-border/50 focus:border-primary/50"
@@ -409,8 +424,8 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm text-foreground">Training Interests</Label>
-              <p className="text-xs text-muted-foreground">Select all that apply</p>
+              <Label className="text-sm text-foreground">{t("signup.trainingInterests")}</Label>
+              <p className="text-xs text-muted-foreground">{t("signup.selectAllApply")}</p>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {INTERESTS.map((interest) => {
                   const selected = selectedInterests.includes(interest);
@@ -441,12 +456,12 @@ const Signup = () => {
               {loading ? (
                 <>
                   <span className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  Creating…
+                  {t("signup.creating")}
                 </>
               ) : (
                 <>
                   <Zap className="h-4 w-4" />
-                  Start Training
+                  {t("signup.startTraining")}
                 </>
               )}
             </button>
@@ -457,11 +472,11 @@ const Signup = () => {
         {step === "coach-profile" && (
           <div className="space-y-5 animate-fade-in">
             <div className="space-y-2">
-              <Label htmlFor="coachName" className="text-sm text-foreground">Coach Name</Label>
+              <Label htmlFor="coachName" className="text-sm text-foreground">{t("signup.coachName")}</Label>
               <Input
                 id="coachName"
                 type="text"
-                placeholder="Your display name as a coach"
+                placeholder={t("signup.coachNamePlaceholder")}
                 value={coachName}
                 onChange={(e) => setCoachName(e.target.value)}
                 className="h-12 rounded-xl bg-secondary border-border/50 focus:border-accent/50"
@@ -469,7 +484,7 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm text-foreground">Sport</Label>
+              <Label className="text-sm text-foreground">{t("signup.sport")}</Label>
               <div className="grid grid-cols-3 gap-2">
                 {SPORTS.map((s) => (
                   <button
@@ -489,10 +504,10 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bio" className="text-sm text-foreground">Short Bio</Label>
+              <Label htmlFor="bio" className="text-sm text-foreground">{t("signup.shortBio")}</Label>
               <Textarea
                 id="bio"
-                placeholder="Tell trainees about yourself and your coaching style…"
+                placeholder={t("signup.bioPlaceholder")}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 rows={3}
@@ -509,12 +524,12 @@ const Signup = () => {
               {loading ? (
                 <>
                   <span className="h-4 w-4 border-2 border-accent-foreground border-t-transparent rounded-full animate-spin" />
-                  Creating…
+                  {t("signup.creating")}
                 </>
               ) : (
                 <>
                   <Users className="h-4 w-4" />
-                  Launch My Profile
+                  {t("signup.launchProfile")}
                 </>
               )}
             </button>
@@ -522,8 +537,8 @@ const Signup = () => {
         )}
 
         <p className="text-center text-sm text-muted-foreground mt-8">
-          Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:underline font-medium">Log in</Link>
+          {t("signup.alreadyHaveAccount")}{" "}
+          <Link to="/login" className="text-primary hover:underline font-medium">{t("signup.logIn")}</Link>
         </p>
       </div>
     </div>

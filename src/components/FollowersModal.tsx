@@ -4,6 +4,7 @@ import { Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveCoachImage } from "@/lib/coach-placeholders";
 import { useFollowersList, useFollowingList } from "@/hooks/use-follower-counts";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -226,7 +227,7 @@ const FollowersModal = ({ open, onClose, coachId, userId, initialTab = "follower
                 className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-secondary/50 transition-colors"
               >
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={c.image_url || undefined} />
+                  <AvatarImage src={resolveCoachImage(c.image_url, c.id)} />
                   <AvatarFallback className="bg-primary/10 text-primary font-heading font-bold text-sm">
                     {c.coach_name?.charAt(0).toUpperCase() || "?"}
                   </AvatarFallback>

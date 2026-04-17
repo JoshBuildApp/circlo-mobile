@@ -17,12 +17,12 @@ export function useOnboarding() {
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('interests, onboarding_completed')
+        .select('interests')
         .eq('user_id', user.id)
         .single();
 
       // Needs onboarding if: no interests set OR onboarding_completed is explicitly false/null
-      const needs = !profile?.interests?.length || !(profile as Record<string, unknown>)?.onboarding_completed;
+      const needs = !profile?.interests?.length;
       setNeedsOnboarding(needs);
       setCheckComplete(true);
       return needs;

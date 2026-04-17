@@ -8,15 +8,121 @@ import CircloLogo from "@/components/CircloLogo";
 import { ProfileSetup, ProfileData } from "@/components/coach-onboarding/ProfileSetup";
 import { AvailabilitySetup, DaySlot } from "@/components/coach-onboarding/AvailabilitySetup";
 import { FirstServiceSetup, ServiceData } from "@/components/coach-onboarding/FirstServiceSetup";
+import { AnimatePresence, motion } from "framer-motion";
 
 const TOTAL_STEPS = 3;
 const STEP_LABELS = ["Profile", "Availability", "First Service"];
+const COACH_STORAGE_KEY = "circlo_coach_onboarding_progress";
+
+// ─── Animated Progress Ring ────────────────────────────────────────────────
+function ProgressRing({ step, total }: { step: number; total: number }) {
+  const size = 80;
+  const strokeWidth = 6;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (step / total) * circumference;
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="hsl(var(--muted))"
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="hsl(var(--primary))"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 0.4s ease-in-out" }}
+        />
+      </svg>
+      <span className="absolute text-xs font-bold text-foreground select-none">
+        {step} / {total}
+      </span>
+    </div>
+  );
+}
+
+// ─── Completion Celebration Screen ────────────────────────────────────────
+function CompletionScreen() {
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex flex-col items-center gap-6 text-center px-8">
+        <div className="relative flex items-center justify-center w-32 h-32">
+          <motion.div
+            className="absolute inset-0 rounded-full bg-primary/20"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1.15, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
+          />
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <circle cx="40" cy="40" r="36" stroke="hsl(var(--primary))" strokeWidth="5" opacity="0.25" />
+            <motion.path
+              d="M22 40 L35 53 L58 27"
+              stroke="hsl(var(--primary))"
+              strokeWidth="5.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ delay: 0.35, duration: 0.55, ease: "easeInOut" }}
+            />
+          </svg>
+        </div>
+
+        <motion.h1
+          className="text-3xl font-bold text-primary"
+          initial={{ y: 16, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.55, duration: 0.4 }}
+        >
+          You're in! 🎉
+        </motion.h1>
+
+        <motion.p
+          className="text-muted-foreground text-base"
+          initial={{ y: 16, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.4 }}
+        >
+          Taking you to Circlo...
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 0.3 }}
+        >
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function CoachOnboarding() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [direction, setDirection] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [showComplete, setShowComplete] = useState(false);
   const [coachProfileId, setCoachProfileId] = useState<string | null>(null);
 
   // Step 1 data
@@ -28,6 +134,8 @@ export default function CoachOnboarding() {
     price: null,
     session_duration: 60,
     bio: "",
+    insurance_doc_url: "",
+    insurance_expiry_date: "",
   });
 
   // Step 2 data
@@ -42,6 +150,28 @@ export default function CoachOnboarding() {
     session_count: 1,
     validity_days: 30,
   });
+
+  // Restore saved progress
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(COACH_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.step) setCurrentStep(parsed.step);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Persist progress
+  useEffect(() => {
+    try {
+      localStorage.setItem(COACH_STORAGE_KEY, JSON.stringify({ step: currentStep }));
+    } catch {
+      // ignore
+    }
+  }, [currentStep]);
 
   // Load existing coach profile data
   useEffect(() => {
@@ -61,6 +191,7 @@ export default function CoachOnboarding() {
 
       if (coach) {
         setCoachProfileId(coach.id);
+        const c = coach as any;
         setProfileData((prev) => ({
           ...prev,
           image_url: coach.image_url || "",
@@ -70,8 +201,10 @@ export default function CoachOnboarding() {
           price: coach.price ?? null,
           session_duration: coach.session_duration ?? 60,
           bio: coach.bio || "",
+          insurance_doc_url: c.insurance_doc_url || "",
+          insurance_expiry_date: c.insurance_expiry_date || "",
         }));
-        setBufferMinutes((coach as any).buffer_minutes ?? 0);
+        setBufferMinutes(c.buffer_minutes ?? 0);
       }
     };
 
@@ -94,15 +227,10 @@ export default function CoachOnboarding() {
 
   const handleNext = async () => {
     if (currentStep < TOTAL_STEPS) {
-      // Save step 1 data when moving forward
-      if (currentStep === 1) {
-        await saveProfile();
-      }
-      // Save step 2 data when moving forward
-      if (currentStep === 2) {
-        await saveAvailability();
-      }
-      setCurrentStep(currentStep + 1);
+      if (currentStep === 1) await saveProfile();
+      if (currentStep === 2) await saveAvailability();
+      setDirection(1);
+      setCurrentStep((s) => s + 1);
     } else {
       await handleComplete();
     }
@@ -110,8 +238,14 @@ export default function CoachOnboarding() {
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      setDirection(-1);
+      setCurrentStep((s) => s - 1);
     }
+  };
+
+  const handleSkip = () => {
+    localStorage.removeItem(COACH_STORAGE_KEY);
+    navigate("/coach-dashboard", { replace: true });
   };
 
   const saveProfile = async () => {
@@ -125,6 +259,8 @@ export default function CoachOnboarding() {
       session_duration: profileData.session_duration,
       bio: profileData.bio.trim() || null,
       buffer_minutes: bufferMinutes,
+      insurance_doc_url: profileData.insurance_doc_url || null,
+      insurance_expiry_date: profileData.insurance_expiry_date || null,
       updated_at: new Date().toISOString(),
     };
 
@@ -142,7 +278,6 @@ export default function CoachOnboarding() {
       toast.error("Failed to save profile");
     }
 
-    // Also update avatar on profiles table
     if (profileData.image_url) {
       await supabase
         .from("profiles")
@@ -198,7 +333,6 @@ export default function CoachOnboarding() {
       await saveAvailability();
       await saveService();
 
-      // Mark onboarding as completed on profiles
       if (user) {
         await supabase
           .from("profiles")
@@ -206,8 +340,12 @@ export default function CoachOnboarding() {
           .eq("user_id", user.id);
       }
 
-      toast.success("You're all set! Welcome to Circlo.");
-      navigate("/coach-dashboard", { replace: true });
+      localStorage.removeItem(COACH_STORAGE_KEY);
+
+      setShowComplete(true);
+      setTimeout(() => {
+        navigate("/coach-dashboard", { replace: true });
+      }, 2000);
     } catch (err) {
       console.error("Error completing onboarding:", err);
       toast.error("Something went wrong. Please try again.");
@@ -216,99 +354,108 @@ export default function CoachOnboarding() {
     }
   };
 
-  const handleSkip = () => {
-    navigate("/coach-dashboard", { replace: true });
+  if (showComplete) {
+    return <CompletionScreen />;
+  }
+
+  const stepVariants = {
+    enter: (dir: number) => ({ x: dir * 60, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir * -60, opacity: 0 }),
   };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 max-w-lg">
-        {/* Header */}
-        <div className="text-center mb-6">
+        {/* Header with ring */}
+        <div className="flex flex-col items-center mb-6 gap-2">
           <CircloLogo variant="full" size="md" theme="auto" />
-          <h1 className="text-lg font-bold text-foreground mt-4">Set up your coaching profile</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {STEP_LABELS[currentStep - 1]} — Step {currentStep} of {TOTAL_STEPS}
-          </p>
+          <ProgressRing step={currentStep} total={TOTAL_STEPS} />
+          <div className="text-center">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+              {STEP_LABELS[currentStep - 1]}
+            </p>
+            <h1 className="text-base font-bold text-foreground mt-0.5">
+              Set up your coaching profile
+            </h1>
+          </div>
         </div>
 
-        {/* Step progress bar */}
-        <div className="flex items-center gap-2 mb-8">
+        {/* Step dots */}
+        <div className="flex items-center justify-center gap-2 mb-6">
           {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <div key={i} className="flex-1 flex items-center gap-1">
-              <div
-                className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
-                  i < currentStep ? "bg-primary" : "bg-secondary"
-                }`}
-              />
-            </div>
+            <div
+              key={i}
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                i < currentStep ? "w-8 bg-primary" : "w-4 bg-muted"
+              }`}
+            />
           ))}
         </div>
 
-        {/* Step labels */}
-        <div className="flex justify-between mb-6">
-          {STEP_LABELS.map((label, i) => (
-            <div key={label} className="flex items-center gap-1.5">
-              <div
-                className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  i < currentStep - 1
-                    ? "bg-primary text-primary-foreground"
-                    : i === currentStep - 1
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground"
-                }`}
-              >
-                {i < currentStep - 1 ? <Check className="h-3.5 w-3.5" /> : i + 1}
-              </div>
-              <span
-                className={`text-xs font-medium ${
-                  i <= currentStep - 1 ? "text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Step content */}
-        <div className="animate-fade-in">
-          {currentStep === 1 && (
-            <ProfileSetup data={profileData} onChange={setProfileData} />
-          )}
-          {currentStep === 2 && (
-            <AvailabilitySetup
-              slots={availabilitySlots}
-              onChange={setAvailabilitySlots}
-              bufferMinutes={bufferMinutes}
-              onBufferChange={setBufferMinutes}
-            />
-          )}
-          {currentStep === 3 && (
-            <FirstServiceSetup
-              data={serviceData}
-              onChange={setServiceData}
-              sessionPrice={profileData.price}
-            />
-          )}
+        {/* Step content with slide transitions */}
+        <div className="overflow-hidden">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentStep}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
+              {currentStep === 1 && (
+                <ProfileSetup data={profileData} onChange={setProfileData} />
+              )}
+              {currentStep === 2 && (
+                <AvailabilitySetup
+                  slots={availabilitySlots}
+                  onChange={setAvailabilitySlots}
+                  bufferMinutes={bufferMinutes}
+                  onBufferChange={setBufferMinutes}
+                />
+              )}
+              {currentStep === 3 && (
+                <FirstServiceSetup
+                  data={serviceData}
+                  onChange={setServiceData}
+                  sessionPrice={profileData.price}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Navigation */}
         <div className="flex items-center justify-between mt-8 pb-8">
-          <button
-            onClick={currentStep === 1 ? handleSkip : handleBack}
-            disabled={saving}
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-          >
-            {currentStep === 1 ? (
-              "Skip for now"
-            ) : (
-              <>
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={currentStep === 1 ? handleSkip : handleBack}
+              disabled={saving}
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              {currentStep === 1 ? (
+                "Skip for now →"
+              ) : (
+                <>
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </>
+              )}
+            </button>
+
+            {/* Skip on steps 2+ */}
+            {currentStep > 1 && currentStep < TOTAL_STEPS && (
+              <button
+                onClick={handleSkip}
+                disabled={saving}
+                className="text-sm text-muted-foreground/70 hover:text-muted-foreground transition-colors disabled:opacity-50"
+              >
+                Skip for now →
+              </button>
             )}
-          </button>
+          </div>
 
           <button
             onClick={handleNext}
