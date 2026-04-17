@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CIRCLO - Discover</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Inter+Tight:ital,wght@0,700;0,900;1,900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline": "#85948d",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e2e0fc",
+                    "on-secondary-fixed-variant": "#802900",
+                    "on-surface-variant": "#bacac2",
+                    "on-secondary-container": "#fffbff",
+                    "tertiary-fixed-dim": "#28dfb5",
+                    "surface-tint": "#28dfb5",
+                    "surface-container-low": "#1a1a2e",
+                    "inverse-on-surface": "#2f2e43",
+                    "primary-fixed-dim": "#28dfb5",
+                    "error": "#ffb4ab",
+                    "secondary-fixed-dim": "#ffb59a",
+                    "tertiary": "#46f1c5",
+                    "surface-container": "#1e1e32",
+                    "on-tertiary-fixed-variant": "#00513f",
+                    "tertiary-container": "#00d4aa",
+                    "on-primary-fixed": "#002118",
+                    "on-tertiary": "#00382b",
+                    "on-tertiary-container": "#005643",
+                    "surface-dim": "#111125",
+                    "surface-bright": "#37374d",
+                    "surface-container-high": "#28283d",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed": "#380d00",
+                    "on-secondary": "#5b1b00",
+                    "on-primary": "#00382b",
+                    "surface-container-lowest": "#0c0c1f",
+                    "surface": "#111125",
+                    "primary-container": "#00d4aa",
+                    "background": "#111125",
+                    "inverse-primary": "#006b55",
+                    "primary-fixed": "#55fcd0",
+                    "surface-variant": "#333348",
+                    "surface-container-highest": "#333348",
+                    "on-error": "#690005",
+                    "secondary": "#ffb59a",
+                    "outline-variant": "#3b4a44",
+                    "secondary-container": "#cd4802",
+                    "primary": "#46f1c5",
+                    "on-tertiary-fixed": "#002118",
+                    "on-primary-fixed-variant": "#00513f",
+                    "tertiary-fixed": "#55fcd0",
+                    "on-background": "#e2e0fc",
+                    "inverse-surface": "#e2e0fc",
+                    "on-primary-container": "#005643",
+                    "secondary-fixed": "#ffdbcf"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter Tight", "Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .kinetic-gradient {
+        background: linear-gradient(135deg, #00D4AA 0%, #FF6B2C 100%);
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      body {
+        background-color: #111125;
+        color: #FAFAFA;
+      }
+      /* Hide scrollbar for clean horizontal scrolling */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased selection:bg-primary selection:text-on-primary">
+<header class="fixed top-0 w-full z-50 pt-2 bg-transparent">
+<div class="flex justify-between items-center px-6 py-4 max-w-full mx-auto">
+<button class="text-slate-400 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Inter_Tight'] font-black tracking-tighter text-2xl uppercase text-[#00D4AA] italic tracking-widest">
+                CIRCLO
+            </h1>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/20">
+<img alt="User avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a smiling young athletic woman with clear skin and athletic wear, bright natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXE7gZ0wDc23rAXnMQsfv9FXQkaiIQJVOm7mHtD6saXSxOQXHR1YMkwRrRHDCbQo6UmjrNnWoMptzVWyyd8I-ZS4kUT4Z8Xh2NecHNN3Ktx-5_WprVE-qqrVecwteagk8bzdldjsGvRywFrfBZwEfMCMgXbnrjj0rpbdvpjKRQglPj7EPfZt1MdIUOLfWU_8fHmiwHojXvbyWfNNtQG8tFZGbsVG8-e6XEUNXiymvQEQb5dzaEvPDswkSEisGhEiYE1IWd9l34mQ"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6">
+<div class="mb-8">
+<h2 class="text-4xl font-headline font-black tracking-tighter leading-tight mb-6">
+                DISCOVER <br/> <span class="text-primary italic">PERFORMANCE</span>
+</h2>
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</div>
+<input class="w-full h-14 pl-12 pr-12 rounded-lg bg-surface-container border-none focus:ring-1 focus:ring-primary/40 text-on-surface placeholder:text-on-surface-variant/50 transition-all duration-300 backdrop-blur-md" placeholder="Find your discipline..." type="text"/>
+<div class="absolute inset-y-0 right-4 flex items-center text-primary group-focus-within:scale-110 duration-200">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3 overflow-x-auto no-scrollbar pb-6 -mx-6 px-6">
+<button class="kinetic-gradient text-white px-6 py-2 rounded-full flex items-center gap-2 whitespace-nowrap font-label text-xs font-bold tracking-widest">
+<span class="material-symbols-outlined text-sm" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                ALL SPORTS
+            </button>
+<button class="bg-surface-container-highest text-on-surface-variant px-6 py-2 rounded-full flex items-center gap-2 whitespace-nowrap font-label text-xs font-bold tracking-widest hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="fitness_center">fitness_center</span>
+                TRAINING
+            </button>
+<button class="bg-surface-container-highest text-on-surface-variant px-6 py-2 rounded-full flex items-center gap-2 whitespace-nowrap font-label text-xs font-bold tracking-widest hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="sports_tennis">sports_tennis</span>
+                TENNIS
+            </button>
+<button class="bg-surface-container-highest text-on-surface-variant px-6 py-2 rounded-full flex items-center gap-2 whitespace-nowrap font-label text-xs font-bold tracking-widest hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="pool">pool</span>
+                SWIM
+            </button>
+</div>
+<section class="mb-10">
+<div class="relative rounded-xl overflow-hidden mb-4 group aspect-[16/9]">
+<img alt="Featured Coach" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Professional muscular male coach performing intense battle rope workout in a dark high-end gym with dramatic teal lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCNAclRK2maQSu7PDasT-IfcuXBhpLT_GNZSEQ6pzdy7VLnBgp8lT_imCa0FHa6OF8phf5oQTLTNGL-gtYEsggKDv_iR87SdmHmSkNvOTqBMY8tNfJK7zewEe69ZWT6X0rKan3hjECfdqpH8yVAvagorsG9rbbtYMTyW3Gesj6FLRDkg1Z9Hvzigc-rInzA9TYK3q8pd47yxN1WYc2WKwn6ENolVsjFLQffIZYR-Jx5MHgo_eVN2hqGVCxytb1qLYo2NjQY_92pA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim via-transparent to-transparent"></div>
+<div class="absolute top-4 right-4 kinetic-gradient text-white text-[10px] font-black tracking-[0.2em] px-3 py-1 rounded-md shadow-lg">
+                    PRO
+                </div>
+<div class="absolute bottom-6 left-6 right-6">
+<p class="text-primary font-label text-[10px] font-black tracking-widest mb-1">FEATURED COACH</p>
+<h3 class="text-2xl font-headline font-black tracking-tight mb-2">MARCUS RIVERA</h3>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4 text-xs font-medium text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm text-secondary" style="font-variation-settings: 'FILL' 1;">star</span> 4.9</span>
+<span>•</span>
+<span>ELITE PERFORMANCE</span>
+</div>
+<span class="text-xl font-headline font-black text-white">$120<span class="text-xs font-normal text-on-surface-variant">/hr</span></span>
+</div>
+</div>
+</div>
+</section>
+<section>
+<div class="flex justify-between items-end mb-6">
+<h4 class="text-xl font-headline font-black tracking-tight uppercase">Top Coaches <span class="text-secondary">Near You</span></h4>
+<a class="text-xs font-label font-bold text-primary tracking-widest border-b border-primary/20 pb-1" href="#">VIEW ALL</a>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-3">
+<div class="relative aspect-[4/5] rounded-lg overflow-hidden bg-surface-container">
+<img alt="Coach Sarah" class="w-full h-full object-cover" data-alt="Female yoga instructor in aesthetic pose with morning sunlight through large industrial windows, soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNkG3Q6zkJJurJcJ_KZAplEWqH6aReUZ00yoN8X0gaxYwm-5Fa0oF7Ni465cO3G2thJhWq7sMvZ-5kebyy-MvvMcVIv66xmXMs7m_1B--d5eP0Fm1wZr5vRkWAdFiYuTNM7-LpEyG785nO-3qVb8AXm8-8cF4QS3Apio4ImvaI7KtBFuTeYVyeWYkOEsBl0DbPvtCW3kOSoh9QkicpRFWrA5VvgSDyweHeoFP_Y_HoxWY_w1dAi0fExUatu-Mxa1Pqi4oo4zoXjw"/>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+<div class="flex items-center justify-between text-white">
+<span class="text-[10px] font-black tracking-widest uppercase">YOGA</span>
+<span class="flex items-center gap-1 text-[10px]"><span class="material-symbols-outlined text-[12px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span> 5.0</span>
+</div>
+</div>
+</div>
+<div>
+<h5 class="font-headline font-bold text-sm tracking-tight">SARAH JENKINS</h5>
+<p class="text-primary font-headline font-black text-lg">$85<span class="text-[10px] font-normal text-on-surface-variant">/hr</span></p>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="relative aspect-[4/5] rounded-lg overflow-hidden bg-surface-container">
+<img alt="Coach David" class="w-full h-full object-cover" data-alt="Determined male boxer training with heavy bag in a moody gym with high contrast side lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSLTJ2SbTWlhwXRDdmkgwNN5MZdLHMBRZckmUkaPjxtaU_702iti345IrspFDPwwSKuEj1MBqB7dEKuolydtkNygeOgwqWFIy1BcYybwSGom1GdVXFPAr5wSHV7aPxezqiSS8h6bApUAb_muDj1LK2c0j06gdBl1ehFIzFbs4Y1x0QkGjTzPhZJ5TCDfFqWenmwkzKT9rsi4ocs1nRkkNS_Me7cIKD2ekkzTJ9SSWRJE_ak-kjc3bhJC7VoOjAG8_GMCIWq4Oy0g"/>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+<div class="flex items-center justify-between text-white">
+<span class="text-[10px] font-black tracking-widest uppercase">BOXING</span>
+<span class="flex items-center gap-1 text-[10px]"><span class="material-symbols-outlined text-[12px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span> 4.8</span>
+</div>
+</div>
+</div>
+<div>
+<h5 class="font-headline font-bold text-sm tracking-tight">DAVID CHEN</h5>
+<p class="text-primary font-headline font-black text-lg">$95<span class="text-[10px] font-normal text-on-surface-variant">/hr</span></p>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="relative aspect-[4/5] rounded-lg overflow-hidden bg-surface-container">
+<img alt="Coach Elena" class="w-full h-full object-cover" data-alt="Woman doing weight training in luxury gym, focused expression, high dynamic range photograph" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALOAM6vPUsyUeY-Yq8WurRiJ60A6GnV7oekppqufVRMxxlBnpl5q18zv1guqLHd-5e-MKmfmrQ8103CmIR2voluqpEnwv2unGpLUoZMWCbOnIsqzpezE_vl0gaKfDs11lbYpLR3bOAt5QLBNZxYUBmul-gKzWhT3XY65QppNZu8tMPtCmXjLGVJjExvesXmGjNT2NiruBjwCW5wIUaYjQWx1BQc8qEjaehimhIt2IdjpH5cjM19WAPoYT28H-7kMsYjHPCYKnoAQ"/>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+<div class="flex items-center justify-between text-white">
+<span class="text-[10px] font-black tracking-widest uppercase">HIIT</span>
+<span class="flex items-center gap-1 text-[10px]"><span class="material-symbols-outlined text-[12px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span> 4.7</span>
+</div>
+</div>
+</div>
+<div>
+<h5 class="font-headline font-bold text-sm tracking-tight">ELENA VOGT</h5>
+<p class="text-primary font-headline font-black text-lg">$75<span class="text-[10px] font-normal text-on-surface-variant">/hr</span></p>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="relative aspect-[4/5] rounded-lg overflow-hidden bg-surface-container">
+<img alt="Coach Alex" class="w-full h-full object-cover" data-alt="Male runner in mid-stride on urban track at dusk, street lights creating bokeh background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD68aDeAQ5lY7LOAropnvOimoizSQ7VZnU-F0_6Bav-YWBKs2gGoOxysT-Z9VDgtNf2BqaXSBGuwbKBkF3z5GE6uOxYzYYkCbrq80nodBkPv6XkCoxbSODIF3gkqMWd6ORKKS-RX1spiYm4TFSzC3hh8ffYW9BSNfVCwmCDyP6JFuTLZ3r7i3HVybeI6niEvGKudT0aRSCaGEB_kjjQ4iq3X2OCWjmrEy6fETJNSdet-JjbjhNO04p8MdkbXmbR3y-FoXXoP9pV0A"/>
+<div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+<div class="flex items-center justify-between text-white">
+<span class="text-[10px] font-black tracking-widest uppercase">RUNNING</span>
+<span class="flex items-center gap-1 text-[10px]"><span class="material-symbols-outlined text-[12px] text-secondary" style="font-variation-settings: 'FILL' 1;">star</span> 4.9</span>
+</div>
+</div>
+</div>
+<div>
+<h5 class="font-headline font-bold text-sm tracking-tight">ALEX KOVACS</h5>
+<p class="text-primary font-headline font-black text-lg">$110<span class="text-[10px] font-normal text-on-surface-variant">/hr</span></p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-8 left-0 right-0 z-50 flex justify-center items-center px-4">
+<div class="bg-white/5 dark:bg-white/10 backdrop-blur-2xl border border-white/10 rounded-full w-full max-w-md h-16 flex justify-around items-center px-6 shadow-[0_20px_40px_rgba(0,212,170,0.1)]">
+<button class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all duration-300 ease-out active:scale-90">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+</button>
+<button class="flex items-center justify-center text-[#00D4AA] relative after:content-[''] after:absolute after:-bottom-1 after:w-1 after:h-1 after:bg-[#00D4AA] after:rounded-full scale-110 active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+</button>
+<button class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all duration-300 ease-out active:scale-90">
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="add_circle">add_circle</span>
+</button>
+<button class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all duration-300 ease-out active:scale-90">
+<span class="material-symbols-outlined" data-icon="movie">movie</span>
+</button>
+<button class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all duration-300 ease-out active:scale-90">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+</div>
+</nav>
+</body></html>

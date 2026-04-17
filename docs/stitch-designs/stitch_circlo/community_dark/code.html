@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CIRCLO - Community</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Inter+Tight:ital,wght@0,700;0,900;1,900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline": "#85948d",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e2e0fc",
+                    "on-secondary-fixed-variant": "#802900",
+                    "on-surface-variant": "#bacac2",
+                    "on-secondary-container": "#fffbff",
+                    "tertiary-fixed-dim": "#28dfb5",
+                    "surface-tint": "#28dfb5",
+                    "surface-container-low": "#1a1a2e",
+                    "inverse-on-surface": "#2f2e43",
+                    "primary-fixed-dim": "#28dfb5",
+                    "error": "#ffb4ab",
+                    "secondary-fixed-dim": "#ffb59a",
+                    "tertiary": "#46f1c5",
+                    "surface-container": "#1e1e32",
+                    "on-tertiary-fixed-variant": "#00513f",
+                    "tertiary-container": "#00d4aa",
+                    "on-primary-fixed": "#002118",
+                    "on-tertiary": "#00382b",
+                    "on-tertiary-container": "#005643",
+                    "surface-dim": "#111125",
+                    "surface-bright": "#37374d",
+                    "surface-container-high": "#28283d",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed": "#380d00",
+                    "on-secondary": "#5b1b00",
+                    "on-primary": "#00382b",
+                    "surface-container-lowest": "#0c0c1f",
+                    "surface": "#111125",
+                    "primary-container": "#00d4aa",
+                    "background": "#111125",
+                    "inverse-primary": "#006b55",
+                    "primary-fixed": "#55fcd0",
+                    "surface-variant": "#333348",
+                    "surface-container-highest": "#333348",
+                    "on-error": "#690005",
+                    "secondary": "#ffb59a",
+                    "outline-variant": "#3b4a44",
+                    "secondary-container": "#cd4802",
+                    "primary": "#46f1c5",
+                    "on-tertiary-fixed": "#002118",
+                    "on-primary-fixed-variant": "#00513f",
+                    "tertiary-fixed": "#55fcd0",
+                    "on-background": "#e2e0fc",
+                    "inverse-surface": "#e2e0fc",
+                    "on-primary-container": "#005643",
+                    "secondary-fixed": "#ffdbcf"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter Tight", "sans-serif"],
+                    "body": ["Inter", "sans-serif"],
+                    "label": ["Inter", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-transition-no-lines {
+            background: linear-gradient(to bottom, rgba(17, 17, 37, 0.9) 0%, rgba(17, 17, 37, 0) 100%);
+        }
+        .kinetic-gradient {
+            background: linear-gradient(135deg, #00D4AA 0%, #FF6B2C 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 pt-2 bg-transparent">
+<div class="flex justify-between items-center px-6 py-4 max-w-full mx-auto bg-opacity-0">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#00D4AA] hover:opacity-80 transition-opacity cursor-pointer scale-95 duration-200">menu</span>
+<h1 class="font-['Inter_Tight'] font-black tracking-tighter text-2xl uppercase text-[#00D4AA]">CIRCLO</h1>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden hover:opacity-80 transition-opacity cursor-pointer scale-95 duration-200">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a sporty man with stylish hair looking at the camera with a neutral expression, soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeY2OZg96Lg2dx6luAZCXF_9vVm56rlC1tJ5_5kv1Xlk5ThThEg2se-wXZG1gtHCG_zxmtKtgVoZ2UOHssyJLy8-hqgVw2UCD7W59uGXtCx4fWKfwNTWj5o-ZJu6Cp-Yq8UC1OLviw89QnB7utdjTkJYT4PV9E4lQjjsoO_IMPHC3C_l1M2aMsRUujPro3ShFRBAvxNabvPXZqirLQCQ-0DkljBaEpzf-yZuX8bTkp9pS_YbpcaL9he38YxhOGsdxG7wZWrAsbyw"/>
+</div>
+</div>
+</header>
+<main class="pb-32">
+<!-- Hero Banner Section -->
+<section class="relative h-[397px] w-full overflow-hidden">
+<img alt="Padel Court" class="absolute inset-0 w-full h-full object-cover" data-alt="High-angle shot of a vibrant blue outdoor padel court at dusk with bright artificial lighting and modern glass surroundings" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBekegUS7uGsCXUAZaq6ikEbn635IZOnokaC8-aDTIfCwMFii_2gUfx1sSc8NEzuRtbAReEiycnrQrGA847D93FudmP0Xt4wYZwHGM_464xnc7CwI4b_S0OCQYegQ2ThMNB3uMdaG4yA3iglLqwTshLbK6pfyloI217Xi_ENdv10tHcAHKtzphGqjZ32qzkbJq8Iks2gos_-d-GBLJK96VJrnU1r4sMO7LUJXxPEBduhNKwrqDDrjWIatHJIW93T8BL-1Ee91jdFQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 w-full px-6 pb-8">
+<div class="inline-flex items-center px-3 py-1 rounded-full glass-panel border border-white/10 mb-4">
+<span class="text-[10px] font-bold tracking-widest uppercase text-primary">Pro Community</span>
+</div>
+<h2 class="text-4xl md:text-5xl font-headline font-black italic tracking-tighter mb-4 text-white uppercase leading-none">Tel Aviv<br/>Padel Club</h2>
+<div class="flex items-center gap-4">
+<button class="kinetic-gradient text-white font-bold py-3 px-8 rounded-md hover:opacity-90 transition-all active:scale-95 shadow-[0_10px_20px_rgba(0,212,170,0.3)]">
+                        JOIN CLUB
+                    </button>
+<div class="flex -space-x-3">
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-surface object-cover" data-alt="Face of a smiling man in athletic gear, outdoors, daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWbRPRD-zO5hXAM5zmoeQP7S0PNN7D6HBskBLulCH5Fissnovclhuk91nFgNxOMw0u0lm5lOv5pJFHHfE82pkvm3S-FJ9H0jSROwBon5DogQrpEKh-d2jIMHH8qY-L5tYp347LqM9palf3YOi549aHTL42s_AUqJ_SG58R2k2EffTmtBVkhnch0eKVxov71Jde6oV0pzmkg2XG-H-pId0mtd82CVLC46DlkOs64LJEy6ty9uvmbazUMuERGrjER7UxknFgBUaTuw"/>
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-surface object-cover" data-alt="Close up of a young athletic woman with glowing skin, cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYcoYpYawMej2i4cj7kjbHeNi5y50MLjTPlhFZyJyHishurs3GDHVb8OHWAloXSYJqmcpbMxgAgJeB5XKYHZ3L1Z1EOcKU2BlnshMk4HSvUSee6MPUSp05q1fJXrprkPNhgZLRq14EMuO50R74mROenSLJlBfpKxriNn4TjN_QlxtaHmVw4yxgde1O9YcYk9p4kl515waB_q7MsZSEf_ePep4rsSWPal_YZaaZlVHHkJQkNLSqLDbvix1FKrX8SO4oG_As0YyZMg"/>
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-surface object-cover" data-alt="Portrait of a young man wearing sports apparel, sunset light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD3p_DJ6AVRfVBjdPN_c53zzBmsML--IzPnp9ULRj6-7b_WHbEeC2goh_JzVw9mrkuynIDz7Ub8jkz_fhr6zyLB5a8510Fst9AGWCCI67cIf12vOV2C5JTr9c9nROE3LxtkuDF5l-2_46T8B5iAJSpDvfXMqlh9x5AyVRIjMeZ_HsWKTianOTqj2cmbG3qMDE5Ep4lT363v8xqjIQeed-0rg2hm3LEuvPPLb8ZIiMHqPPUlQDoWYtwLW347EmfozhO8XiRr9UrCw"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-primary">
+                            +2k
+                        </div>
+</div>
+</div>
+</div>
+</section>
+<!-- Dynamic Content Navigation -->
+<nav class="sticky top-16 z-40 bg-surface/80 backdrop-blur-md px-6 py-4 flex gap-8 border-none overflow-x-auto no-scrollbar">
+<button class="flex-shrink-0 text-sm font-black tracking-widest text-primary border-b-2 border-primary pb-1 uppercase">Feed</button>
+<button class="flex-shrink-0 text-sm font-black tracking-widest text-on-surface-variant hover:text-on-surface transition-colors pb-1 uppercase">Events</button>
+<button class="flex-shrink-0 text-sm font-black tracking-widest text-on-surface-variant hover:text-on-surface transition-colors pb-1 uppercase">Members</button>
+<button class="flex-shrink-0 text-sm font-black tracking-widest text-on-surface-variant hover:text-on-surface transition-colors pb-1 uppercase">Gallery</button>
+</nav>
+<!-- Main Content Area -->
+<div class="px-6 space-y-8 mt-4">
+<!-- Bento Grid Section -->
+<div class="grid grid-cols-2 gap-4">
+<div class="col-span-2 bg-surface-container rounded-lg p-6 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 kinetic-gradient opacity-10 blur-3xl group-hover:opacity-20 transition-opacity"></div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-[0.2em] mb-2 block">Next Highlight</span>
+<h3 class="text-2xl font-headline font-bold text-white leading-tight">Masterclass with<br/>Gabi Reca</h3>
+</div>
+<div class="bg-surface-container-highest rounded-lg p-3 flex flex-col items-center">
+<span class="text-xs font-black text-primary uppercase">Oct</span>
+<span class="text-xl font-black text-white">24</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-sm text-on-surface-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">schedule</span>
+<span>18:00 - 20:00</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">location_on</span>
+<span>Main Court</span>
+</div>
+</div>
+<button class="mt-6 w-full py-3 bg-surface-bright rounded-md text-sm font-bold text-white hover:bg-white/10 transition-colors uppercase tracking-widest">Register Now</button>
+</div>
+<div class="bg-surface-container-low rounded-lg p-5 flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary text-3xl">emoji_events</span>
+<div>
+<div class="text-3xl font-black text-white leading-none">12</div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1">Active Tournaments</div>
+</div>
+</div>
+<div class="bg-surface-container-high rounded-lg p-5 flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-secondary text-3xl">groups</span>
+<div>
+<div class="text-3xl font-black text-white leading-none">42</div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1">New Members Today</div>
+</div>
+</div>
+</div>
+<!-- Feed Post Asymmetric Card -->
+<div class="space-y-4">
+<h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.3em]">Latest from the court</h4>
+<div class="bg-surface-container rounded-lg overflow-hidden border-none">
+<div class="p-4 flex items-center gap-3">
+<img alt="Author" class="w-10 h-10 rounded-full object-cover border border-primary/20" data-alt="Close up of a young woman laughing in casual attire, soft sunlit background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0JtKdBC3x96Y5bLZSbAh_-Pqd1XHwfGOO-h3RRCFq0lcM3wVNrVfr8JuLa_ebxx9p4fUx_7YatXVX_xHksfxZjcomb-fc-jkvYaooONFNsi0xF27WCuQarrhZIB0xTtw_C59xxoQqxLyf36Q9l6L7e0gVFEyAggDb1NspAU_Xd2CMbKcUynkMCyq9zx5v1sjGpwFinmToln13nuQ13s9bgwHGA6JAg1jZEkhh9r_oEK_Z0ijQEsD4KQ68Ko5fQ5dpvbK0d9-9Bg"/>
+<div>
+<p class="text-sm font-bold text-white">Maya Levi</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-medium">Pro Player • 2h ago</p>
+</div>
+</div>
+<div class="px-4 pb-4">
+<p class="text-on-surface leading-relaxed text-sm">Incredible sunrise session today! The courts at TAPC are looking flawless. Who's up for a mixed doubles match this weekend? 🎾💪</p>
+</div>
+<div class="relative h-64 mx-4 mb-4 rounded-lg overflow-hidden">
+<img alt="Action shot" class="w-full h-full object-cover" data-alt="Dynamic shot of a padel racket hitting the ball on court, motion blur, intense cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDREDgmhY72zyJVoY9S4tG-_5ao4sph8h-4xUfqGPXx-51OEMimgXOa-AcV8MN5LRZFoXga3akOSpChv-mdoV74V7mNj2zbTWxo5nSVHNKT33iLNfccXbeERGEYzqUbjNb4efKX2UTsSfsjcx0uv6cZ7LnFovOyUWBcNoE0RPlbAu9YTcnL2N55eQnHWZRuMLDB_ZF8ZuDTCEVFIkBtTTv-Ci36lHzyDlhB_13gNqOSSEmaAvDZdWOAeUZykMnq7_0Ko5NdPTzg7A"/>
+<div class="absolute top-4 right-4 glass-panel rounded-full px-3 py-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-white" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="text-[10px] font-black text-white">128</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-8 left-0 right-0 z-50 flex justify-around items-center px-4 h-16">
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full backdrop-blur-2xl border border-white/10 bg-white/5 dark:bg-white/10 shadow-[0_20px_40px_rgba(0,212,170,0.1)] flex justify-around items-center h-16">
+<a class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all scale-110 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">home</span>
+</a>
+<a class="flex items-center justify-center text-[#00D4AA] relative after:content-[''] after:absolute after:-bottom-1 after:w-1 after:h-1 after:bg-[#00D4AA] after:rounded-full scale-110 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">explore</span>
+</a>
+<a class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all scale-110 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">add_circle</span>
+</a>
+<a class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all scale-110 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">movie</span>
+</a>
+<a class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all scale-110 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">person</span>
+</a>
+</div>
+</nav>
+</body></html>

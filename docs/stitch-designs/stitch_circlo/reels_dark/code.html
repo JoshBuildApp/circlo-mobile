@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CIRCLO Reels - Athletic Performance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=Inter+Tight:ital,wght@0,700;0,900;1,900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline": "#85948d",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e2e0fc",
+                    "on-secondary-fixed-variant": "#802900",
+                    "on-surface-variant": "#bacac2",
+                    "on-secondary-container": "#fffbff",
+                    "tertiary-fixed-dim": "#28dfb5",
+                    "surface-tint": "#28dfb5",
+                    "surface-container-low": "#1a1a2e",
+                    "inverse-on-surface": "#2f2e43",
+                    "primary-fixed-dim": "#28dfb5",
+                    "error": "#ffb4ab",
+                    "secondary-fixed-dim": "#ffb59a",
+                    "tertiary": "#46f1c5",
+                    "surface-container": "#1e1e32",
+                    "on-tertiary-fixed-variant": "#00513f",
+                    "tertiary-container": "#00d4aa",
+                    "on-primary-fixed": "#002118",
+                    "on-tertiary": "#00382b",
+                    "on-tertiary-container": "#005643",
+                    "surface-dim": "#111125",
+                    "surface-bright": "#37374d",
+                    "surface-container-high": "#28283d",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed": "#380d00",
+                    "on-secondary": "#5b1b00",
+                    "on-primary": "#00382b",
+                    "surface-container-lowest": "#0c0c1f",
+                    "surface": "#111125",
+                    "primary-container": "#00d4aa",
+                    "background": "#111125",
+                    "inverse-primary": "#006b55",
+                    "primary-fixed": "#55fcd0",
+                    "surface-variant": "#333348",
+                    "surface-container-highest": "#333348",
+                    "on-error": "#690005",
+                    "secondary": "#ffb59a",
+                    "outline-variant": "#3b4a44",
+                    "secondary-container": "#cd4802",
+                    "primary": "#46f1c5",
+                    "on-tertiary-fixed": "#002118",
+                    "on-primary-fixed-variant": "#00513f",
+                    "tertiary-fixed": "#55fcd0",
+                    "on-background": "#e2e0fc",
+                    "inverse-surface": "#e2e0fc",
+                    "on-primary-container": "#005643",
+                    "secondary-fixed": "#ffdbcf"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter Tight"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .video-container {
+            height: 100dvh;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background-color: #0c0c1f;
+        }
+        .kinetic-gradient-overlay {
+            background: linear-gradient(0deg, rgba(17,17,37,0.9) 0%, rgba(17,17,37,0.4) 30%, rgba(17,17,37,0) 100%);
+        }
+        .glass-pill {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-dim text-on-surface font-body overflow-hidden">
+<!-- Top Navigation Shell (Suppressing BottomNavBar as per task instructions for immersive mode) -->
+<header class="fixed top-0 w-full z-50 pt-2 flex justify-between items-center px-6 py-4 bg-transparent">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-white hover:opacity-80 transition-opacity cursor-pointer">arrow_back</span>
+<h1 class="font-['Inter_Tight'] font-black tracking-tighter text-2xl uppercase text-[#00D4AA]">CIRCLO</h1>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-white hover:opacity-80 transition-opacity cursor-pointer">search</span>
+<div class="w-8 h-8 rounded-full border border-primary-fixed/20 overflow-hidden">
+<img alt="User" class="w-full h-full object-cover" data-alt="Close up portrait of a professional tennis coach with a focused expression, athletic gear, soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz2gbj_FSn8vayfWjpRU_1TqQFIlZjlXhx6nGl2mRyCZuK9I5KlF3BkkuJSM2TBe0jEZMBAbxzIAElAUn1NcR_3k7HxyfNtyBjeagTIJiJj69sn7pFhjCa91IK891GS3jRXScnheMYRUDS7Z1W1WvKDWV66PQfx0rqcTRe2rsWeT9Tpv6yRJUGoTEn5tbkrSutBui8SjUiD-gkgFJ1KN86rUWeIRY_WfjEOw-o7_t0e3CuBvG4lynw-BEuhJ6ehrfk-yUmJOBdAQ"/>
+</div>
+</div>
+</header>
+<!-- Main Content: Fullscreen Reel -->
+<main class="video-container">
+<!-- Progress Bar -->
+<div class="fixed top-0 left-0 w-full h-1 bg-white/10 z-[60]">
+<div class="h-full bg-gradient-to-r from-primary to-secondary w-[65%]"></div>
+</div>
+<!-- Hero Video Background -->
+<div class="absolute inset-0 w-full h-full">
+<img alt="Athlete hitting tennis ball" class="w-full h-full object-cover" data-alt="Full screen vertical shot of a professional tennis athlete in mid-swing hitting a tennis ball on a dark blue court, dramatic side lighting, high speed action photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_UMNsbSV7HVQL3FPNWuvnZHzKJ0u3kFmixrKEOBesHm3YPO1QhnEU1aV3nfnXn_mfZ1DtWZWRkxmBaxbnixF7r9mUVkByMEDJBhU06DRpTeeipQ6vRH4Yze5-NHR26etBtQKAUTzd5dTvxHyivxNbRLqMGqFNpdBhM00KnkDsBvHuu_VJjnJeeTNeUvbxQcovvyL_pFFq1cB3r1g-A7E3ul9uBjTIMOrRK7R-pdqM8olIQrfPREu8ZIMe-D97QRCIcK5TOxcT4w"/>
+<!-- Dark Navy Overlays for Legibility -->
+<div class="absolute inset-0 kinetic-gradient-overlay"></div>
+<div class="absolute inset-0 bg-surface-dim/20 pointer-events-none"></div>
+</div>
+<!-- UI Layers -->
+<div class="relative z-10 flex flex-col justify-end h-full w-full pb-12 px-6">
+<!-- Bottom-Left Content -->
+<div class="max-w-[80%] mb-4">
+<div class="flex items-center gap-3 mb-4 group cursor-pointer">
+<div class="relative">
+<img alt="Coach Avatar" class="w-12 h-12 rounded-full border-2 border-primary" data-alt="Professional athletic coach headshot, dark background, confident smile, sporting high-performance gear" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABJoBlUo4Iv0AFYGC1WxylLEzuKjmZxKqpKANNwFyRB_mf7AGVw5YtOIftR8zpKX8ecINakZ2IZxHKn7PyWWsD3VBNYo6X9Yu_rdQ-er_ur1qHoBGVNZoGL4599HnCBEfCDgSarfLC28I6NI2kSbvHaHl098d17S4bppPAKxzbXwXm-9C1OdWxuLZiK3NGelZkKMVg2kjQkRDXgzMBMiCpmGFxkCM7W001SHILEJAXAcPhmytWTiWSQ171bbdsL8Q03j9m11MBKg"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-on-primary rounded-full p-0.5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-headline font-bold text-white tracking-tight">Coach Marcus</span>
+<span class="text-xs font-label uppercase tracking-widest text-primary">Elite Performance</span>
+</div>
+<button class="ml-2 glass-pill px-4 py-1 text-xs font-bold rounded-full border border-white/10 hover:bg-white/20 transition-all">FOLLOW</button>
+</div>
+<h2 class="text-white text-lg font-headline font-semibold mb-2 leading-snug">
+                    Perfecting the cross-court forehand power shot. 🎾 #TennisPro #TrainingDay
+                </h2>
+<div class="flex items-center gap-2">
+<div class="glass-pill px-3 py-1.5 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">music_note</span>
+<span class="text-[10px] font-label text-on-surface-variant uppercase tracking-tighter">Original Audio - High Voltage Beats</span>
+</div>
+</div>
+</div>
+<!-- Right Rail Actions -->
+<div class="absolute right-4 bottom-24 flex flex-col items-center gap-6">
+<!-- Like -->
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 glass-pill rounded-full flex items-center justify-center group-active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<span class="text-[10px] font-label font-bold text-white">42.8K</span>
+</div>
+<!-- Comment -->
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 glass-pill rounded-full flex items-center justify-center group-active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-white text-2xl">chat_bubble</span>
+</div>
+<span class="text-[10px] font-label font-bold text-white">1,204</span>
+</div>
+<!-- Share -->
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 glass-pill rounded-full flex items-center justify-center group-active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-white text-2xl">send</span>
+</div>
+<span class="text-[10px] font-label font-bold text-white">Share</span>
+</div>
+<!-- Save -->
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 glass-pill rounded-full flex items-center justify-center group-active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-white text-2xl">bookmark</span>
+</div>
+<span class="text-[10px] font-label font-bold text-white">Save</span>
+</div>
+<!-- More -->
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 glass-pill rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-2xl">more_vert</span>
+</div>
+</div>
+<!-- Audio Disk -->
+<div class="mt-4 w-10 h-10 rounded-lg border-2 border-white/20 p-1 animate-spin-slow">
+<img alt="Album Art" class="w-full h-full object-cover rounded-sm" data-alt="Abstract colorful album cover art with neon teal and orange strokes on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGFh6Q9OoHlDvwcKmgI-jhlxj_GyF4Re_0aD8scrY4xSphdVhUUhmdxpwQpl7lFereZttaqd0Y5sQgEvjCsBTekdwc2dwLc5N5depq_Ch5QAKQMnpyCEKTYZ9aKZ8-COW2REmzyBvuZZRFWHPyYniHO6n4DnU1pOXOcjuK4qyW3My-Lb_ANQnyVQXjKqVUdv-9EmTiGixBv0cseDd6NHeWFHZt3_tWQRmKFnWdaOLyIOSzXZeZTvneKDd9eGmgOP2_XygmjH36zg"/>
+</div>
+</div>
+</div>
+<!-- Performance Stats Overlay (Kinetic Asymmetry) -->
+<div class="absolute top-24 left-6 flex flex-col gap-2">
+<div class="glass-pill px-4 py-2 rounded-lg border-l-4 border-primary">
+<span class="block text-[10px] font-label text-primary uppercase tracking-widest">Swing Speed</span>
+<span class="text-2xl font-headline font-black text-white italic">118 <span class="text-sm font-normal not-italic opacity-60">MPH</span></span>
+</div>
+<div class="glass-pill px-4 py-2 rounded-lg border-l-4 border-secondary opacity-80">
+<span class="block text-[10px] font-label text-secondary uppercase tracking-widest">Spin Rate</span>
+<span class="text-2xl font-headline font-black text-white italic">2850 <span class="text-sm font-normal not-italic opacity-60">RPM</span></span>
+</div>
+</div>
+</main>
+<!-- Invisible Tab Bar Shadow (Ensuring suppression of actual Nav as per rule) -->
+<!-- We skip BottomNavBar rendering because this is a "task-focused" fullscreen immersive experience -->
+</body></html>

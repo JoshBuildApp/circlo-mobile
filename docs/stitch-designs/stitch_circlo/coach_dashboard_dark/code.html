@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CIRCLO | Coach Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Inter+Tight:ital,wght@0,700;0,800;0,900;1,900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "outline": "#85948d",
+                "on-error-container": "#ffdad6",
+                "on-surface": "#e2e0fc",
+                "on-secondary-fixed-variant": "#802900",
+                "on-surface-variant": "#bacac2",
+                "on-secondary-container": "#fffbff",
+                "tertiary-fixed-dim": "#28dfb5",
+                "surface-tint": "#28dfb5",
+                "surface-container-low": "#1a1a2e",
+                "inverse-on-surface": "#2f2e43",
+                "primary-fixed-dim": "#28dfb5",
+                "error": "#ffb4ab",
+                "secondary-fixed-dim": "#ffb59a",
+                "tertiary": "#46f1c5",
+                "surface-container": "#1e1e32",
+                "on-tertiary-fixed-variant": "#00513f",
+                "tertiary-container": "#00d4aa",
+                "on-primary-fixed": "#002118",
+                "on-tertiary": "#00382b",
+                "on-tertiary-container": "#005643",
+                "surface-dim": "#111125",
+                "surface-bright": "#37374d",
+                "surface-container-high": "#28283d",
+                "error-container": "#93000a",
+                "on-secondary-fixed": "#380d00",
+                "on-secondary": "#5b1b00",
+                "on-primary": "#00382b",
+                "surface-container-lowest": "#0c0c1f",
+                "surface": "#111125",
+                "primary-container": "#00d4aa",
+                "background": "#111125",
+                "inverse-primary": "#006b55",
+                "primary-fixed": "#55fcd0",
+                "surface-variant": "#333348",
+                "surface-container-highest": "#333348",
+                "on-error": "#690005",
+                "secondary": "#ffb59a",
+                "outline-variant": "#3b4a44",
+                "secondary-container": "#cd4802",
+                "primary": "#46f1c5",
+                "on-tertiary-fixed": "#002118",
+                "on-primary-fixed-variant": "#00513f",
+                "tertiary-fixed": "#55fcd0",
+                "on-background": "#e2e0fc",
+                "inverse-surface": "#e2e0fc",
+                "on-primary-container": "#005643",
+                "secondary-fixed": "#ffdbcf"
+            },
+            "borderRadius": {
+                "DEFAULT": "1rem",
+                "lg": "2rem",
+                "xl": "3rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Inter Tight", "sans-serif"],
+                "body": ["Inter", "sans-serif"],
+                "label": ["Inter", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .kinetic-gradient {
+            background: linear-gradient(135deg, #00D4AA 0%, #FF6B2C 100%);
+        }
+        body {
+            background-color: #111125;
+            color: #e2e0fc;
+            -webkit-font-smoothing: antialiased;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 pt-2">
+<div class="flex justify-between items-center px-6 py-4 max-w-full mx-auto bg-opacity-0">
+<button class="text-[#00D4AA] hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-['Inter_Tight'] font-black tracking-tighter text-2xl uppercase text-[#00D4AA]">CIRCLO</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container shadow-lg">
+<img alt="Coach Noa" class="w-full h-full object-cover" data-alt="Professional athletic coach portrait with soft cinematic lighting and dark background, looking confident and focused" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDht2fIBB1snaifyq3pUiPoT3v9xE6VIgTEk_GMG_8C4ZqpaXHNywFveDBGCFPSL8kfbAINLtsYbYnL8IpAroIOL27h6J4neeXdGBZ31vPqm8SQnISEACyDnj_pLGXokgA_6XaCxEsONro_roTJkSMoyjKPhoIR9Cym0C-OH0EG_f9_bjh7I4GxSqLBdKmlKGb0WwI52mvgE1EXVPU1O3OHWbVUP1dhDMK_eWIfKpgopPntTbzmX7a1KyvQBCoOjb58ovtSH0jOZA"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-md mx-auto min-h-screen">
+<!-- Greeting Section -->
+<section class="mb-8">
+<span class="font-label text-secondary text-xs font-bold uppercase tracking-[0.2em]">Dashboard</span>
+<h2 class="font-headline text-3xl font-black mt-1 leading-tight">Good morning, Noa</h2>
+</section>
+<!-- Hero Earnings Card -->
+<section class="mb-8 relative group">
+<div class="absolute -inset-0.5 kinetic-gradient opacity-20 blur-2xl group-hover:opacity-30 transition duration-1000"></div>
+<div class="relative surface-container rounded-lg p-6 overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="font-label text-on-surface-variant text-xs uppercase tracking-widest font-semibold">Total Revenue</p>
+<h3 class="font-headline text-4xl font-extrabold text-on-surface mt-1">₪4,280</h3>
+</div>
+<span class="bg-tertiary/10 text-tertiary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter">+12.5%</span>
+</div>
+<!-- Sparkline Mockup -->
+<div class="h-16 w-full flex items-end gap-1">
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[40%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[60%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[45%]"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm h-[70%]"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm h-[55%]"></div>
+<div class="flex-1 bg-primary/60 rounded-t-sm h-[85%]"></div>
+<div class="flex-1 bg-primary rounded-t-sm h-[100%]"></div>
+<div class="flex-1 bg-primary/80 rounded-t-sm h-[75%]"></div>
+<div class="flex-1 bg-primary/50 rounded-t-sm h-[60%]"></div>
+<div class="flex-1 bg-primary/30 rounded-t-sm h-[40%]"></div>
+</div>
+<div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 kinetic-gradient opacity-10 rounded-full blur-3xl"></div>
+</div>
+</section>
+<!-- 2x2 Stats Grid -->
+<section class="grid grid-cols-2 gap-4 mb-10">
+<div class="glass-card p-5 rounded-lg border border-white/5">
+<span class="material-symbols-outlined text-primary mb-3">groups</span>
+<p class="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">Active Clients</p>
+<h4 class="text-2xl font-black mt-1">24</h4>
+</div>
+<div class="glass-card p-5 rounded-lg border border-white/5">
+<span class="material-symbols-outlined text-secondary mb-3">timer</span>
+<p class="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">Hours Coached</p>
+<h4 class="text-2xl font-black mt-1">118</h4>
+</div>
+<div class="glass-card p-5 rounded-lg border border-white/5">
+<span class="material-symbols-outlined text-tertiary mb-3">star</span>
+<p class="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">Avg Rating</p>
+<h4 class="text-2xl font-black mt-1">4.9</h4>
+</div>
+<div class="glass-card p-5 rounded-lg border border-white/5">
+<span class="material-symbols-outlined text-on-surface mb-3">trending_up</span>
+<p class="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">Completion</p>
+<h4 class="text-2xl font-black mt-1">98%</h4>
+</div>
+</section>
+<!-- Upcoming Sessions -->
+<section class="mb-12">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-headline text-xl font-bold">Upcoming Sessions</h3>
+<button class="text-primary text-xs font-bold uppercase tracking-widest">View All</button>
+</div>
+<div class="space-y-4">
+<!-- Session Item 1 -->
+<div class="surface-container rounded-lg p-4 flex items-center gap-4 transition-transform active:scale-95 duration-200">
+<div class="w-12 h-12 rounded-lg overflow-hidden bg-surface-bright flex-shrink-0">
+<img alt="Client Sarah" class="w-full h-full object-cover" data-alt="Young woman in fitness apparel looking towards camera in a modern minimalist studio gym" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCC6XgXBcLXJCxJdQ2-HQ47UJsaEppk2DkJ48tiGbJvUDu5U9NW5oR5EvEi6vI4vgTbqVIQQ_H3lsoRNkeFcTEGYB6pDgyhmOhw6iuSVv5UHcUUFk1vkc9RmBFXlNmZbIDOPV-lo_mdb7eJ784tvST1J_kPTh7SbCyblZE8uDg246fZOE2VMQZTaQvVi9qcH9JdGBbmhWAs8lwYJJTWHTZdpTh-gsvAf_vPFZZH1ygCMpHD2TSi18tsMMr5yeD2aChxc-ND3Iw17Q"/>
+</div>
+<div class="flex-grow">
+<h5 class="font-bold text-sm">Sarah Jenkins</h5>
+<p class="text-on-surface-variant text-xs">HIIT Performance • 09:00 AM</p>
+</div>
+<div class="text-right">
+<span class="material-symbols-outlined text-primary text-xl">event_available</span>
+</div>
+</div>
+<!-- Session Item 2 -->
+<div class="surface-container rounded-lg p-4 flex items-center gap-4 transition-transform active:scale-95 duration-200">
+<div class="w-12 h-12 rounded-lg overflow-hidden bg-surface-bright flex-shrink-0">
+<img alt="Client Marcus" class="w-full h-full object-cover" data-alt="Professional man in athletic wear during a workout session with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVoBRDDWRXGMyNLwn2dSlzJhNC2b1yZN0ctzrbUXvOCK2BdCcW9VFdKpJLVtCudjERWP6UvuszHj0ErzAAxPdv2XcxBPFUZxZVrmow0NN_ZXBBCwkAcjPvfdQeDrnTNQeox7AJe1QCV-PoLcFKUWWtgZ8AEe5cBDi-KCY31bgTxTlqSCV2MF9Mjc7R6uy6V1YSxslCFT89QmOKZZfYBxf3yVs1M8H0e8OXopyz_XAhdax647ZugaCCRcUft97ax4Z_d68JGwCPLQ"/>
+</div>
+<div class="flex-grow">
+<h5 class="font-bold text-sm">Marcus Thorne</h5>
+<p class="text-on-surface-variant text-xs">Strength Training • 11:30 AM</p>
+</div>
+<div class="text-right">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">schedule</span>
+</div>
+</div>
+<!-- Session Item 3 -->
+<div class="surface-container rounded-lg p-4 flex items-center gap-4 transition-transform active:scale-95 duration-200">
+<div class="w-12 h-12 rounded-lg overflow-hidden bg-surface-bright flex-shrink-0">
+<img alt="Client Elena" class="w-full h-full object-cover" data-alt="Young athletic woman smiling in a bright fitness center background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDj6Fp_UyO_3zyUYWhGUQuIhJUltI_aSVo7_T99kOURwrGxXr2IXAQjZlsrJxANi6vRsDnlpxqQpMMfx4eeR2M3yIbIYceGJjlr7R8Jy6s1gyeY4O-PcSkABEHvwLEFOwFzOYqx2sCpMa9KymUiXIyZlVWzPNbv1f7aGx2BZv0lbsZOshwEXJgcBFs4w4C5Fe0slAGcgGnpuaardf-bFzvvCic6dE_uaZGgG2zq8WOn1mXEDJv16prwZJ9126jq0yV62VA2R4n3jA"/>
+</div>
+<div class="flex-grow">
+<h5 class="font-bold text-sm">Elena Rodriguez</h5>
+<p class="text-on-surface-variant text-xs">Mobility &amp; Flow • 02:15 PM</p>
+</div>
+<div class="text-right">
+<span class="material-symbols-outlined text-on-surface-variant text-xl">schedule</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Create Content CTA -->
+<div class="fixed bottom-28 left-0 right-0 z-40 flex justify-center px-6">
+<button class="kinetic-gradient w-full py-4 rounded-full flex items-center justify-center gap-2 shadow-2xl transition-transform active:scale-95 duration-300">
+<span class="material-symbols-outlined font-variation-settings-fill" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="font-headline font-black uppercase tracking-widest text-sm">Create content</span>
+</button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-8 left-0 right-0 z-50 flex justify-around items-center px-4 h-16">
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full backdrop-blur-2xl border border-white/10 bg-white/5 shadow-[0_20px_40px_rgba(0,212,170,0.1)] flex justify-around items-center h-16 px-4">
+<a class="flex items-center justify-center text-[#00D4AA] relative after:content-[''] after:absolute after:-bottom-1 after:w-1 after:h-1 after:bg-[#00D4AA] after:rounded-full scale-110 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">home</span>
+</a>
+<a class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all scale-110 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">explore</span>
+</a>
+<div class="w-10"></div> <!-- Spacer for the floating CTA above if needed, but the UI has it separate -->
+<a class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all scale-110 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">movie</span>
+</a>
+<a class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all scale-110 active:scale-90 duration-300 ease-out" href="#">
+<span class="material-symbols-outlined">person</span>
+</a>
+</div>
+</nav>
+</body></html>

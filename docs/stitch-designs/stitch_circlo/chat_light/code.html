@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Inter+Tight:wght@600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline": "#85948d",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e2e0fc",
+                    "on-secondary-fixed-variant": "#802900",
+                    "on-surface-variant": "#bacac2",
+                    "on-secondary-container": "#fffbff",
+                    "tertiary-fixed-dim": "#28dfb5",
+                    "surface-tint": "#28dfb5",
+                    "surface-container-low": "#1a1a2e",
+                    "inverse-on-surface": "#2f2e43",
+                    "primary-fixed-dim": "#28dfb5",
+                    "error": "#ffb4ab",
+                    "secondary-fixed-dim": "#ffb59a",
+                    "tertiary": "#46f1c5",
+                    "surface-container": "#1e1e32",
+                    "on-tertiary-fixed-variant": "#00513f",
+                    "tertiary-container": "#00d4aa",
+                    "on-primary-fixed": "#002118",
+                    "on-tertiary": "#00382b",
+                    "on-tertiary-container": "#005643",
+                    "surface-dim": "#111125",
+                    "surface-bright": "#37374d",
+                    "surface-container-high": "#28283d",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed": "#380d00",
+                    "on-secondary": "#5b1b00",
+                    "on-primary": "#00382b",
+                    "surface-container-lowest": "#0c0c1f",
+                    "surface": "#111125",
+                    "primary-container": "#00d4aa",
+                    "background": "#111125",
+                    "inverse-primary": "#006b55",
+                    "primary-fixed": "#55fcd0",
+                    "surface-variant": "#333348",
+                    "surface-container-highest": "#333348",
+                    "on-error": "#690005",
+                    "secondary": "#ffb59a",
+                    "outline-variant": "#3b4a44",
+                    "secondary-container": "#cd4802",
+                    "primary": "#46f1c5",
+                    "on-tertiary-fixed": "#002118",
+                    "on-primary-fixed-variant": "#00513f",
+                    "tertiary-fixed": "#55fcd0",
+                    "on-background": "#e2e0fc",
+                    "inverse-surface": "#e2e0fc",
+                    "on-primary-container": "#005643",
+                    "secondary-fixed": "#ffdbcf"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter Tight"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .kinetic-gradient {
+            background: linear-gradient(135deg, #00D4AA 0%, #FF6B2C 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest min-h-screen font-body text-on-surface selection:bg-primary/30">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-50 pt-2">
+<div class="flex justify-between items-center px-6 py-4 max-w-full mx-auto glass-panel rounded-b-xl">
+<div class="flex items-center gap-3">
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="relative">
+<img alt="Coach Daniel R." class="w-10 h-10 rounded-full object-cover" data-alt="Close-up portrait of a fit professional coach with short hair and athletic gear against a dark studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUtSpL070dJUnNnvo5bKnjbgKBug-0-YzoS0hgvi7g1Wh3LZnNvwSChkrD_e07F0zVHdZSqmf04D3ASVi5rXOjEBDNOioqRzwEbnLAtmtL6vtYoKGFIo4oUDVjUWr8VgzWfVxpZPiP6gE2U0huaPhjFGK8YJM1hamcrzXTExvIHa7BFfmYmM0ToeoVn7ILCZXNhsgb9MggZUQT6QxFenYuCBKDXXVxV6c77POznxPo-9BH0sbW1P4Z9dWk2F2AftkMlc4_3Yfgtg"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-primary rounded-full border-2 border-surface-container-lowest"></span>
+</div>
+<div>
+<h1 class="font-headline font-bold text-lg tracking-tight text-on-surface leading-none">Daniel R.</h1>
+<span class="text-[10px] font-label font-semibold text-primary uppercase tracking-widest">Active Now</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity"><span class="material-symbols-outlined">videocam</span></button>
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity"><span class="material-symbols-outlined">info</span></button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-4 max-w-2xl mx-auto space-y-6">
+<!-- Date Marker -->
+<div class="flex justify-center">
+<span class="px-4 py-1 rounded-full bg-surface-container text-on-surface-variant text-[10px] font-label font-bold tracking-widest uppercase">Today</span>
+</div>
+<!-- Message: Incoming -->
+<div class="flex items-end gap-2 max-w-[85%]">
+<div class="flex-shrink-0 mb-1">
+<img alt="Coach" class="w-6 h-6 rounded-full object-cover" data-alt="Coach profile thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCug2-019vf8VRCRhZr9UxQ01SwcE3Kb7TLowrWR3Kul5UcOtdKcPz0c-m96zhtsQS6qJ4BNso4qB5TzHsUv6AWCFqjyAOxJgHINqPz_g0_6oQXSpqNOiM474-Ye0m8_GXOwOW3WLbqaaCL1JAjqbuWcsPGteIHmZZIlb0JiBV0QxKpd_SImNDItdqS4teAVkwF9g0MqiU8dCp9uQw-guTq7KLujx9QbB9B6W_sO8x99YwsGCyDcapdP-6UqPoDjTZ02Zt1LI7P9Q"/>
+</div>
+<div class="bg-surface-container px-4 py-3 rounded-tr-lg rounded-tl-lg rounded-br-lg text-on-surface text-sm leading-relaxed">
+                Hey! Ready for your session today? I've prepared a new mobility routine specifically for your recovery phase. ⚡️
+            </div>
+</div>
+<!-- Message: Outgoing -->
+<div class="flex justify-end">
+<div class="max-w-[85%] kinetic-gradient px-4 py-3 rounded-tl-lg rounded-tr-lg rounded-bl-lg text-white text-sm leading-relaxed shadow-lg">
+                Hey Daniel! Definitely ready. The ankle feels much stronger after those stretches you sent on Monday.
+            </div>
+</div>
+<!-- Message: Confirmation Card (Special) -->
+<div class="flex justify-end">
+<div class="w-[90%] bg-surface-container rounded-lg p-1 overflow-hidden">
+<div class="bg-surface-container-high p-4 rounded-lg border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="text-[10px] font-label font-black text-secondary tracking-widest uppercase block mb-1">Session Confirmed</span>
+<h3 class="font-headline font-bold text-xl text-on-surface">Explosive Power II</h3>
+</div>
+<div class="p-2 glass-panel rounded-full text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">event_available</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div class="bg-surface-container px-3 py-2 rounded-md">
+<span class="text-[9px] font-label font-bold text-on-surface-variant block uppercase tracking-tighter">Time</span>
+<span class="text-sm font-bold text-on-surface">17:30 - 18:30</span>
+</div>
+<div class="bg-surface-container px-3 py-2 rounded-md">
+<span class="text-[9px] font-label font-bold text-on-surface-variant block uppercase tracking-tighter">Coach</span>
+<span class="text-sm font-bold text-on-surface">Daniel R.</span>
+</div>
+</div>
+<button class="w-full py-3 kinetic-gradient text-white font-bold text-xs rounded-md uppercase tracking-widest hover:opacity-90 transition-all">Add to Calendar</button>
+</div>
+</div>
+</div>
+<!-- Message: Incoming (Typing) -->
+<div class="flex items-end gap-2">
+<div class="flex-shrink-0 mb-1">
+<img alt="Coach" class="w-6 h-6 rounded-full object-cover" data-alt="Coach profile thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCF3q7IIbA0-tTEdmYiOggooTGRwQoiUVhj_Kl4Xu5i3rd8l1TCjTpEysTJ31dkNdTEnUa1tQn7jbpNN0nuPR1grV27ZOTjflbbaROzX5pYGryPLrLh7okzYjnBcxULmfT_65SI6rxbMKeamvSFKJGmSvwrZ4J-hKL1JCIoVYqZFNx09OPN-7A6IniYNYQI5jAaZdpR1ckUB1_Dcq0HR9U5Ky_tM7HvM7k59vSdWGc9GU3fuu09GOWCdkzwNPx9TlFihCUGllODjQ"/>
+</div>
+<div class="bg-surface-container-high px-4 py-3 rounded-full flex gap-1 items-center">
+<div class="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"></div>
+<div class="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+<div class="w-1.5 h-1.5 bg-primary/80 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar / Input Shell -->
+<div class="fixed bottom-0 left-0 right-0 z-50 p-6">
+<div class="max-w-2xl mx-auto glass-panel rounded-full flex items-center px-4 py-2 gap-3 border border-white/5 shadow-2xl">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">add_circle</span>
+</button>
+<div class="flex-1 bg-white/5 rounded-full px-4 py-2">
+<input class="bg-transparent border-none focus:ring-0 text-sm text-on-surface placeholder:text-on-surface-variant/40 w-full" placeholder="Type a message..." type="text"/>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<button class="w-10 h-10 kinetic-gradient rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/20 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+<!-- Hidden Bottom NavBar Suppression Logic -->
+<!-- As per instructions, this is a transactional chat thread focused task, so the global BottomNavBar from JSON is suppressed in favor of the message input shell -->
+</body></html>

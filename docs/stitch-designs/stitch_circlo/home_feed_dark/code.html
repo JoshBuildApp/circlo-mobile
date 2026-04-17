@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Inter+Tight:wght@700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline": "#85948d",
+                    "on-error-container": "#ffdad6",
+                    "on-surface": "#e2e0fc",
+                    "on-secondary-fixed-variant": "#802900",
+                    "on-surface-variant": "#bacac2",
+                    "on-secondary-container": "#fffbff",
+                    "tertiary-fixed-dim": "#28dfb5",
+                    "surface-tint": "#28dfb5",
+                    "surface-container-low": "#1a1a2e",
+                    "inverse-on-surface": "#2f2e43",
+                    "primary-fixed-dim": "#28dfb5",
+                    "error": "#ffb4ab",
+                    "secondary-fixed-dim": "#ffb59a",
+                    "tertiary": "#46f1c5",
+                    "surface-container": "#1e1e32",
+                    "on-tertiary-fixed-variant": "#00513f",
+                    "tertiary-container": "#00d4aa",
+                    "on-primary-fixed": "#002118",
+                    "on-tertiary": "#00382b",
+                    "on-tertiary-container": "#005643",
+                    "surface-dim": "#111125",
+                    "surface-bright": "#37374d",
+                    "surface-container-high": "#28283d",
+                    "error-container": "#93000a",
+                    "on-secondary-fixed": "#380d00",
+                    "on-secondary": "#5b1b00",
+                    "on-primary": "#00382b",
+                    "surface-container-lowest": "#0c0c1f",
+                    "surface": "#111125",
+                    "primary-container": "#00d4aa",
+                    "background": "#111125",
+                    "inverse-primary": "#006b55",
+                    "primary-fixed": "#55fcd0",
+                    "surface-variant": "#333348",
+                    "surface-container-highest": "#333348",
+                    "on-error": "#690005",
+                    "secondary": "#ffb59a",
+                    "outline-variant": "#3b4a44",
+                    "secondary-container": "#cd4802",
+                    "primary": "#46f1c5",
+                    "on-tertiary-fixed": "#002118",
+                    "on-primary-fixed-variant": "#00513f",
+                    "tertiary-fixed": "#55fcd0",
+                    "on-background": "#e2e0fc",
+                    "inverse-surface": "#e2e0fc",
+                    "on-primary-container": "#005643",
+                    "secondary-fixed": "#ffdbcf"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #111125; color: #e2e0fc; font-family: 'Inter', sans-serif; }
+        .kinetic-gradient { background: linear-gradient(135deg, #00D4AA 0%, #FF6B2C 100%); }
+        .glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(24px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex items-center justify-center min-h-screen p-4">
+<!-- iPhone 15 Pro Mockup Frame -->
+<div class="relative w-[393px] h-[852px] bg-black rounded-[55px] shadow-2xl border-[8px] border-[#1a1a1a] overflow-hidden flex flex-col">
+<!-- Dynamic Island -->
+<div class="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-full z-[100] flex items-center justify-between px-4">
+<div class="w-1 h-1 bg-white/10 rounded-full"></div>
+<div class="w-1 h-1 bg-white/10 rounded-full"></div>
+</div>
+<!-- Top Navigation (TopAppBar) -->
+<header class="fixed top-0 w-full z-50 pt-2 bg-transparent">
+<div class="flex justify-between items-center px-6 py-4 max-w-full mx-auto bg-opacity-0">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#00D4AA] hover:opacity-80 transition-opacity">menu</span>
+</div>
+<h1 class="font-['Inter_Tight'] font-black tracking-tighter text-2xl uppercase text-[#00D4AA] italic">CIRCLO</h1>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#00D4AA] hover:opacity-80 transition-opacity">notifications</span>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-highest border border-white/10 scale-95 duration-200">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a fitness professional with short dark hair and athletic wear in a studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuBHc_vQsQQbSNWMHOfYaOs0B0B6NC25OXUXuK_paiIFFCtbshdgmNw47vQjEoIqch6vCmuFEYiEqEYZPanYX1u_YjPhaPzzktV3NCHBfAl76tn2DuDQrlrsYCxmKlVRwquGyloLF-I3LNy5fK_4_BZwC-YpGRV-qojcKYGOrd5Hd6zegezzGbLohmrUfBqT9gtCa-53T5jYz22MapFRyRUVkKftYhztMHmemENLN2nzhIQXHiT5Hy3UUReNa3tJSV_u9aRMsojA"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Scroll Area -->
+<main class="flex-1 overflow-y-auto no-scrollbar pt-20 pb-32">
+<!-- Story Rings Section -->
+<section class="px-6 mb-8 overflow-x-auto no-scrollbar flex gap-5 py-2">
+<div class="flex flex-col items-center gap-2">
+<div class="relative p-[3px] rounded-full kinetic-gradient">
+<div class="bg-black rounded-full p-[2px]">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-surface">
+<img class="w-full h-full object-cover" data-alt="headshot of a smiling young woman with curly hair against a vibrant teal background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvrNAU4PlUA7vqP2w5jZNyod5gCB6MkFWSbXV3szbtzz-aNTT8vpj-2nyS1cnhTR9hLVf7RemyTEpPs3smsbzXbkplxmCIS2_vBO8K_b_6p-h5GYijWJ8QYO1JAgHlooid1bbLDyvNub_NqpVDn6aDKatgjeCdGy82pcxwICFZvb_K6v2ElOUgZ3L12XtxlhwkHiSL8plLpupyHCg8LPW0qMqvN82KEyOuMzxtakdB-FLUd2-lKATnu1rlB_9KYeZBe7dcexqtMw"/>
+</div>
+</div>
+<div class="absolute bottom-0 right-0 w-5 h-5 bg-[#00D4AA] rounded-full border-2 border-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] font-bold text-on-primary">add</span>
+</div>
+</div>
+<span class="text-[10px] font-bold tracking-widest text-on-surface uppercase">YOU</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="p-[3px] rounded-full kinetic-gradient">
+<div class="bg-black rounded-full p-[2px]">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-surface">
+<img class="w-full h-full object-cover" data-alt="portrait of a man with short athletic beard in high-contrast fitness gym lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5U0VYK4kamM8mudZ5enbaq8PbF3IOdYKKbAnUfO6wHAC88TPpUUKD1fEVBH-435KO4P-e992nYA0dJPQREpyUVKp2q6XRE4VQXb-ioDchiXGixQ7bHVAPKzANXbBnsU2yg_buHW0oETYMCPo-1mTS-5Blx9TCfDMou0p1sXEfY1ZGaie40G1qWlRo_qiIHmtL-THBb5bpW7z1Mgu9mBcoUZZxqvVpvWoWHdrouN-Fj3EIhILl_YGjDnuyARrskPFt8LygujIsUg"/>
+</div>
+</div>
+</div>
+<span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">MARCUS</span>
+</div>
+<div class="flex flex-col items-center gap-2 opacity-80">
+<div class="p-[3px] rounded-full kinetic-gradient">
+<div class="bg-black rounded-full p-[2px]">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-surface">
+<img class="w-full h-full object-cover" data-alt="close up of a professional athlete runner focusing before a race with soft morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMfQO6-rTv46tciREFzAS8Qp6UgcgrKYuroApZIhuJocXuGh_MUiHqNgYKHB61VEd9YRuJFiMoPQI8QBtuYTs7MhlZ9BYDmCHdMVdpNOUWGclmPOnOxwo3-4BY30OMGFDDClFy1BRwq05hjBn23Zcw6NtcfGhC7l264eqTkNj59jqzlCjkiO8IPJFLH6o9DK44TpBaXn1Xu7DNQbqyDyLyWBeE6KxW935pE4MZT0vgfW4gWt3kFYxSo1NE_k-L6tgisOFsWBV7lw"/>
+</div>
+</div>
+</div>
+<span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">ELENA</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="p-[3px] rounded-full kinetic-gradient">
+<div class="bg-black rounded-full p-[2px]">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-surface">
+<img class="w-full h-full object-cover" data-alt="fitness model in dark athletic gear looking determined in a warehouse gym environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_CSlxLKr_dOZyjKHTDn007gZoR8x7KRdV6bh3ydpWn0ZgH11hCY7H-2H9F6ZywtcDcrEAmot1dnmB8TlHubKg2b_Xg-h7_UDpgCkcuoyeqqpOlh6nb-YruNDzcCg4DxuMpgWNUk43zI17gjpTHZE--mG4-ahqCFcwKSrAZJkwQUjtNkloh-3J0eDnf2xz5RMHm_MxnhdD13fQRihJS53YV8S3memBpj0X8aQVN_c91jLlVEU60Z9TlCK2IMYUDX2nBJknXFfEUg"/>
+</div>
+</div>
+</div>
+<span class="text-[10px] font-bold tracking-widest text-slate-400 uppercase">JACK</span>
+</div>
+</section>
+<!-- Category Filter Chips -->
+<section class="px-6 mb-8 overflow-x-auto no-scrollbar flex gap-3">
+<button class="flex-none px-6 py-2.5 kinetic-gradient rounded-full text-white text-[10px] font-extrabold tracking-widest uppercase">EXPLORE ALL</button>
+<button class="flex-none px-6 py-2.5 bg-surface-container-highest rounded-full text-slate-400 text-[10px] font-extrabold tracking-widest uppercase border border-white/5">HIIT</button>
+<button class="flex-none px-6 py-2.5 bg-surface-container-highest rounded-full text-slate-400 text-[10px] font-extrabold tracking-widest uppercase border border-white/5">YOGA</button>
+<button class="flex-none px-6 py-2.5 bg-surface-container-highest rounded-full text-slate-400 text-[10px] font-extrabold tracking-widest uppercase border border-white/5">STRENGTH</button>
+</section>
+<!-- Featured Coach Card -->
+<section class="px-6 mb-10">
+<div class="relative rounded-lg overflow-hidden aspect-[16/9] mb-4 bg-surface-container-high group">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="cinematic shot of a woman performing a kettlebell swing in a high-end dark athletic training center with neon teal accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_CMJJMdACHpOq6bCvd5bYTtveAWKwQRIFhPAWpQb-AQremkmXpZLaGzscKe8Uwi7IHBKeF1UfrPxwT_-AT0WvVCiGpacUY6-75qm7v3y4p51XpTnz4kpXDZIfRuKxaDWlMGKNv_D8fnCApfrq27x80On9JOlXpa7flACeDfr31AMQpOpQRFxsZDB4vUYiePA0a64ciVlKN2Hov0a5NYC5Eg1rXhUT7x2TtMvblGnkIRXymWv3KZawe6OFEbHlPg_f0EDy-C_h7A"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#111125] via-transparent to-transparent"></div>
+<div class="absolute top-4 right-4 glass-panel px-3 py-1 rounded-full flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#00D4AA] animate-pulse"></div>
+<span class="text-[10px] font-bold text-white tracking-tighter uppercase">LIVE NOW</span>
+</div>
+<div class="absolute bottom-4 left-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border-2 border-[#00D4AA] overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="portrait of elena coach" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvhsZPWxox-HOKtRWtEKJQq_mA-4tak1JwD0pDINfSgFL89J9-hY8mhRvSA_QptNteTZgH3qFL6UknbuNF95JI2Yd-wq25YikoeDE6q7mbcYZVuQfS909kSCP6psP1G0TR4q49gtmuRt0eSIfo2TSScfZDU0CbnYM38P1b89KQT0nZAFKYGRVnt9ieRpLPh3S7oOzQ1FjTz5DBbiG6i84wp_T949-ql_fVzRQ3_qtyNNrK9gxU2dcgkvOhPFIDstDmWXsqW04CwQ"/>
+</div>
+<div>
+<p class="text-xs font-black tracking-wide text-white uppercase italic">ELENA VANCE</p>
+<p class="text-[9px] text-slate-400 uppercase tracking-widest">ADVANCED HIIT ENERGY</p>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div class="max-w-[70%]">
+<h3 class="text-xl font-['Inter_Tight'] font-black text-white italic tracking-tighter leading-none mb-1">HYPER CORE EXPLOSION</h3>
+<p class="text-xs text-slate-400 font-medium leading-relaxed">Push your limits with high-intensity interval training designed for maximum fat burn and core stability.</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-2xl font-black text-[#00D4AA] italic">45'</span>
+<span class="text-[8px] font-bold text-slate-500 tracking-widest uppercase">MINUTES</span>
+</div>
+</div>
+</section>
+<!-- Secondary Feed Grid (Bento Style) -->
+<section class="px-6 grid grid-cols-2 gap-4">
+<!-- Training Card 1 -->
+<div class="relative rounded-lg overflow-hidden aspect-square bg-surface-container group">
+<img class="w-full h-full object-cover opacity-60" data-alt="close up of a man's torso with defined muscles while holding dumbbells in a dark moody gym environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmmGCkn32mM3slwGmtnzornpqCq-tZu-5ZraVs-1s_qu2nPu4c9fJ4BfFfF-GXPKc9yxa0VfZxbL7x9deMJ3B6boreGoNpmHeysEELBHspvd3X9gGv9BGvGDIs187xlIy9uLyR-dhlBD7FF_JQpFOR8BHm9AhxIBdymZ2jCSaKoVQWv4R2-iMHNjCnOhCdEl0cdWQYBF1MrtwV_5v59IVaWwjZvNFMDY7Vjz0WDKMGa2WETUOLbMnsMHF_b1-P38OL1dzmcMsWDg"/>
+<div class="absolute inset-0 p-4 flex flex-col justify-between">
+<div class="w-8 h-8 rounded-full glass-panel flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-white" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+<div>
+<span class="text-[8px] font-black text-[#FF6B2C] uppercase tracking-widest">POWER</span>
+<h4 class="text-sm font-black text-white italic leading-tight uppercase">UPPER BODY<br/>STRENGTH</h4>
+</div>
+</div>
+</div>
+<!-- Training Card 2 -->
+<div class="relative rounded-lg overflow-hidden aspect-square bg-surface-container group">
+<img class="w-full h-full object-cover opacity-60" data-alt="zen aesthetic photo of a yoga mat on a clean dark studio floor with soft dramatic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYQO1NQJQrzZBQkAUNzsxXDk9VLbD93ugk3-aIDlpgGdQVSlxSlC8WtHSfOBjy8sp8LjLVfVq76ZpVt2eikxRJubk5KSaC59sRHuwrfZsqic2IJ3sYLrVNil5KM3dbOxCO4Y12MPmxqMT9WNseMYWF2rao20KDPeFf7uGT4UgYz84swJW6aPFWiwe1alv7UC81FwGEsPVYuuW4W1RZ6o2_fVLI54RwH5PXYEZRjghj8JcIl6YMNhgKb-Vew07gKJIWj0zRFJ0tnQ"/>
+<div class="absolute inset-0 p-4 flex flex-col justify-between">
+<div class="w-8 h-8 rounded-full glass-panel flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-white" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+<div>
+<span class="text-[8px] font-black text-[#00D4AA] uppercase tracking-widest">FLOW</span>
+<h4 class="text-sm font-black text-white italic leading-tight uppercase">MORNING<br/>MOBILITY</h4>
+</div>
+</div>
+</div>
+</section>
+<!-- Floating Action Button Contextual -->
+<button class="fixed bottom-28 right-8 w-14 h-14 kinetic-gradient rounded-full flex items-center justify-center shadow-[0_20px_40px_rgba(0,212,170,0.3)] z-40 transition-transform active:scale-90">
+<span class="material-symbols-outlined text-white text-3xl">bolt</span>
+</button>
+</main>
+<!-- Bottom Navigation Bar (BottomNavBar) -->
+<nav class="fixed bottom-8 left-0 right-0 z-50 flex justify-center items-center px-4 h-16 pointer-events-none">
+<div class="bg-white/5 dark:bg-white/10 rounded-full backdrop-blur-2xl border border-white/10 w-[90%] max-w-md h-16 flex justify-around items-center px-4 shadow-[0_20px_40px_rgba(0,212,170,0.1)] pointer-events-auto">
+<!-- Home Active -->
+<button class="flex items-center justify-center text-[#00D4AA] relative after:content-[''] after:absolute after:-bottom-1 after:w-1 after:h-1 after:bg-[#00D4AA] after:rounded-full hover:text-white transition-all scale-110 active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined">home</span>
+</button>
+<!-- Explore -->
+<button class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined">explore</span>
+</button>
+<!-- Add -->
+<button class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined text-3xl">add_circle</span>
+</button>
+<!-- Movie/Clips -->
+<button class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined">movie</span>
+</button>
+<!-- Profile -->
+<button class="flex items-center justify-center text-slate-400/60 hover:text-white transition-all active:scale-90 duration-300 ease-out">
+<span class="material-symbols-outlined">person</span>
+</button>
+</div>
+</nav>
+<!-- Home Indicator (iOS) -->
+<div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-white/20 rounded-full z-[100]"></div>
+</div>
+</body></html>
