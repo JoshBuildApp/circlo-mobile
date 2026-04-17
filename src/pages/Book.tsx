@@ -330,20 +330,23 @@ const Book = () => {
 
   return (
     <div className="py-6 md:py-10 pb-28 md:pb-10 animate-fade-in">
-      {/* Header */}
+      {/* Kinetic step-progress header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="px-4 md:px-0 mb-6"
+        className="px-6 md:px-6 mb-8"
       >
-        <div className="flex items-center gap-2 mb-1">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-[#00D4AA] to-[#00D4AA]/70 flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          <h1 className="text-2xl md:text-[28px] font-bold text-foreground tracking-tight">Book a Session</h1>
+        <div className="flex justify-between items-end mb-2">
+          <h1 className="font-black text-4xl tracking-tighter text-foreground leading-none">Schedule</h1>
+          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#46f1c5]">Step 1 of 3</span>
         </div>
-        <p className="text-sm text-muted-foreground ml-10">Find the right coach and start training</p>
+        <div className="flex gap-2 mb-4">
+          <div className="h-1 flex-1 rounded-full bg-gradient-kinetic" />
+          <div className="h-1 flex-1 rounded-full bg-muted/60" />
+          <div className="h-1 flex-1 rounded-full bg-muted/60" />
+        </div>
+        <p className="text-sm text-muted-foreground">Pick your coach, then lock in a time.</p>
       </motion.div>
 
       {/* Search */}
@@ -351,15 +354,15 @@ const Book = () => {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.4 }}
-        className="px-4 md:px-0 mb-8"
+        className="px-6 md:px-6 mb-8"
       >
-        <div className="relative max-w-lg">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted-foreground/40" />
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search coaches by name or sport..."
-            className="w-full h-[52px] pl-11 pr-4 rounded-2xl bg-card border border-border/20 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-[#00D4AA]/30 focus:border-[#00D4AA]/40 shadow-sm transition-all duration-200"
+            placeholder="Find a coach or discipline..."
+            className="w-full h-14 pl-11 pr-4 rounded-lg bg-card border border-border/40 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#46f1c5]/30 focus:border-[#46f1c5]/40 transition-all"
           />
         </div>
       </motion.div>
@@ -435,10 +438,10 @@ const Book = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSportFilter(active ? null : name)}
                 className={cn(
-                  "flex-shrink-0 flex items-center gap-2 py-2.5 px-4 rounded-2xl transition-all duration-200 snap-start whitespace-nowrap",
+                  "flex-shrink-0 flex items-center gap-2 py-2.5 px-5 rounded-full transition-all duration-200 snap-start whitespace-nowrap text-xs font-black uppercase tracking-[0.15em]",
                   active
-                    ? "bg-gradient-to-r from-[#00D4AA] to-[#00D4AA]/80 text-white shadow-lg shadow-[#00D4AA]/20"
-                    : "bg-card border border-border/30 hover:border-[#00D4AA]/30 hover:shadow-sm"
+                    ? "bg-gradient-kinetic text-white shadow-[0_10px_30px_rgba(0,212,170,0.25)]"
+                    : "bg-card border border-border/40 text-muted-foreground hover:border-[#46f1c5]/30"
                 )}
               >
                 <span className="text-lg">{emoji}</span>

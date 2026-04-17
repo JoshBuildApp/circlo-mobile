@@ -181,6 +181,21 @@ const Discover = () => {
           className="flex-1 overflow-y-auto hide-scrollbar pb-24"
         >
           {!isFiltered && (
+            <div className="px-6 pt-6 pb-4">
+              <h2 className="text-4xl font-black tracking-tighter leading-[0.95] text-foreground mb-2">
+                DISCOVER
+                <br />
+                <span className="italic text-transparent bg-clip-text bg-gradient-kinetic">
+                  PERFORMANCE
+                </span>
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {totalMatches} coaches ready to train with you.
+              </p>
+            </div>
+          )}
+
+          {!isFiltered && (
             <DiscoverHeroStrip coaches={coaches} totalMatches={totalMatches} />
           )}
 
