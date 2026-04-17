@@ -117,16 +117,16 @@ const BentoCommunityCard = ({
 }) => (
   <button
     onClick={onClick}
-    className="relative overflow-hidden rounded-lg border border-white/5 bg-card/80 p-5 aspect-square text-left flex flex-col justify-between active:scale-95 transition-transform"
+    className="relative overflow-hidden rounded-lg border border-border/40 bg-card/80 p-5 aspect-square text-left flex flex-col justify-between active:scale-95 transition-transform"
   >
     <Users
       className={`h-7 w-7 ${accent === "primary" ? "text-[#46f1c5]" : "text-[#ffb59a]"}`}
     />
     <div>
-      <div className="text-2xl font-black text-white leading-none truncate">
+      <div className="text-2xl font-black text-foreground leading-none truncate">
         {community.coachName}
       </div>
-      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 mt-1">
+      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mt-1">
         {community.sport} · {fmt(community.memberCount)} members
       </div>
     </div>
@@ -163,8 +163,8 @@ const FeedCommunityCard = ({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-white truncate">{community.coachName}</p>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-white/50">
+          <p className="text-sm font-bold text-foreground truncate">{community.coachName}</p>
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
             {community.sport} · {fmt(community.memberCount)} members
           </p>
         </div>
@@ -177,7 +177,7 @@ const FeedCommunityCard = ({
 
       {community.tagline && (
         <div className="px-4 pb-4">
-          <p className="text-sm text-white/70 leading-relaxed line-clamp-2">
+          <p className="text-sm text-foreground/70 leading-relaxed line-clamp-2">
             {community.tagline}
           </p>
         </div>
@@ -288,7 +288,7 @@ const Community = () => {
                 className={`flex-shrink-0 text-xs font-black tracking-[0.2em] pb-1 uppercase transition-colors ${
                   activeSport === sport
                     ? "text-[#46f1c5] border-b-2 border-[#46f1c5]"
-                    : "text-white/50 hover:text-white/80"
+                    : "text-muted-foreground hover:text-foreground/80"
                 }`}
               >
                 {sport}
@@ -299,12 +299,12 @@ const Community = () => {
           {/* Search */}
           <div className="px-6 mt-6">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 placeholder="Search coaches or sports..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-12 pl-11 pr-4 rounded-lg bg-card border border-white/5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#46f1c5]/30 focus:border-[#46f1c5]/40 transition-all"
+                className="w-full h-12 pl-11 pr-4 rounded-lg bg-card border border-border/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#46f1c5]/30 focus:border-[#46f1c5]/40 transition-all"
               />
             </div>
           </div>
@@ -324,22 +324,22 @@ const Community = () => {
                       <span className="text-[10px] font-black text-[#ffb59a] uppercase tracking-[0.25em] mb-2 block">
                         Next Highlight
                       </span>
-                      <h3 className="text-2xl font-bold text-white leading-tight">
+                      <h3 className="text-2xl font-bold text-foreground leading-tight">
                         Join {hero.coachName}
                         <br />
-                        <span className="text-white/70 text-base font-normal">
+                        <span className="text-foreground/70 text-base font-normal">
                           {hero.sport} community
                         </span>
                       </h3>
                     </div>
-                    <div className="bg-card/80 border border-white/5 rounded-lg p-3 flex flex-col items-center min-w-[54px]">
+                    <div className="bg-card/80 border border-border/40 rounded-lg p-3 flex flex-col items-center min-w-[54px]">
                       <span className="text-xs font-black text-[#46f1c5] uppercase">Live</span>
-                      <span className="text-xl font-black text-white">
+                      <span className="text-xl font-black text-foreground">
                         {fmt(hero.memberCount)}
                       </span>
                     </div>
                   </div>
-                  <div className="relative flex items-center gap-4 text-sm text-white/60">
+                  <div className="relative flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Users className="h-3 w-3" />
                       <span>{fmt(hero.memberCount)} members</span>
@@ -351,7 +351,7 @@ const Community = () => {
                       </div>
                     )}
                   </div>
-                  <div className="mt-5 inline-flex h-11 items-center justify-center w-full rounded-md bg-white/5 text-xs font-black uppercase tracking-[0.2em] text-white border border-white/10">
+                  <div className="mt-5 inline-flex h-11 items-center justify-center w-full rounded-md bg-muted/40 text-xs font-black uppercase tracking-[0.2em] text-foreground border border-border/60">
                     Open community
                   </div>
                 </button>
@@ -370,7 +370,7 @@ const Community = () => {
 
           {/* Feed list */}
           <div className="px-6 mt-10">
-            <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-4">
+            <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-4">
               {activeSport === "All" ? "Latest communities" : `${activeSport} communities`}
             </h4>
 
@@ -384,11 +384,11 @@ const Community = () => {
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-16 bg-card/60 rounded-lg border border-white/5">
-                <div className="h-12 w-12 rounded-full bg-white/5 mx-auto mb-3 flex items-center justify-center">
-                  <Search className="h-5 w-5 text-white/50" />
+              <div className="text-center py-16 bg-card/60 rounded-lg border border-border/40">
+                <div className="h-12 w-12 rounded-full bg-muted/40 mx-auto mb-3 flex items-center justify-center">
+                  <Search className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-white/60">
+                <p className="text-sm text-muted-foreground">
                   No communities found for "{searchQuery || activeSport}"
                 </p>
               </div>

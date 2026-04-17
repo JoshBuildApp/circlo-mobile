@@ -28,7 +28,7 @@ function CompletionScreen() {
       className="fixed inset-0 z-[60] flex flex-col items-center justify-center"
       style={{
         background:
-          "radial-gradient(circle at top right, rgba(70,241,197,0.35) 0%, transparent 45%), radial-gradient(circle at bottom left, rgba(205,72,2,0.35) 0%, transparent 45%), #111125",
+          "radial-gradient(circle at top right, rgba(70,241,197,0.35) 0%, transparent 45%), radial-gradient(circle at bottom left, rgba(205,72,2,0.35) 0%, transparent 45%), hsl(var(--background))",
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -69,7 +69,7 @@ function CompletionScreen() {
         </motion.h1>
 
         <motion.p
-          className="text-white/70 text-sm tracking-[0.2em] uppercase"
+          className="text-foreground/70 text-sm tracking-[0.2em] uppercase"
           initial={{ y: 16, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.4 }}
@@ -265,7 +265,7 @@ export default function Onboarding() {
       className="relative min-h-screen w-full flex flex-col items-center overflow-hidden app-top-nav app-bottom-nav"
       style={{
         background:
-          "radial-gradient(circle at top right, rgba(70,241,197,0.35) 0%, transparent 45%), radial-gradient(circle at bottom left, rgba(205,72,2,0.35) 0%, transparent 45%), #111125",
+          "radial-gradient(circle at top right, rgba(70,241,197,0.35) 0%, transparent 45%), radial-gradient(circle at bottom left, rgba(205,72,2,0.35) 0%, transparent 45%), hsl(var(--background))",
       }}
     >
       {/* Background glow decorations */}
@@ -287,25 +287,18 @@ export default function Onboarding() {
           </h1>
         </div>
 
-        <p className="text-[10px] font-label tracking-[0.3em] uppercase text-white/50 mb-1">
+        <p className="text-[10px] font-label tracking-[0.3em] uppercase text-muted-foreground mb-1">
           Step {currentStep} of {TOTAL_STEPS}
         </p>
         <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#46f1c5] mb-1">
           {STEP_LABELS[currentStep - 1]}
         </p>
-        <h2 className="text-lg font-bold text-white">Find your circle</h2>
+        <h2 className="text-lg font-bold text-foreground">Find your circle</h2>
       </div>
 
       {/* Step content — glass panel */}
       <div className="relative z-10 w-full max-w-xl flex-1 px-4 pb-6">
-        <div
-          className="rounded-[2rem] border border-white/10 p-5 md:p-6"
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-          }}
-        >
+        <div className="rounded-[2rem] border border-border/60 bg-card/70 backdrop-blur-2xl p-5 md:p-6">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentStep}
@@ -349,7 +342,7 @@ export default function Onboarding() {
           <button
             onClick={handleBack}
             disabled={currentStep === 1 || isLoading}
-            className="h-11 w-11 rounded-full border border-white/15 text-white/70 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            className="h-11 w-11 rounded-full border border-border/60 text-muted-foreground flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
             aria-label="Back"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -358,7 +351,7 @@ export default function Onboarding() {
           <button
             onClick={handleNext}
             disabled={!canProceed() || isLoading}
-            className="flex-1 h-14 rounded-lg bg-white text-[#111125] font-black uppercase tracking-[0.2em] text-sm shadow-[0_20px_40px_rgba(255,255,255,0.15)] active:scale-95 transition-transform disabled:opacity-40 disabled:shadow-none"
+            className="flex-1 h-14 rounded-lg bg-foreground text-background font-black uppercase tracking-[0.2em] text-sm shadow-lg active:scale-95 transition-transform disabled:opacity-40 disabled:shadow-none"
           >
             {isLoading ? (
               <span className="inline-flex items-center gap-2">
@@ -380,18 +373,18 @@ export default function Onboarding() {
           <button
             onClick={handleSkip}
             disabled={isLoading}
-            className="w-full text-[11px] font-label tracking-[0.3em] uppercase text-white/50 hover:text-white/80 transition-colors disabled:opacity-40"
+            className="w-full text-[11px] font-label tracking-[0.3em] uppercase text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
           >
             Skip for now →
           </button>
         )}
 
-        <p className="text-[10px] text-center font-label text-white/40 tracking-[0.3em] uppercase">
+        <p className="text-[10px] text-center font-label text-muted-foreground/80 tracking-[0.3em] uppercase">
           Connect • Compete • Conquer
         </p>
 
         <div className="flex justify-center">
-          <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+          <div className="w-16 h-1 bg-muted/60 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-kinetic transition-all duration-500"
               style={{ width: `${progressPct}%` }}

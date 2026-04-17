@@ -24,6 +24,7 @@ const AppShell = lazy(() => import("@/components/AppShell"));
 // NOTE: LandingPage is no longer rendered on "/" — guests land directly on /home
 // with a locked-down AppShell. Import kept removed to avoid dead-chunk loading.
 const HomePage = lazy(() => import("@/pages/HomePage"));
+const Welcome = lazy(() => import("@/pages/Welcome"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
@@ -115,11 +116,11 @@ const ShellWrapper = ({ children, routeName }: { children: React.ReactNode; rout
 );
 
 function RootRoute() {
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
   // While Supabase is rehydrating the saved session, show the branded splash.
   if (loading) return <CircloSplash />;
-  // Everyone — guest or logged-in — lands on /home. Guests see a locked-down
-  // version of the app shell (only login/signup visible in nav).
+  // Guests see the Stitch welcome screen. Authenticated users go to /home.
+  if (!user) return <Welcome />;
   return <Navigate to="/home" replace />;
 }
 

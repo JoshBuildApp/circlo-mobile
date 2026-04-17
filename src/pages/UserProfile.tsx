@@ -270,7 +270,7 @@ const UserProfile = () => {
           <div className="h-20 w-20 rounded-full bg-[#46f1c5]/10 flex items-center justify-center mx-auto">
             <User className="h-10 w-10 text-[#46f1c5]" />
           </div>
-          <p className="text-white/60 text-sm">Log in to see your profile.</p>
+          <p className="text-muted-foreground text-sm">Log in to see your profile.</p>
           <Link to="/login" className="px-8 py-3 rounded-lg bg-gradient-kinetic text-white font-black uppercase tracking-[0.15em] text-xs inline-block">Log in</Link>
         </motion.div>
       </div>
@@ -309,15 +309,15 @@ const UserProfile = () => {
       : LayoutGrid;
     const Icon = icon;
     return (
-      <section className="rounded-lg border border-white/5 bg-card p-5">
+      <section className="rounded-lg border border-border/40 bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <Icon className="h-4 w-4 text-[#46f1c5]" />
-          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white">
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">
             {sectionLabel(section.section_type)}
           </h2>
         </div>
         {section.section_type === "about" && coachProfile?.bio && (
-          <p className="text-sm text-white/70 whitespace-pre-wrap leading-relaxed">{coachProfile.bio}</p>
+          <p className="text-sm text-foreground/70 whitespace-pre-wrap leading-relaxed">{coachProfile.bio}</p>
         )}
         {section.section_type === "media" && content.length > 0 && (
           <div className="grid grid-cols-3 gap-1.5">
@@ -327,7 +327,7 @@ const UserProfile = () => {
           </div>
         )}
         {section.section_type === "about" && !coachProfile?.bio && (
-          <p className="text-sm text-white/40 italic">No bio yet</p>
+          <p className="text-sm text-muted-foreground italic">No bio yet</p>
         )}
       </section>
     );
@@ -362,7 +362,7 @@ const UserProfile = () => {
                 )}
               </div>
               <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Camera className="h-5 w-5 text-white" />
+                <Camera className="h-5 w-5 text-foreground" />
               </div>
               {avatarUploading && (
                 <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center">
@@ -383,7 +383,7 @@ const UserProfile = () => {
             </div>
           </div>
 
-          <h1 className="text-3xl font-black uppercase tracking-tight text-white mb-1">
+          <h1 className="text-3xl font-black uppercase tracking-tight text-foreground mb-1">
             {displayName}
           </h1>
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#46f1c5] mb-6">
@@ -392,7 +392,7 @@ const UserProfile = () => {
 
           {/* XP progress */}
           <div className="w-full max-w-xs space-y-2">
-            <div className="flex justify-between text-[10px] font-black tracking-[0.2em] text-white/50 uppercase">
+            <div className="flex justify-between text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase">
               <span>{fmt(xpInLevel)} XP</span>
               <span>{fmt(xpPerLevel)} XP</span>
             </div>
@@ -417,14 +417,14 @@ const UserProfile = () => {
             </button>
             <button
               onClick={() => setShareOpen(true)}
-              className="h-11 w-11 rounded-lg bg-card border border-white/5 flex items-center justify-center text-white active:scale-95 transition-transform"
+              className="h-11 w-11 rounded-lg bg-card border border-border/40 flex items-center justify-center text-foreground active:scale-95 transition-transform"
               aria-label="Share"
             >
               <Share2 className="h-4 w-4" />
             </button>
             <button
               onClick={signOut}
-              className="h-11 w-11 rounded-lg bg-card border border-white/5 flex items-center justify-center text-white/70 active:scale-95 transition-transform"
+              className="h-11 w-11 rounded-lg bg-card border border-border/40 flex items-center justify-center text-foreground/70 active:scale-95 transition-transform"
               aria-label="Sign out"
             >
               <LogOut className="h-4 w-4" />
@@ -442,10 +442,10 @@ const UserProfile = () => {
           {/* Hero streak card */}
           <div className="col-span-2 bg-[#cd4802] p-6 rounded-lg relative overflow-hidden flex items-center justify-between">
             <div className="relative z-10">
-              <span className="text-[10px] font-black tracking-[0.25em] text-white/70 uppercase">
+              <span className="text-[10px] font-black tracking-[0.25em] text-foreground/70 uppercase">
                 Active Momentum
               </span>
-              <h3 className="text-3xl font-black italic text-white uppercase">
+              <h3 className="text-3xl font-black italic text-foreground uppercase">
                 {streakDays > 0 ? `${streakDays} day streak` : "Start your streak"}
               </h3>
             </div>
@@ -459,25 +459,25 @@ const UserProfile = () => {
                 onClick={() => { setFollowersModalTab("followers"); setFollowersModalOpen(true); }}
                 className="bg-card p-5 rounded-lg text-left active:scale-95 transition-transform"
               >
-                <span className="text-[10px] font-black tracking-[0.2em] text-white/50 uppercase block mb-2">Followers</span>
-                <div className="text-2xl font-black text-white">{fmt(followersCount)}</div>
+                <span className="text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase block mb-2">Followers</span>
+                <div className="text-2xl font-black text-foreground">{fmt(followersCount)}</div>
               </button>
               <div className="bg-card p-5 rounded-lg">
-                <span className="text-[10px] font-black tracking-[0.2em] text-white/50 uppercase block mb-2">Sessions</span>
+                <span className="text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase block mb-2">Sessions</span>
                 <div className="text-2xl font-black text-[#46f1c5]">{fmt(sessionsCount)}</div>
               </div>
             </>
           ) : (
             <>
               <div className="bg-card p-5 rounded-lg">
-                <span className="text-[10px] font-black tracking-[0.2em] text-white/50 uppercase block mb-2">Total Workouts</span>
-                <div className="text-2xl font-black text-white">{fmt(sessionsCount)}</div>
+                <span className="text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase block mb-2">Total Workouts</span>
+                <div className="text-2xl font-black text-foreground">{fmt(sessionsCount)}</div>
               </div>
               <button
                 onClick={() => { setFollowersModalTab("following"); setFollowersModalOpen(true); }}
                 className="bg-card p-5 rounded-lg text-left active:scale-95 transition-transform"
               >
-                <span className="text-[10px] font-black tracking-[0.2em] text-white/50 uppercase block mb-2">Following</span>
+                <span className="text-[10px] font-black tracking-[0.2em] text-muted-foreground uppercase block mb-2">Following</span>
                 <div className="text-2xl font-black text-[#46f1c5]">{fmt(followingCount)}</div>
               </button>
             </>
@@ -492,7 +492,7 @@ const UserProfile = () => {
           className="mb-10"
         >
           <div className="flex justify-between items-end mb-4">
-            <h3 className="font-bold text-xl tracking-tight text-white">Recent Badges</h3>
+            <h3 className="font-bold text-xl tracking-tight text-foreground">Recent Badges</h3>
             <button className="text-[10px] font-black tracking-[0.2em] text-[#46f1c5] uppercase hover:opacity-80">
               View All
             </button>
@@ -511,7 +511,7 @@ const UserProfile = () => {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.3 + i * 0.08 }}
                 className={`flex-shrink-0 w-20 h-20 bg-card rounded-full flex items-center justify-center border ${
-                  earned ? "border-white/10" : "border-white/5 opacity-40"
+                  earned ? "border-border/60" : "border-border/40 opacity-40"
                 }`}
               >
                 <Icon className="h-7 w-7" style={{ color: earned ? color : "#555" }} fill={earned ? color : "none"} />
@@ -535,7 +535,7 @@ const UserProfile = () => {
                   key={tab.key}
                   onClick={() => setPlayerTab(tab.key)}
                   className={`flex-shrink-0 text-xs font-black tracking-[0.2em] pb-1 uppercase transition-colors ${
-                    isActive ? "text-[#46f1c5] border-b-2 border-[#46f1c5]" : "text-white/50 hover:text-white/80"
+                    isActive ? "text-[#46f1c5] border-b-2 border-[#46f1c5]" : "text-muted-foreground hover:text-foreground/80"
                   }`}
                 >
                   {tab.label}
@@ -555,18 +555,18 @@ const UserProfile = () => {
 
                 {upcomingBookings.length > 0 && (
                   <section>
-                    <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-3">
+                    <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-3">
                       Upcoming sessions
                     </h4>
                     <div className="space-y-2">
                       {upcomingBookings.slice(0, 3).map((b) => (
-                        <div key={b.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5">
+                        <div key={b.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40">
                           <div className="h-10 w-10 rounded-lg bg-[#46f1c5]/10 flex items-center justify-center flex-shrink-0">
                             <Calendar className="h-5 w-5 text-[#46f1c5]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white truncate">{b.coach_name}</p>
-                            <p className="text-xs text-white/60">
+                            <p className="text-sm font-bold text-foreground truncate">{b.coach_name}</p>
+                            <p className="text-xs text-muted-foreground">
                               {new Date(b.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {b.time_label || b.time}
                             </p>
                           </div>
@@ -579,42 +579,42 @@ const UserProfile = () => {
 
                 {/* Quick access */}
                 <section>
-                  <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-3">Quick access</h4>
+                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-3">Quick access</h4>
                   <div className="grid grid-cols-2 gap-3">
-                    <Link to="/discover" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.97] transition-transform">
+                    <Link to="/discover" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40 active:scale-[0.97] transition-transform">
                       <div className="h-10 w-10 rounded-lg bg-[#46f1c5]/10 flex items-center justify-center">
                         <Search className="h-5 w-5 text-[#46f1c5]" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white">Find Coach</p>
-                        <p className="text-[10px] text-white/50">Browse & book</p>
+                        <p className="text-sm font-bold text-foreground">Find Coach</p>
+                        <p className="text-[10px] text-muted-foreground">Browse & book</p>
                       </div>
                     </Link>
-                    <Link to="/schedule" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.97] transition-transform">
+                    <Link to="/schedule" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40 active:scale-[0.97] transition-transform">
                       <div className="h-10 w-10 rounded-lg bg-[#ffb59a]/10 flex items-center justify-center">
                         <Calendar className="h-5 w-5 text-[#ffb59a]" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white">Schedule</p>
-                        <p className="text-[10px] text-white/50">{upcomingBookings.length} upcoming</p>
+                        <p className="text-sm font-bold text-foreground">Schedule</p>
+                        <p className="text-[10px] text-muted-foreground">{upcomingBookings.length} upcoming</p>
                       </div>
                     </Link>
-                    <Link to="/inbox" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.97] transition-transform">
-                      <div className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center">
-                        <MessageSquare className="h-5 w-5 text-white/80" />
+                    <Link to="/inbox" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40 active:scale-[0.97] transition-transform">
+                      <div className="h-10 w-10 rounded-lg bg-muted/40 flex items-center justify-center">
+                        <MessageSquare className="h-5 w-5 text-foreground/80" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white">Messages</p>
-                        <p className="text-[10px] text-white/50">Inbox</p>
+                        <p className="text-sm font-bold text-foreground">Messages</p>
+                        <p className="text-[10px] text-muted-foreground">Inbox</p>
                       </div>
                     </Link>
-                    <Link to="/community" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.97] transition-transform">
-                      <div className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-white/80" />
+                    <Link to="/community" className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40 active:scale-[0.97] transition-transform">
+                      <div className="h-10 w-10 rounded-lg bg-muted/40 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-foreground/80" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white">Community</p>
-                        <p className="text-[10px] text-white/50">Groups & circles</p>
+                        <p className="text-sm font-bold text-foreground">Community</p>
+                        <p className="text-[10px] text-muted-foreground">Groups & circles</p>
                       </div>
                     </Link>
                   </div>
@@ -630,10 +630,10 @@ const UserProfile = () => {
                     {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}
                   </div>
                 ) : bookings.length === 0 ? (
-                  <div className="text-center py-16 bg-card rounded-lg border border-white/5">
-                    <Calendar className="h-12 w-12 text-white/20 mx-auto mb-3" />
-                    <p className="text-sm font-bold text-white">No bookings yet</p>
-                    <p className="text-xs text-white/50 mt-1 mb-4">Book your first session with a coach</p>
+                  <div className="text-center py-16 bg-card rounded-lg border border-border/40">
+                    <Calendar className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-foreground">No bookings yet</p>
+                    <p className="text-xs text-muted-foreground mt-1 mb-4">Book your first session with a coach</p>
                     <Link to="/discover" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-full bg-gradient-kinetic text-white text-xs font-black uppercase tracking-wider">
                       Find a Coach
                     </Link>
@@ -642,23 +642,23 @@ const UserProfile = () => {
                   <>
                     {upcomingBookings.length > 0 && (
                       <section>
-                        <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-3">Upcoming</h4>
+                        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-3">Upcoming</h4>
                         <div className="space-y-2">
                           {upcomingBookings.map((b) => (
-                            <div key={b.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5">
+                            <div key={b.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40">
                               <div className="h-12 w-12 rounded-lg bg-[#46f1c5]/10 flex items-center justify-center flex-shrink-0">
                                 <Calendar className="h-6 w-6 text-[#46f1c5]" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-white truncate">{b.coach_name}</p>
-                                <p className="text-xs text-white/60 mt-0.5">
+                                <p className="text-sm font-bold text-foreground truncate">{b.coach_name}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">
                                   {new Date(b.date).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
                                 </p>
-                                <p className="text-xs text-white/60">{b.time_label || b.time} · {b.training_type}</p>
+                                <p className="text-xs text-muted-foreground">{b.time_label || b.time} · {b.training_type}</p>
                               </div>
                               <div className="text-right">
                                 <span className="text-[10px] font-black uppercase tracking-wider text-[#46f1c5]">{b.status}</span>
-                                <p className="text-xs font-bold text-white mt-1">₪{b.price}</p>
+                                <p className="text-xs font-bold text-foreground mt-1">₪{b.price}</p>
                               </div>
                             </div>
                           ))}
@@ -668,20 +668,20 @@ const UserProfile = () => {
 
                     {pastBookings.length > 0 && (
                       <section>
-                        <h4 className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-3">Past sessions</h4>
+                        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-3">Past sessions</h4>
                         <div className="space-y-2">
                           {pastBookings.slice(0, 10).map((b) => (
-                            <div key={b.id} className="flex items-center gap-3 p-3 rounded-lg bg-card/60 border border-white/5 opacity-70">
-                              <div className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-                                <Calendar className="h-4 w-4 text-white/60" />
+                            <div key={b.id} className="flex items-center gap-3 p-3 rounded-lg bg-card/60 border border-border/40 opacity-70">
+                              <div className="h-10 w-10 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-white truncate">{b.coach_name}</p>
-                                <p className="text-xs text-white/50">
+                                <p className="text-sm font-bold text-foreground truncate">{b.coach_name}</p>
+                                <p className="text-xs text-muted-foreground">
                                   {new Date(b.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {b.training_type}
                                 </p>
                               </div>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-white/50">{b.status}</span>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{b.status}</span>
                             </div>
                           ))}
                         </div>
@@ -696,17 +696,17 @@ const UserProfile = () => {
             {playerTab === "saved" && (
               <motion.div key="saved" {...fadeUp}>
                 <div className="flex justify-between items-end mb-6">
-                  <h3 className="font-bold text-xl tracking-tight text-white">Saved Routines</h3>
+                  <h3 className="font-bold text-xl tracking-tight text-foreground">Saved Routines</h3>
                   <div className="flex gap-4">
                     <LayoutGrid className="h-5 w-5 text-[#46f1c5]" />
                   </div>
                 </div>
 
                 {savedItems.length === 0 ? (
-                  <div className="text-center py-16 bg-card rounded-lg border border-white/5">
-                    <Bookmark className="h-12 w-12 text-white/20 mx-auto mb-3" />
-                    <p className="text-sm font-bold text-white">Nothing saved yet</p>
-                    <p className="text-xs text-white/50 mt-1">Save coaches and content to find them later</p>
+                  <div className="text-center py-16 bg-card rounded-lg border border-border/40">
+                    <Bookmark className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-foreground">Nothing saved yet</p>
+                    <p className="text-xs text-muted-foreground mt-1">Save coaches and content to find them later</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-4">
@@ -716,14 +716,14 @@ const UserProfile = () => {
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.04 }}
-                        className="group relative aspect-[3/4] rounded-lg overflow-hidden bg-card border border-white/5"
+                        className="group relative aspect-[3/4] rounded-lg overflow-hidden bg-card border border-border/40"
                       >
                         <div className="absolute inset-0 bg-gradient-to-br from-[#46f1c5]/20 to-[#cd4802]/30" />
                         <div className="absolute bottom-0 left-0 p-4 w-full bg-gradient-to-t from-background to-transparent">
                           <span className="text-[9px] font-black text-[#46f1c5] uppercase tracking-[0.25em]">
                             Collection
                           </span>
-                          <p className="text-sm font-bold text-white uppercase truncate mt-0.5">
+                          <p className="text-sm font-bold text-foreground uppercase truncate mt-0.5">
                             {item.collection_name}
                           </p>
                         </div>
@@ -742,10 +742,10 @@ const UserProfile = () => {
                     {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}
                   </div>
                 ) : followedCoaches.length === 0 ? (
-                  <div className="text-center py-16 bg-card rounded-lg border border-white/5">
-                    <Heart className="h-12 w-12 text-white/20 mx-auto mb-3" />
-                    <p className="text-sm font-bold text-white">Not following anyone</p>
-                    <p className="text-xs text-white/50 mt-1 mb-4">Follow coaches to see them here</p>
+                  <div className="text-center py-16 bg-card rounded-lg border border-border/40">
+                    <Heart className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-foreground">Not following anyone</p>
+                    <p className="text-xs text-muted-foreground mt-1 mb-4">Follow coaches to see them here</p>
                     <Link to="/discover" className="inline-flex items-center gap-1 px-5 py-2.5 rounded-full bg-gradient-kinetic text-white text-xs font-black uppercase tracking-wider">
                       Discover
                     </Link>
@@ -753,9 +753,9 @@ const UserProfile = () => {
                 ) : (
                   <div className="space-y-3">
                     {followedCoaches.map((coach) => (
-                      <div key={coach.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5">
+                      <div key={coach.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40">
                         <Link to={`/coach/${coach.id}`} className="flex items-center gap-3 flex-1 min-w-0">
-                          <Avatar className="h-12 w-12 border-2 border-white/5">
+                          <Avatar className="h-12 w-12 border-2 border-border/40">
                             <AvatarImage src={coach.image_url || undefined} alt={coach.coach_name} />
                             <AvatarFallback className="bg-[#46f1c5]/10 text-[#46f1c5] font-bold">
                               {coach.coach_name?.charAt(0)?.toUpperCase() || "?"}
@@ -763,13 +763,13 @@ const UserProfile = () => {
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <p className="text-sm font-bold text-white truncate">{coach.coach_name}</p>
+                              <p className="text-sm font-bold text-foreground truncate">{coach.coach_name}</p>
                               {coach.is_verified && <CheckCircle2 className="h-3.5 w-3.5 text-[#46f1c5] flex-shrink-0" />}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className="text-[10px] font-black uppercase tracking-wider text-[#46f1c5]">{coach.sport}</span>
                               {coach.rating && (
-                                <span className="flex items-center gap-0.5 text-xs text-white/60">
+                                <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
                                   <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />{coach.rating.toFixed(1)}
                                 </span>
                               )}
@@ -799,10 +799,10 @@ const UserProfile = () => {
             {(coachProfile!.tagline || coachProfile!.location) && (
               <div className="flex flex-col gap-1 mb-2 text-center">
                 {coachProfile!.tagline && (
-                  <p className="text-sm text-white/70 leading-relaxed">{coachProfile!.tagline}</p>
+                  <p className="text-sm text-foreground/70 leading-relaxed">{coachProfile!.tagline}</p>
                 )}
                 {coachProfile!.location && (
-                  <p className="text-xs text-white/50 flex items-center justify-center gap-1">
+                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                     <MapPin className="h-3 w-3" />{coachProfile!.location}
                   </p>
                 )}
@@ -813,14 +813,14 @@ const UserProfile = () => {
             <div className="grid grid-cols-2 gap-3">
               <Link
                 to="/coach-dashboard"
-                className="h-12 rounded-lg bg-white text-background font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                className="h-12 rounded-lg bg-foreground text-background font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
               >
                 <LayoutGrid className="h-4 w-4" />
                 Dashboard
               </Link>
               <Link
                 to={`/coach/${coachProfile!.id}`}
-                className="h-12 rounded-lg bg-card border border-white/5 text-white font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                className="h-12 rounded-lg bg-card border border-border/40 text-foreground font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
               >
                 <Eye className="h-4 w-4" />
                 Preview
@@ -837,17 +837,17 @@ const UserProfile = () => {
                   <TrendingUp className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/80">Insights</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-foreground/80">Insights</p>
                   <p className="text-sm font-black uppercase tracking-tight">{sessionsCount} sessions · {fmt(followersCount)} followers</p>
                 </div>
-                <ChevronRight className="h-5 w-5 text-white/70" />
+                <ChevronRight className="h-5 w-5 text-foreground/70" />
               </button>
             )}
 
             {/* Page Lab */}
             <button
               onClick={() => setPageLabOpen(true)}
-              className="w-full h-12 rounded-lg bg-card border border-white/5 text-white font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              className="w-full h-12 rounded-lg bg-card border border-border/40 text-foreground font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-transform"
             >
               <Sparkles className="h-4 w-4 text-[#46f1c5]" />
               {hasCustomLayout ? "Edit layout" : "Build with Page Lab"}
@@ -871,11 +871,11 @@ const UserProfile = () => {
               className="w-full rounded-lg border border-dashed border-[#46f1c5]/30 bg-card p-4 flex items-center gap-4 active:scale-[0.98] transition-transform"
             >
               <div className="h-12 w-12 rounded-lg bg-gradient-kinetic flex items-center justify-center shadow-[0_10px_30px_rgba(0,212,170,0.3)] flex-shrink-0">
-                <Plus className="h-6 w-6 text-white" />
+                <Plus className="h-6 w-6 text-foreground" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-black uppercase tracking-[0.15em] text-white">Upload content</p>
-                <p className="text-xs text-white/60 mt-0.5">Share videos, photos & updates</p>
+                <p className="text-sm font-black uppercase tracking-[0.15em] text-foreground">Upload content</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Share videos, photos & updates</p>
               </div>
             </button>
           </div>
@@ -885,30 +885,30 @@ const UserProfile = () => {
         <div className="mt-8 space-y-2">
           <button
             onClick={() => navigate("/notification-preferences")}
-            className="w-full flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.98] transition-transform text-left"
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40 active:scale-[0.98] transition-transform text-left"
           >
-            <div className="h-9 w-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-              <Bell className="h-4 w-4 text-white/70" />
+            <div className="h-9 w-9 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
+              <Bell className="h-4 w-4 text-foreground/70" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white">Notifications</p>
-              <p className="text-[10px] text-white/50">Control what you get notified about</p>
+              <p className="text-sm font-bold text-foreground">Notifications</p>
+              <p className="text-[10px] text-muted-foreground">Control what you get notified about</p>
             </div>
-            <ChevronRight className="h-4 w-4 text-white/40" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </button>
 
           <button
             onClick={() => navigate("/data-privacy")}
-            className="w-full flex items-center gap-3 p-4 rounded-lg bg-card border border-white/5 active:scale-[0.98] transition-transform text-left"
+            className="w-full flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40 active:scale-[0.98] transition-transform text-left"
           >
-            <div className="h-9 w-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
-              <Shield className="h-4 w-4 text-white/70" />
+            <div className="h-9 w-9 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
+              <Shield className="h-4 w-4 text-foreground/70" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white">Data & Privacy</p>
-              <p className="text-[10px] text-white/50">Export or delete your data</p>
+              <p className="text-sm font-bold text-foreground">Data & Privacy</p>
+              <p className="text-[10px] text-muted-foreground">Export or delete your data</p>
             </div>
-            <ChevronRight className="h-4 w-4 text-white/40" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
       </div>

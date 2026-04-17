@@ -431,9 +431,9 @@ const CoachDashboard = () => {
   if (!user || (role !== "coach" && !isAdmin && !isDeveloper)) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-6">
-        <div className="rounded-lg border border-white/10 bg-card p-6 text-center space-y-3 max-w-sm">
-          <h1 className="text-lg font-black uppercase tracking-[0.15em] text-white">Coach Dashboard</h1>
-          <p className="text-sm text-white/60">This area is for coaches only.</p>
+        <div className="rounded-lg border border-border/60 bg-card p-6 text-center space-y-3 max-w-sm">
+          <h1 className="text-lg font-black uppercase tracking-[0.15em] text-foreground">Coach Dashboard</h1>
+          <p className="text-sm text-muted-foreground">This area is for coaches only.</p>
           <Link to="/profile" className="inline-flex items-center gap-2 rounded-lg bg-gradient-kinetic px-5 py-2.5 text-xs font-black uppercase tracking-[0.15em] text-white">
             Go to Profile
           </Link>
@@ -449,7 +449,7 @@ const CoachDashboard = () => {
         <div className="flex items-start justify-between mb-2">
           <div>
             <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ffb59a]">Dashboard</span>
-            <h1 className="mt-1 text-3xl font-black leading-tight text-white">
+            <h1 className="mt-1 text-3xl font-black leading-tight text-foreground">
               {greeting()}, {profile?.coach_name?.split(" ")[0] || "Coach"}
             </h1>
           </div>
@@ -462,11 +462,11 @@ const CoachDashboard = () => {
             )}
             <button
               onClick={() => setTab("notifications")}
-              className="h-9 w-9 rounded-lg bg-card border border-white/5 flex items-center justify-center relative"
+              className="h-9 w-9 rounded-lg bg-card border border-border/40 flex items-center justify-center relative"
             >
-              <Bell className="h-4 w-4 text-white/70" />
+              <Bell className="h-4 w-4 text-foreground/70" />
               {notifUnreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-[#cd4802] text-white text-[10px] font-bold flex items-center justify-center px-1">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-[#cd4802] text-foreground text-[10px] font-bold flex items-center justify-center px-1">
                   {notifUnreadCount > 99 ? "99+" : notifUnreadCount}
                 </span>
               )}
@@ -481,12 +481,12 @@ const CoachDashboard = () => {
           {/* Hero Earnings Card */}
           <section className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-kinetic opacity-20 blur-2xl group-hover:opacity-30 transition duration-1000" />
-            <div className="relative bg-card rounded-lg p-6 overflow-hidden border border-white/5">
+            <div className="relative bg-card rounded-lg p-6 overflow-hidden border border-border/40">
               <div className="flex justify-between items-start mb-5">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/50">Total Revenue</p>
-                  <h3 className="mt-1 text-4xl font-black text-white">₪{totalEarnings.toLocaleString()}</h3>
-                  <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">Total Revenue</p>
+                  <h3 className="mt-1 text-4xl font-black text-foreground">₪{totalEarnings.toLocaleString()}</h3>
+                  <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                     Week: ₪{weeklyEarnings.toLocaleString()}
                   </p>
                 </div>
@@ -518,25 +518,25 @@ const CoachDashboard = () => {
 
           {/* 2x2 Bento stats */}
           <section className="grid grid-cols-2 gap-4">
-            <div className="glass-dark p-5 rounded-lg border border-white/5">
+            <div className="glass-dark p-5 rounded-lg border border-border/40">
               <Users className="h-7 w-7 text-[#46f1c5] mb-3" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Active Clients</p>
-              <h4 className="mt-1 text-2xl font-black text-white">{clients.length}</h4>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Active Clients</p>
+              <h4 className="mt-1 text-2xl font-black text-foreground">{clients.length}</h4>
             </div>
-            <div className="glass-dark p-5 rounded-lg border border-white/5">
+            <div className="glass-dark p-5 rounded-lg border border-border/40">
               <Timer className="h-7 w-7 text-[#ffb59a] mb-3" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Hours Coached</p>
-              <h4 className="mt-1 text-2xl font-black text-white">{hoursCoached}</h4>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Hours Coached</p>
+              <h4 className="mt-1 text-2xl font-black text-foreground">{hoursCoached}</h4>
             </div>
-            <div className="glass-dark p-5 rounded-lg border border-white/5">
+            <div className="glass-dark p-5 rounded-lg border border-border/40">
               <Star className="h-7 w-7 text-[#46f1c5] mb-3" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Avg Rating</p>
-              <h4 className="mt-1 text-2xl font-black text-white">{avgRating.toFixed(1)}</h4>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Avg Rating</p>
+              <h4 className="mt-1 text-2xl font-black text-foreground">{avgRating.toFixed(1)}</h4>
             </div>
-            <div className="glass-dark p-5 rounded-lg border border-white/5">
-              <Target className="h-7 w-7 text-white mb-3" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Completion</p>
-              <h4 className="mt-1 text-2xl font-black text-white">{completionRate}%</h4>
+            <div className="glass-dark p-5 rounded-lg border border-border/40">
+              <Target className="h-7 w-7 text-foreground mb-3" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Completion</p>
+              <h4 className="mt-1 text-2xl font-black text-foreground">{completionRate}%</h4>
             </div>
           </section>
 
@@ -558,7 +558,7 @@ const CoachDashboard = () => {
           {/* Upcoming Sessions */}
           <section>
             <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-bold text-white">Upcoming Sessions</h3>
+              <h3 className="text-xl font-bold text-foreground">Upcoming Sessions</h3>
               <button
                 onClick={() => setTab("bookings")}
                 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#46f1c5]"
@@ -574,18 +574,18 @@ const CoachDashboard = () => {
                 ))}
               </div>
             ) : upcomingBookings.length === 0 ? (
-              <div className="text-center py-10 bg-card rounded-lg border border-white/5">
-                <CalendarDays className="h-10 w-10 text-white/20 mx-auto mb-2" />
-                <p className="text-sm text-white/60">No upcoming sessions</p>
+              <div className="text-center py-10 bg-card rounded-lg border border-border/40">
+                <CalendarDays className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No upcoming sessions</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {upcomingBookings.map((b) => (
                   <div
                     key={b.id}
-                    className="bg-card rounded-lg p-4 flex items-center gap-4 border border-white/5 active:scale-[0.98] transition-transform"
+                    className="bg-card rounded-lg p-4 flex items-center gap-4 border border-border/40 active:scale-[0.98] transition-transform"
                   >
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/40 flex-shrink-0">
                       {b.avatar_url ? (
                         <img src={b.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -595,8 +595,8 @@ const CoachDashboard = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{b.user_name}</p>
-                      <p className="text-[10px] text-white/50 uppercase tracking-wider font-bold">
+                      <p className="text-sm font-bold text-foreground truncate">{b.user_name}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
                         {b.training_type || "Session"} · ₪{b.price}
                       </p>
                     </div>
@@ -604,7 +604,7 @@ const CoachDashboard = () => {
                       <div className="text-[10px] font-black uppercase tracking-wider text-[#46f1c5]">
                         {new Date(b.date + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                       </div>
-                      <div className="text-xs text-white/60 mt-0.5 flex items-center gap-1 justify-end">
+                      <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1 justify-end">
                         <Clock className="h-3 w-3" />
                         {b.time_label || b.time || "TBD"}
                       </div>
@@ -628,7 +628,7 @@ const CoachDashboard = () => {
                 "flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[11px] font-black uppercase tracking-[0.15em] whitespace-nowrap transition-all",
                 tab === t.id
                   ? "bg-gradient-kinetic text-white"
-                  : "bg-card border border-white/5 text-white/60 hover:text-white"
+                  : "bg-card border border-border/40 text-muted-foreground hover:text-foreground"
               )}
             >
               <t.icon className="h-3.5 w-3.5" />
@@ -636,7 +636,7 @@ const CoachDashboard = () => {
               {t.id === "notifications" && notifUnreadCount > 0 && (
                 <span className={cn(
                   "ml-0.5 min-w-[16px] h-[16px] rounded-full flex items-center justify-center text-[9px] font-bold px-1",
-                  tab === "notifications" ? "bg-white/20 text-white" : "bg-[#cd4802] text-white"
+                  tab === "notifications" ? "bg-muted/60 text-foreground" : "bg-[#cd4802] text-foreground"
                 )}>
                   {notifUnreadCount > 99 ? "99+" : notifUnreadCount}
                 </span>
