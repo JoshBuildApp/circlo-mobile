@@ -32,6 +32,7 @@ import {
   Bolt,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDataMode } from "@/contexts/DataModeContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -125,7 +126,8 @@ const PLAYER_TABS: { key: PlayerTab; label: string }[] = [
    ═══════════════════════════════════════════════════════ */
 const UserProfile = () => {
   const navigate = useNavigate();
-  const { user, profile, loading, signOut, isDeveloper, activeRole, refreshProfile } = useAuth();
+  const { user, profile, loading, signOut, isDeveloper, activeRole, setActiveRole, refreshProfile } = useAuth();
+  const { dataMode, setDataMode } = useDataMode();
   const [coachProfile, setCoachProfile] = useState<CoachProfileData | null>(null);
   const [coachLoading, setCoachLoading] = useState(true);
   const [pageLabOpen, setPageLabOpen] = useState(false);
@@ -793,11 +795,11 @@ const UserProfile = () => {
           </AnimatePresence>
         )}
 
-        {/* ═══════ COACH DASHBOARD VIEW ═══════ */}
+        {/* ═══════ COACH PROFILE VIEW (stats-only, no dashboard links) ═══════ */}
         {isCoach && (
           <div className="space-y-8">
             <section>
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ffb59a]">Dashboard</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ffb59a]">Profile</span>
               <h2 className="mt-1 text-3xl font-black leading-tight text-foreground">
                 Good morning, {coachProfile!.coach_name?.split(" ")[0] || "Coach"}
               </h2>
@@ -812,13 +814,10 @@ const UserProfile = () => {
               )}
             </section>
 
-            {/* Revenue hero card with sparkline */}
+            {/* Revenue hero card — info only, no link */}
             <section className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-kinetic opacity-20 blur-2xl group-hover:opacity-30 transition duration-1000 pointer-events-none" />
-              <button
-                onClick={() => navigate("/coach-dashboard?tab=overview")}
-                className="relative w-full bg-card rounded-lg p-6 overflow-hidden border border-border/40 text-left active:scale-[0.99] transition-transform"
-              >
+              <div className="absolute -inset-0.5 bg-gradient-kinetic opacity-20 blur-2xl pointer-events-none" />
+              <div className="relative w-full bg-card rounded-lg p-6 overflow-hidden border border-border/40">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">Est. revenue</p>
@@ -829,9 +828,6 @@ const UserProfile = () => {
                       {sessionsCount} sessions · ₪{coachProfile!.price ?? 0}/each
                     </p>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight bg-[#46f1c5]/10 text-[#46f1c5]">
-                    View all
-                  </span>
                 </div>
 
                 <div className="h-14 w-full flex items-end gap-1">
@@ -846,10 +842,10 @@ const UserProfile = () => {
                     );
                   })}
                 </div>
-              </button>
+              </div>
             </section>
 
-            {/* 2x2 bento stats */}
+            {/* 2x2 bento stats — followers is still tappable for the modal */}
             <section className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => { setFollowersModalTab("followers"); setFollowersModalOpen(true); }}
@@ -859,82 +855,24 @@ const UserProfile = () => {
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Followers</p>
                 <h4 className="mt-1 text-2xl font-black text-foreground">{fmt(followersCount)}</h4>
               </button>
-              <button
-                onClick={() => navigate("/coach-dashboard?tab=bookings")}
-                className="bg-card p-5 rounded-lg border border-border/40 text-left active:scale-95 transition-transform"
-              >
+              <div className="bg-card p-5 rounded-lg border border-border/40">
                 <Calendar className="h-7 w-7 text-[#ffb59a] mb-3" />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Sessions</p>
                 <h4 className="mt-1 text-2xl font-black text-foreground">{fmt(sessionsCount)}</h4>
-              </button>
-              <button
-                onClick={() => navigate("/coach-dashboard?tab=analytics")}
-                className="bg-card p-5 rounded-lg border border-border/40 text-left active:scale-95 transition-transform"
-              >
+              </div>
+              <div className="bg-card p-5 rounded-lg border border-border/40">
                 <Star className="h-7 w-7 text-[#46f1c5] mb-3" />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Rating</p>
                 <h4 className="mt-1 text-2xl font-black text-foreground">
                   {(coachProfile!.rating ?? 5).toFixed(1)}
                 </h4>
-              </button>
-              <button
-                onClick={() => navigate("/coach-dashboard?tab=analytics")}
-                className="bg-card p-5 rounded-lg border border-border/40 text-left active:scale-95 transition-transform"
-              >
+              </div>
+              <div className="bg-card p-5 rounded-lg border border-border/40">
                 <TrendingUp className="h-7 w-7 text-foreground mb-3" />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Experience</p>
                 <h4 className="mt-1 text-2xl font-black text-foreground">
                   {coachProfile!.years_experience ?? 0}+ yrs
                 </h4>
-              </button>
-            </section>
-
-            {/* Profile nav tabs → dashboard deep links */}
-            <section>
-              <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-4">
-                Profile nav
-              </h4>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: TrendingUp, label: "Analytics", tab: "analytics", accent: "#46f1c5" },
-                  { icon: Calendar, label: "Calendar", tab: "calendar", accent: "#ffb59a" },
-                  { icon: Video, label: "Content", tab: "content", accent: "#46f1c5" },
-                  { icon: Users, label: "Clients", tab: "clients", accent: "#ffb59a" },
-                ].map(({ icon: Icon, label, tab, accent }) => (
-                  <Link
-                    key={label}
-                    to={`/coach-dashboard?tab=${tab}`}
-                    className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40 active:scale-[0.97] transition-transform"
-                  >
-                    <div
-                      className="h-10 w-10 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: `${accent}1a` }}
-                    >
-                      <Icon className="h-5 w-5" style={{ color: accent }} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground">{label}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Open</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mt-3">
-                <Link
-                  to={`/coach-dashboard?tab=payouts`}
-                  className="h-12 rounded-lg bg-card border border-border/40 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-[0.15em] text-foreground active:scale-95 transition-transform"
-                >
-                  <Zap className="h-4 w-4 text-[#46f1c5]" />
-                  Payouts
-                </Link>
-                <Link
-                  to={`/coach-dashboard?tab=bob`}
-                  className="h-12 rounded-lg bg-card border border-border/40 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-[0.15em] text-foreground active:scale-95 transition-transform"
-                >
-                  <Sparkles className="h-4 w-4 text-[#ffb59a]" />
-                  Bob AI
-                </Link>
               </div>
             </section>
 
@@ -981,6 +919,75 @@ const UserProfile = () => {
               </div>
             ) : null}
           </div>
+        )}
+
+        {/* ═══════ DEVELOPER PANEL (dev role only) ═══════ */}
+        {isDeveloper && (
+          <section className="mt-10">
+            <div className="rounded-lg border border-[#46f1c5]/30 bg-card/80 p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-gradient-kinetic flex items-center justify-center">
+                  <Zap className="h-4 w-4 text-white" fill="currentColor" strokeWidth={0} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-[0.15em] text-foreground">
+                    Developer panel
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    Role & data simulation
+                  </p>
+                </div>
+              </div>
+
+              {/* Role switcher */}
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-2">
+                  Active role
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["user", "coach", "admin"] as const).map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setActiveRole(r)}
+                      className={cn(
+                        "h-10 rounded-lg text-[11px] font-black uppercase tracking-[0.15em] transition-all",
+                        activeRole === r
+                          ? "bg-gradient-kinetic text-white shadow-[0_6px_18px_rgba(0,212,170,0.25)]"
+                          : "bg-muted/40 text-muted-foreground hover:text-foreground border border-border/40"
+                      )}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Data mode toggle */}
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-2">
+                  Data mode
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["real", "demo"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      onClick={() => setDataMode(mode)}
+                      className={cn(
+                        "h-10 rounded-lg text-[11px] font-black uppercase tracking-[0.15em] transition-all",
+                        dataMode === mode
+                          ? mode === "real"
+                            ? "bg-[#46f1c5]/20 text-[#46f1c5] border border-[#46f1c5]/40"
+                            : "bg-[#ffb59a]/20 text-[#ffb59a] border border-[#ffb59a]/40"
+                          : "bg-muted/40 text-muted-foreground border border-border/40"
+                      )}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
         )}
 
         {/* ═══════ SETTINGS ═══════ */}
