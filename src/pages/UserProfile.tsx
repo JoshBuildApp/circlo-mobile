@@ -42,6 +42,7 @@ import { useBookingRequests } from "@/hooks/use-booking-requests";
 import { useSavedItems } from "@/hooks/use-saved-items";
 import { useTraineeProgress } from "@/hooks/use-trainee-progress";
 import FollowersModal from "@/components/FollowersModal";
+import { cn } from "@/lib/utils";
 import TraineeProgressCard from "@/components/TraineeProgressCard";
 import PageLab from "@/components/PageLab";
 import ShareSheet from "@/components/ShareSheet";
