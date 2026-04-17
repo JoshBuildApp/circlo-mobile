@@ -31,7 +31,6 @@ import FollowersModal from "@/components/FollowersModal";
 import ShareSheet from "@/components/ShareSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import type { Coach } from "@/data/coaches";
 
 /* ═══════════════════════════════════════════════════════════════════════
    Types
@@ -729,29 +728,18 @@ const PublicCoachProfile = ({ previewCoachId, isPreview = false }: PublicCoachPr
       {/* ═══════ MODALS ═══════ */}
       {bookingOpen && coach && (
         <BookingModal
-          coach={{
-            id: coach.id,
-            name: coach.coach_name,
-            tagline: coach.tagline || "",
-            sport: coach.sport || "",
-            location: coach.location || "",
-            bio: coach.bio || "",
-            longBio: coach.bio || "",
-            coachingStyle: "",
-            idealFor: "",
-            specialties: coach.specialties || [],
-            image: coach.image_url || "",
-            coverImage: coach.cover_media || "",
-            price: coach.price || 0,
-            rating: coach.rating || 5,
-            reviewCount: totalReviews,
-            followers,
-            yearsExperience: coach.years_experience || 0,
-            videos: [],
-            reviews: [],
-          } as Coach}
-          open={bookingOpen}
+          isOpen={bookingOpen}
           onClose={() => setBookingOpen(false)}
+          coachId={coach.id}
+          coachProfileId={coach.id}
+          sessionType="individual"
+          price={coach.price || 0}
+          coachName={coach.coach_name}
+          coachImage={coach.image_url || undefined}
+          sport={coach.sport || undefined}
+          sessionDuration={coach.session_duration || 60}
+          selectedDate={null}
+          selectedTime={null}
         />
       )}
 

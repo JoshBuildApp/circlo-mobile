@@ -48,8 +48,8 @@ interface BookingModalProps {
 }
 
 const STEP_LABELS: Record<Step, string> = {
-  1: "Pick Date",
-  2: "Pick Time",
+  1: "Schedule",
+  2: "Available",
   3: "Confirm",
 };
 
@@ -353,63 +353,48 @@ export const BookingModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[420px] p-0 gap-0 overflow-hidden rounded-2xl border-border/30">
-        {/* ─── Header ─── */}
-        <div className="relative px-5 pt-5 pb-4">
-          {/* Back button */}
+      <DialogContent className="sm:max-w-[440px] max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-2xl border-border/30 bg-background">
+        {/* ─── Kinetic Header ─── */}
+        <div className="relative px-6 pt-7 pb-5">
           {step > 1 && (
             <button
               type="button"
               onClick={() => goTo((step - 1) as Step)}
-              className="absolute left-4 top-5 h-8 w-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors active:scale-95"
+              className="absolute left-4 top-5 h-8 w-8 rounded-full bg-card border border-border/40 flex items-center justify-center hover:bg-muted/40 transition-colors active:scale-95"
+              aria-label="Back"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 text-muted-foreground" />
             </button>
           )}
 
-          {/* Step indicator */}
-          <div className="flex items-center justify-center gap-2 mb-4">
-            {([1, 2, 3] as Step[]).map((s) => (
-              <div key={s} className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
-                    s < step
-                      ? "bg-primary text-primary-foreground"
-                      : s === step
-                        ? "bg-primary text-primary-foreground shadow-brand-sm scale-110"
-                        : "bg-secondary text-muted-foreground"
-                  )}
-                >
-                  {s < step ? <Check className="h-3.5 w-3.5" /> : s}
-                </div>
-                {s < 3 && (
-                  <div
-                    className={cn(
-                      "w-8 h-0.5 rounded-full transition-colors duration-300",
-                      s < step ? "bg-primary" : "bg-border"
-                    )}
-                  />
-                )}
-              </div>
-            ))}
+          {/* Big heading row: title + STEP X OF 3 */}
+          <div className="flex justify-between items-end mb-3">
+            <h2 className="font-black text-3xl tracking-tighter leading-none text-foreground">
+              {STEP_LABELS[step]}
+            </h2>
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#46f1c5]">
+              Step {step} of 3
+            </span>
           </div>
 
-          {/* Step title */}
-          <h2 className="text-center font-heading text-lg font-bold">
-            {STEP_LABELS[step]}
-          </h2>
-          <p className="text-center text-xs text-muted-foreground mt-0.5">
-            {step === 1 && "Choose a date for your session"}
-            {step === 2 && (date ? `Available times on ${format(date, "MMM d")}` : "Select a time slot")}
-            {step === 3 && "Review and confirm your booking"}
-          </p>
+          {/* 3-segment kinetic progress bar */}
+          <div className="flex gap-2">
+            {([1, 2, 3] as Step[]).map((s) => (
+              <div
+                key={s}
+                className={cn(
+                  "h-1 flex-1 rounded-full transition-all duration-300",
+                  s <= step ? "bg-gradient-kinetic" : "bg-muted/60"
+                )}
+              />
+            ))}
+          </div>
         </div>
 
         {/* ─── Content ─── */}
         <div className="px-5 pb-5 min-h-[320px]">
           <AnimatePresence mode="wait" custom={direction}>
-            {/* ═══ STEP 1 — Pick Date ═══ */}
+            {/* ═══ STEP 1 — Session Type + Date ═══ */}
             {step === 1 && (
               <motion.div
                 key="step-1"
@@ -420,39 +405,68 @@ export const BookingModal = ({
                 exit="exit"
                 transition={{ duration: 0.2, ease: "easeInOut" }}
               >
+                {/* Session Type pills */}
+                <label className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-3 block">
+                  Session Type
+                </label>
+                <div className="grid grid-cols-3 gap-3 mb-8">
+                  {([
+                    { key: "individual", label: "Solo" },
+                    { key: "group", label: "Duo" },
+                    { key: "group", label: "Group" },
+                  ] as const).map((opt, i) => {
+                    const active = sessionType === opt.key && (opt.label === "Solo" ? true : i > 0);
+                    return (
+                      <button
+                        key={opt.label}
+                        type="button"
+                        disabled
+                        className={cn(
+                          "h-12 px-2 rounded-full font-bold text-sm transition-all",
+                          active
+                            ? "bg-gradient-kinetic text-white shadow-[0_10px_20px_rgba(0,212,170,0.2)]"
+                            : "bg-card border border-border/40 text-muted-foreground"
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 {/* Quick Book */}
                 <button
                   type="button"
                   onClick={handleQuickBook}
-                  className="w-full flex items-center gap-3 p-3.5 rounded-2xl bg-brand-gradient text-white shadow-brand-sm hover:brightness-110 transition-all active:scale-[0.98] mb-4"
+                  className="w-full flex items-center gap-3 p-3.5 rounded-lg bg-gradient-kinetic text-white shadow-[0_10px_30px_rgba(0,212,170,0.25)] hover:brightness-110 transition-all active:scale-[0.98] mb-6"
                 >
-                  <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <Zap className="h-5 w-5 text-white" />
+                  <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <Zap className="h-5 w-5 text-white" fill="currentColor" strokeWidth={0} />
                   </div>
                   <div className="text-left flex-1">
-                    <p className="text-sm font-heading font-bold">Quick Book</p>
-                    <p className="text-[11px] text-white/70">Jump to the next available slot</p>
+                    <p className="text-sm font-black uppercase tracking-wider">Quick Book</p>
+                    <p className="text-[11px] text-white/80">Next available slot</p>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-white/60" />
+                  <ChevronRight className="h-4 w-4 text-white/70" />
                 </button>
 
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50 font-semibold mb-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-3">
                   Or pick a date
                 </p>
 
-                <div className="flex justify-center">
+                <div className="flex justify-center rounded-lg bg-card border border-border/40 p-2">
                   <Calendar
                     mode="single"
                     selected={date}
                     onSelect={handleDateSelect}
                     disabled={(d) => !isDateAvailableFromSlots(availabilitySlots, d)}
-                    className="rounded-xl border border-border/30 p-3 pointer-events-auto"
+                    className="p-3 pointer-events-auto"
                   />
                 </div>
               </motion.div>
             )}
 
-            {/* ═══ STEP 2 — Pick Time ═══ */}
+            {/* ═══ STEP 2 — Pick Time + Total Preview ═══ */}
             {step === 2 && (
               <motion.div
                 key="step-2"
@@ -465,20 +479,20 @@ export const BookingModal = ({
               >
                 {/* Selected date chip */}
                 {date && (
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                  <div className="mb-6">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#46f1c5]/10 border border-[#46f1c5]/30 text-[#46f1c5] text-xs font-black uppercase tracking-[0.15em]">
                       <CalendarDays className="h-3.5 w-3.5" />
-                      {format(date, "EEEE, MMMM d")}
+                      {format(date, "EEEE, MMM d")}
                     </div>
                   </div>
                 )}
 
                 {availableSlots.length === 0 ? (
-                  <div className="text-center py-10">
-                    <Clock className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-sm text-muted-foreground mb-1">No available slots</p>
-                    <p className="text-xs text-muted-foreground/60 mb-4">
-                      Try a different date or use Quick Book
+                  <div className="text-center py-10 bg-card border border-border/40 rounded-lg">
+                    <Clock className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
+                    <p className="text-sm font-bold text-foreground mb-1">No available slots</p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Try a different date
                     </p>
                     <Button variant="outline" size="sm" onClick={() => goTo(1)}>
                       <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
@@ -487,21 +501,11 @@ export const BookingModal = ({
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                          Available Times
-                        </span>
-                      </div>
-                      {availableSlots.length <= 3 && (
-                        <span className="text-[10px] font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full animate-pulse">
-                          Only {availableSlots.length} left
-                        </span>
-                      )}
-                    </div>
+                    <label className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-3 block">
+                      Available Slots
+                    </label>
 
-                    <div className="grid grid-cols-3 gap-2 max-h-56 overflow-y-auto pr-1 hide-scrollbar">
+                    <div className="grid grid-cols-3 gap-3 mb-8">
                       {timeSlots.map((slot) => {
                         const isBooked = bookedSlots.includes(slot.time);
                         const isSelected = time === slot.time;
@@ -511,32 +515,40 @@ export const BookingModal = ({
                             disabled={isBooked}
                             onClick={() => handleTimeSelect(slot.time, slot.label)}
                             className={cn(
-                              "relative h-12 rounded-xl text-xs font-bold transition-all duration-200",
+                              "h-12 rounded-lg text-sm font-bold transition-all duration-200",
                               isBooked
-                                ? "bg-secondary/50 text-muted-foreground/30 cursor-not-allowed line-through"
+                                ? "bg-card border border-border/40 text-muted-foreground/40 cursor-not-allowed line-through"
                                 : isSelected
-                                  ? "bg-primary text-primary-foreground shadow-brand-sm scale-[1.03]"
-                                  : "bg-secondary text-foreground hover:bg-secondary/80 hover:scale-[1.02] active:scale-95 border border-transparent hover:border-primary/20"
+                                  ? "bg-[#46f1c5]/10 border-2 border-[#46f1c5] text-[#46f1c5]"
+                                  : "bg-card text-foreground border border-transparent hover:border-[#46f1c5]/30 active:scale-95"
                             )}
                           >
-                            {slot.label}
-                            {isSelected && (
-                              <Check className="absolute top-1.5 right-1.5 h-3 w-3 text-primary-foreground" />
-                            )}
+                            {slot.time}
                           </button>
                         );
                       })}
                     </div>
 
-                    {/* Legend */}
-                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/20">
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <div className="h-3 w-3 rounded bg-secondary border border-border/30" />
-                        Available
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                        <div className="h-3 w-3 rounded bg-secondary/50" />
-                        Booked
+                    {/* Total Investment preview */}
+                    <div className="relative bg-card border border-border/40 p-5 rounded-lg overflow-hidden mb-2">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-kinetic blur-3xl opacity-10 pointer-events-none" />
+                      <div className="relative z-10 flex justify-between items-center">
+                        <div>
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] mb-1">
+                            Total Investment
+                          </p>
+                          <h4 className="text-3xl font-black text-[#46f1c5] tracking-tighter">
+                            {formatPrice(price, currency)}
+                          </h4>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-foreground capitalize">
+                            {sessionType === "individual" ? "Solo Session" : "Group Session"}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {sessionDuration} mins{sport ? ` · ${sport}` : ""}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </>
@@ -784,35 +796,31 @@ export const BookingModal = ({
                   </div>
                 </button>
 
-                {/* Pay / Book button */}
-                <Button
+                {/* Confirm booking — kinetic pill */}
+                <button
                   onClick={handleConfirmAndPay}
                   disabled={isProcessing || !bookingLimits.canBook || !waiverAccepted}
-                  className="w-full h-12 rounded-xl font-heading font-bold text-sm bg-brand-gradient hover:brightness-110 transition-all"
-                  size="lg"
+                  className="w-full h-14 rounded-full bg-gradient-kinetic text-white font-black text-sm tracking-[0.15em] uppercase shadow-[0_15px_30px_rgba(0,212,170,0.3)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none inline-flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       Processing…
                     </>
                   ) : bookingMode === "use-package" ? (
                     <>
-                      <Package className="mr-2 h-4 w-4" />
+                      <Package className="h-4 w-4" />
                       Book with Package
                     </>
                   ) : bookingMode === "buy-package" ? (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Buy Package & Book {formatPrice(effectivePrice, effectiveCurrency)}
+                      <Sparkles className="h-4 w-4" />
+                      Buy & Book · {formatPrice(effectivePrice, effectiveCurrency)}
                     </>
                   ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Confirm & Pay {formatPrice(price, currency)}
-                    </>
+                    <>Confirm booking · {formatPrice(price, currency)}</>
                   )}
-                </Button>
+                </button>
 
                 <p className="text-center text-[10px] text-muted-foreground/50 mt-2">
                   {bookingMode === "use-package"

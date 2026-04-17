@@ -212,27 +212,46 @@ const Plays = () => {
     }
     return (
       <div className="min-h-[100dvh] h-[100dvh] bg-black flex flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]">
-        {/* Top bar */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-2 bg-gradient-to-b from-black/60 to-transparent">
-          <button
-            onClick={() => setView("grid")}
-            className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white"
-            title="Grid view"
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center">
-              <span className="font-heading text-[8px] font-bold text-primary-foreground">C</span>
-            </div>
-            <span className="font-heading text-sm font-bold text-white">Plays · Feed</span>
+        {/* Kinetic progress bar at the very top */}
+        <div className="absolute top-0 left-0 right-0 z-[60] h-1 bg-white/10">
+          <div
+            className="h-full bg-gradient-kinetic transition-all duration-300"
+            style={{ width: `${((feedActiveIndex + 1) / Math.max(allVideos.length, 1)) * 100}%` }}
+          />
+        </div>
+
+        {/* Top bar — back / CIRCLO / search / avatar */}
+        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-4 bg-gradient-to-b from-black/60 via-black/20 to-transparent">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setView("grid")}
+              className="text-white hover:opacity-80 transition-opacity"
+              aria-label="Back to grid"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </button>
+            <h1
+              className="font-black italic tracking-[0.15em] text-2xl uppercase text-[#46f1c5]"
+              style={{ textShadow: "0 0 16px rgba(70, 241, 197, 0.35)" }}
+            >
+              CIRCLO
+            </h1>
           </div>
-          <Link
-            to="/discover"
-            className="h-9 w-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white"
-          >
-            <Compass className="h-4 w-4" />
-          </Link>
+          <div className="flex items-center gap-5">
+            <button
+              onClick={() => setView("grid")}
+              className="text-white hover:opacity-80 transition-opacity"
+              aria-label="Search"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+            <Link
+              to="/profile"
+              className="w-8 h-8 rounded-full border border-[#46f1c5]/30 overflow-hidden flex items-center justify-center bg-white/5"
+            >
+              <span className="text-[10px] font-black text-[#46f1c5]">ME</span>
+            </Link>
+          </div>
         </div>
 
         {/* Stories bar — visible on first video */}

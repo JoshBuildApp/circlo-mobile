@@ -792,67 +792,184 @@ const UserProfile = () => {
           </AnimatePresence>
         )}
 
-        {/* ═══════ COACH CONTENT ═══════ */}
+        {/* ═══════ COACH DASHBOARD VIEW ═══════ */}
         {isCoach && (
-          <div className="space-y-5">
-            {/* Location / tagline */}
-            {(coachProfile!.tagline || coachProfile!.location) && (
-              <div className="flex flex-col gap-1 mb-2 text-center">
-                {coachProfile!.tagline && (
-                  <p className="text-sm text-foreground/70 leading-relaxed">{coachProfile!.tagline}</p>
-                )}
-                {coachProfile!.location && (
-                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                    <MapPin className="h-3 w-3" />{coachProfile!.location}
-                  </p>
-                )}
-              </div>
-            )}
+          <div className="space-y-8">
+            <section>
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#ffb59a]">Dashboard</span>
+              <h2 className="mt-1 text-3xl font-black leading-tight text-foreground">
+                Good morning, {coachProfile!.coach_name?.split(" ")[0] || "Coach"}
+              </h2>
+              {coachProfile!.tagline && (
+                <p className="text-sm text-muted-foreground mt-2">{coachProfile!.tagline}</p>
+              )}
+              {coachProfile!.location && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {coachProfile!.location}
+                </p>
+              )}
+            </section>
 
-            {/* Dashboard + preview links */}
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                to="/coach-dashboard"
-                className="h-12 rounded-lg bg-foreground text-background font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+            {/* Revenue hero card with sparkline */}
+            <section className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-kinetic opacity-20 blur-2xl group-hover:opacity-30 transition duration-1000 pointer-events-none" />
+              <button
+                onClick={() => navigate("/coach-dashboard?tab=overview")}
+                className="relative w-full bg-card rounded-lg p-6 overflow-hidden border border-border/40 text-left active:scale-[0.99] transition-transform"
               >
-                <LayoutGrid className="h-4 w-4" />
-                Dashboard
-              </Link>
-              <Link
-                to={`/coach/${coachProfile!.id}`}
-                className="h-12 rounded-lg bg-card border border-border/40 text-foreground font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
-              >
-                <Eye className="h-4 w-4" />
-                Preview
-              </Link>
-            </div>
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">Est. revenue</p>
+                    <h3 className="mt-1 text-4xl font-black text-foreground">
+                      ₪{fmt((coachProfile!.total_sessions ?? 0) * (coachProfile!.price ?? 0))}
+                    </h3>
+                    <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                      {sessionsCount} sessions · ₪{coachProfile!.price ?? 0}/each
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight bg-[#46f1c5]/10 text-[#46f1c5]">
+                    View all
+                  </span>
+                </div>
 
-            {/* Insights banner */}
-            {(sessionsCount > 0 || followersCount > 0) && (
+                <div className="h-14 w-full flex items-end gap-1">
+                  {[40, 55, 45, 70, 55, 85, 100, 75, 60, 45].map((pct, i) => {
+                    const intensity = i >= 6 ? "bg-[#46f1c5]" : i >= 4 ? "bg-[#46f1c5]/60" : "bg-[#46f1c5]/30";
+                    return (
+                      <div
+                        key={i}
+                        className={cn("flex-1 rounded-t-sm transition-all duration-500", intensity)}
+                        style={{ height: `${pct}%` }}
+                      />
+                    );
+                  })}
+                </div>
+              </button>
+            </section>
+
+            {/* 2x2 bento stats */}
+            <section className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => { setFollowersModalTab("followers"); setFollowersModalOpen(true); }}
+                className="bg-card p-5 rounded-lg border border-border/40 text-left active:scale-95 transition-transform"
+              >
+                <Users className="h-7 w-7 text-[#46f1c5] mb-3" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Followers</p>
+                <h4 className="mt-1 text-2xl font-black text-foreground">{fmt(followersCount)}</h4>
+              </button>
+              <button
+                onClick={() => navigate("/coach-dashboard?tab=bookings")}
+                className="bg-card p-5 rounded-lg border border-border/40 text-left active:scale-95 transition-transform"
+              >
+                <Calendar className="h-7 w-7 text-[#ffb59a] mb-3" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Sessions</p>
+                <h4 className="mt-1 text-2xl font-black text-foreground">{fmt(sessionsCount)}</h4>
+              </button>
               <button
                 onClick={() => navigate("/coach-dashboard?tab=analytics")}
-                className="w-full rounded-lg p-5 bg-gradient-kinetic text-white flex items-center gap-4 active:scale-[0.97] transition-transform text-left shadow-[0_20px_40px_rgba(0,212,170,0.15)]"
+                className="bg-card p-5 rounded-lg border border-border/40 text-left active:scale-95 transition-transform"
               >
-                <div className="h-12 w-12 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-foreground/80">Insights</p>
-                  <p className="text-sm font-black uppercase tracking-tight">{sessionsCount} sessions · {fmt(followersCount)} followers</p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-foreground/70" />
+                <Star className="h-7 w-7 text-[#46f1c5] mb-3" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Rating</p>
+                <h4 className="mt-1 text-2xl font-black text-foreground">
+                  {(coachProfile!.rating ?? 5).toFixed(1)}
+                </h4>
               </button>
-            )}
+              <button
+                onClick={() => navigate("/coach-dashboard?tab=analytics")}
+                className="bg-card p-5 rounded-lg border border-border/40 text-left active:scale-95 transition-transform"
+              >
+                <TrendingUp className="h-7 w-7 text-foreground mb-3" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Experience</p>
+                <h4 className="mt-1 text-2xl font-black text-foreground">
+                  {coachProfile!.years_experience ?? 0}+ yrs
+                </h4>
+              </button>
+            </section>
 
-            {/* Page Lab */}
+            {/* Profile nav tabs → dashboard deep links */}
+            <section>
+              <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-4">
+                Profile nav
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: TrendingUp, label: "Analytics", tab: "analytics", accent: "#46f1c5" },
+                  { icon: Calendar, label: "Calendar", tab: "calendar", accent: "#ffb59a" },
+                  { icon: Video, label: "Content", tab: "content", accent: "#46f1c5" },
+                  { icon: Users, label: "Clients", tab: "clients", accent: "#ffb59a" },
+                ].map(({ icon: Icon, label, tab, accent }) => (
+                  <Link
+                    key={label}
+                    to={`/coach-dashboard?tab=${tab}`}
+                    className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40 active:scale-[0.97] transition-transform"
+                  >
+                    <div
+                      className="h-10 w-10 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: `${accent}1a` }}
+                    >
+                      <Icon className="h-5 w-5" style={{ color: accent }} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{label}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Open</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <Link
+                  to={`/coach-dashboard?tab=payouts`}
+                  className="h-12 rounded-lg bg-card border border-border/40 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-[0.15em] text-foreground active:scale-95 transition-transform"
+                >
+                  <Zap className="h-4 w-4 text-[#46f1c5]" />
+                  Payouts
+                </Link>
+                <Link
+                  to={`/coach-dashboard?tab=bob`}
+                  className="h-12 rounded-lg bg-card border border-border/40 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-[0.15em] text-foreground active:scale-95 transition-transform"
+                >
+                  <Sparkles className="h-4 w-4 text-[#ffb59a]" />
+                  Bob AI
+                </Link>
+              </div>
+            </section>
+
+            {/* Preview + Page Lab */}
+            <section className="grid grid-cols-2 gap-3">
+              <Link
+                to={`/coach/${coachProfile!.id}`}
+                className="h-12 rounded-lg bg-gradient-kinetic text-white font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition-transform shadow-[0_10px_30px_rgba(0,212,170,0.25)]"
+              >
+                <Eye className="h-4 w-4" />
+                Preview page
+              </Link>
+              <button
+                onClick={() => setPageLabOpen(true)}
+                className="h-12 rounded-lg bg-card border border-border/40 text-foreground font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              >
+                <Sparkles className="h-4 w-4 text-[#46f1c5]" />
+                {hasCustomLayout ? "Edit layout" : "Page Lab"}
+              </button>
+            </section>
+
+            {/* Upload content */}
             <button
-              onClick={() => setPageLabOpen(true)}
-              className="w-full h-12 rounded-lg bg-card border border-border/40 text-foreground font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              onClick={() => window.dispatchEvent(new CustomEvent("open-upload-flow"))}
+              className="w-full rounded-lg border border-dashed border-[#46f1c5]/30 bg-card p-4 flex items-center gap-4 active:scale-[0.98] transition-transform"
             >
-              <Sparkles className="h-4 w-4 text-[#46f1c5]" />
-              {hasCustomLayout ? "Edit layout" : "Build with Page Lab"}
+              <div className="h-12 w-12 rounded-lg bg-gradient-kinetic flex items-center justify-center shadow-[0_10px_30px_rgba(0,212,170,0.3)] flex-shrink-0">
+                <Plus className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-black uppercase tracking-[0.15em] text-foreground">Upload content</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Share videos, photos & updates</p>
+              </div>
             </button>
 
+            {/* Custom Page Lab sections (if coach has set a custom layout) */}
             {sectionsLoading ? (
               <div className="py-12 flex items-center justify-center">
                 <div className="h-8 w-8 border-2 border-[#46f1c5] border-t-transparent rounded-full animate-spin" />
@@ -861,23 +978,7 @@ const UserProfile = () => {
               <div className="flex flex-col gap-3">
                 {visibleSections.map((s) => <div key={s.id}>{renderCoachSection(s)}</div>)}
               </div>
-            ) : (
-              <TraineeProgressCard userId={user.id} />
-            )}
-
-            {/* Upload */}
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent("open-upload-flow"))}
-              className="w-full rounded-lg border border-dashed border-[#46f1c5]/30 bg-card p-4 flex items-center gap-4 active:scale-[0.98] transition-transform"
-            >
-              <div className="h-12 w-12 rounded-lg bg-gradient-kinetic flex items-center justify-center shadow-[0_10px_30px_rgba(0,212,170,0.3)] flex-shrink-0">
-                <Plus className="h-6 w-6 text-foreground" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-black uppercase tracking-[0.15em] text-foreground">Upload content</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Share videos, photos & updates</p>
-              </div>
-            </button>
+            ) : null}
           </div>
         )}
 
