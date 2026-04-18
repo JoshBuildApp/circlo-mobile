@@ -651,3 +651,51 @@
   direction: ltr;
   unicode-bidi: embed;
 }
+
+/* ============================================================
+   V2 UI — design tokens, fonts, utilities, keyframes
+   Scoped so v1 remains untouched. v2 pages opt in via .font-v2
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@layer utilities {
+  /* Tabular numerals for all stats / money / time / counts */
+  .tnum { font-variant-numeric: tabular-nums; }
+  /* v2 root class for pages — sets dark theme + Manrope */
+  .v2-root {
+    background: #0A0A0F;
+    color: #F5F2EC;
+    font-family: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100dvh;
+  }
+  /* Safe-area helpers for sticky/fixed bars in v2 */
+  .v2-safe-top    { padding-top: env(safe-area-inset-top, 0); }
+  .v2-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
+}
+
+@keyframes v2-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(1.15); }
+}
+@keyframes v2-float-up {
+  0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+  20%  { opacity: 1; transform: translateY(-20px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-80px) scale(1); }
+}
+@keyframes v2-slide-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes v2-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0);  opacity: 0.5; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+.v2-pulse-dot { animation: v2-pulse-dot 1.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .v2-pulse-dot,
+  .v2-animate-float-up,
+  .v2-animate-slide-up,
+  .v2-animate-typing { animation: none !important; }
+}

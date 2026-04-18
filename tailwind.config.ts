@@ -19,6 +19,8 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        // v2 font stack (opt-in via `font-v2` class — does not change v1 default)
+        v2: ['Manrope', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       spacing: {
         "token-0": "var(--space-0)",
@@ -98,18 +100,29 @@ export default {
         "light-orange": "hsl(var(--light-orange))",
         "deep-navy": "hsl(var(--deep-navy))",
         "table-stripe": "hsl(var(--table-stripe))",
-        // Landing page palette
+        // Landing page palette (v1) + v2 UI tokens (additive)
         teal: {
           DEFAULT: "#00D4AA",
           dark: "#00B892",
+          soft: "#00D4AA33",
+          dim: "#00D4AA1A",
         },
         orange: {
           DEFAULT: "#FF6B2C",
           dark: "#E55A1B",
+          soft: "#FF6B2C33",
+          dim: "#FF6B2C1A",
         },
         "navy-deep": "#0A0A0F",
         "navy-card": "#1A1A2E",
+        "navy-card-2": "#21213A",
+        "navy-line": "#2A2A42",
         "navy-light": "#252542",
+        // v2 muted tones (dark-theme aware; shadcn `muted` semantic preserved)
+        "v2-muted": "#9A9AB0",
+        "v2-muted-2": "#6B6B80",
+        offwhite: "#F5F2EC",
+        danger: "#FF4D6D",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -128,6 +141,9 @@ export default {
         xl: "calc(var(--radius) + 4px)",
         "2xl": "calc(var(--radius) + 8px)",
         "3xl": "1.5rem",
+        // v2 radii
+        card: "18px",
+        pill: "999px",
       },
       boxShadow: {
         "card": "0 2px 8px 0 rgba(26, 26, 46, 0.04)",
