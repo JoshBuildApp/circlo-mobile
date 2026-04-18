@@ -158,6 +158,8 @@ export default function Onboarding() {
           answers: { sports: selectedSports, location, role },
         })
       );
+      // Flag skip so HomePage doesn't bounce the user right back into onboarding.
+      sessionStorage.setItem("circlo_onboarding_skipped", "1");
     } catch {
       // ignore
     }

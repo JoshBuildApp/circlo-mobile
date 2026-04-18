@@ -192,6 +192,8 @@ const Discover = () => {
                   PERFORMANCE
                 </span>
               </h2>
+              {/* Short accent underline — 24% of container width, left-aligned. */}
+              <div className="h-[2px] w-14 rounded-full bg-gradient-kinetic mb-3" aria-hidden />
               <p className="text-sm text-muted-foreground">
                 {totalMatches} coaches ready to train with you.
               </p>

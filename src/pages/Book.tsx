@@ -8,6 +8,10 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import SectionHeader from "@/components/home/SectionHeader";
+import EndOfScroll from "@/components/EndOfScroll";
+import { CoachHeartButton } from "@/components/CoachHeartButton";
+import BookFilterSheet, { DEFAULT_BOOK_FILTERS, countActive, type BookFilters } from "@/components/BookFilterSheet";
+import { SlidersHorizontal } from "lucide-react";
 import type { Coach } from "@/data/coaches";
 
 const SPORTS = [
@@ -87,6 +91,9 @@ const CoachCard = ({ coach, onClick, badge, subtitle }: {
           {badge}
         </div>
       )}
+      <div className="absolute top-2 right-2">
+        <CoachHeartButton coachId={coach.id} coachName={coach.coach_name} size="sm" />
+      </div>
       <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-card to-transparent" />
     </div>
     <div className="p-3">
@@ -126,6 +133,8 @@ const Book = () => {
   const [sportCounts, setSportCounts] = useState<Record<string, number>>({});
 
   const [bookingCoach, setBookingCoach] = useState<Coach | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<BookFilters>(DEFAULT_BOOK_FILTERS);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -233,6 +242,21 @@ const Book = () => {
       (c) => !followedCoachIds.includes(c.id) && !pastCoachIds.has(c.id)
     );
     if (sportFilter) filtered = filtered.filter((c) => c.sport === sportFilter);
+    // Filter-sheet criteria (Phase 3.2)
+    if (filters.sports.length > 0) {
+      const set = new Set(filters.sports.map((s) => s.toLowerCase()));
+      filtered = filtered.filter((c) => set.has((c.sport || "").toLowerCase()));
+    }
+    if (filters.priceMin > 0 || filters.priceMax < 500) {
+      filtered = filtered.filter((c) => {
+        const p = c.price ?? 0;
+        const maxOk = filters.priceMax >= 500 ? true : p <= filters.priceMax;
+        return p >= filters.priceMin && maxOk;
+      });
+    }
+    if (filters.minRating > 0) {
+      filtered = filtered.filter((c) => (c.rating ?? 0) >= filters.minRating);
+    }
     if (search) {
       const q = search.toLowerCase();
       filtered = filtered.filter(
@@ -240,7 +264,7 @@ const Book = () => {
       );
     }
     return filtered.slice(0, 6);
-  }, [allCoaches, followedCoachIds, pastCoachIds, sportFilter, search]);
+  }, [allCoaches, followedCoachIds, pastCoachIds, sportFilter, search, filters]);
 
   const availableCoaches = useMemo(() => {
     return availableThisWeek
@@ -349,22 +373,58 @@ const Book = () => {
         <p className="text-sm text-muted-foreground">Pick your coach, then lock in a time.</p>
       </motion.div>
 
-      {/* Search */}
+      {/* Sticky search + filter pill bar (Phase 3.2). Persists while the user
+          scrolls through Continue / Favorites / Browse / Suggestions. */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.4 }}
-        className="px-6 md:px-6 mb-8"
+        className="sticky top-14 z-30 bg-background/90 backdrop-blur-md -mx-0 px-6 md:px-6 py-3 mb-6 border-b border-border/30"
       >
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Find a coach or discipline..."
-            className="w-full h-14 pl-11 pr-4 rounded-lg bg-card border border-border/40 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#46f1c5]/30 focus:border-[#46f1c5]/40 transition-all"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Find a coach or discipline..."
+              aria-label="Search coaches or disciplines"
+              className="w-full h-12 pl-11 pr-4 rounded-lg bg-card border border-border/40 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#46f1c5]/30 focus:border-[#46f1c5]/40 transition-all"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setFilterOpen(true)}
+            aria-label={`Open filters${countActive(filters) > 0 ? `, ${countActive(filters)} active` : ""}`}
+            className={cn(
+              "relative h-12 w-12 rounded-lg border flex items-center justify-center active:scale-95 transition-transform",
+              countActive(filters) > 0
+                ? "bg-gradient-kinetic text-white border-transparent shadow-[0_6px_18px_rgba(0,212,170,0.25)]"
+                : "bg-card border-border/40 text-foreground"
+            )}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {countActive(filters) > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#ffb59a] text-[#1a1a2e] text-[9px] font-black flex items-center justify-center ring-2 ring-background">
+                {countActive(filters)}
+              </span>
+            )}
+          </button>
         </div>
+        {sportFilter && (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Filter:</span>
+            <button
+              type="button"
+              onClick={() => setSportFilter(null)}
+              className="inline-flex items-center gap-1 h-7 px-3 rounded-full bg-[#46f1c5]/15 border border-[#46f1c5]/30 text-[11px] font-black text-[#46f1c5] uppercase tracking-wider"
+              aria-label={`Clear ${sportFilter} filter`}
+            >
+              {sportFilter}
+              <Search className="h-3 w-3 rotate-45" aria-hidden />
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Continue Where You Left Off */}
@@ -628,6 +688,17 @@ const Book = () => {
           </div>
         )}
       </motion.section>
+
+      {/* End-of-scroll block */}
+      <EndOfScroll message="More coaches are coming soon…" />
+
+      {/* Filter sheet (Phase 3.2) */}
+      <BookFilterSheet
+        open={filterOpen}
+        value={filters}
+        onChange={setFilters}
+        onClose={() => setFilterOpen(false)}
+      />
 
       {/* Premium Booking Modal */}
       <AnimatePresence>

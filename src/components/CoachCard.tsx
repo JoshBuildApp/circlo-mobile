@@ -1,11 +1,13 @@
 import { memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Star, MapPin, CheckCircle2, Clock } from "lucide-react";
+import { MapPin, CheckCircle2, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { SafeImage } from "@/components/ui/safe-image";
 import { resolveCoachImage } from "@/lib/coach-placeholders";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGuestGate } from "@/contexts/GuestGateContext";
+import { CoachTrustSignals } from "@/components/CoachTrustSignals";
+import { CoachHeartButton } from "@/components/CoachHeartButton";
 
 export interface CoachCardProps {
   id: string;
@@ -13,9 +15,13 @@ export interface CoachCardProps {
   sport: string;
   image_url?: string | null;
   rating?: number;
+  reviewCount?: number;
+  sessionsCompleted?: number;
   price?: number;
   is_verified?: boolean;
   is_pro?: boolean;
+  /** "instant" confirms on tap; "request" waits for coach. Defaults to "request". */
+  bookingMode?: "instant" | "request";
   location?: string;
   followers?: number;
   tagline?: string;
@@ -52,9 +58,12 @@ export const CoachCard = memo(({
   sport,
   image_url,
   rating = 4.8,
+  reviewCount,
+  sessionsCompleted,
   price,
   is_verified,
   is_pro,
+  bookingMode = "request",
   location,
   tagline,
   nextSlotLabel,
@@ -98,20 +107,29 @@ export const CoachCard = memo(({
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
 
-        {/* Top row: sport pill + rating */}
+        {/* Top row: sport pill + rating + heart */}
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-start justify-between gap-1">
           <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#FF6B2B] text-white text-[9px] font-bold uppercase tracking-wide shadow-md">
             {sport}
           </span>
-          <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[10px] font-semibold">
-            <Star className="h-2.5 w-2.5 text-amber-400 fill-amber-400" />
-            {rating.toFixed(1)}
-          </span>
+          <CoachHeartButton coachId={id} coachName={coach_name} size="sm" />
+        </div>
+
+        {/* Trust signals row */}
+        <div className="absolute top-11 left-2.5 right-2.5">
+          <CoachTrustSignals
+            rating={rating}
+            reviewCount={reviewCount}
+            sessionsCompleted={sessionsCompleted}
+            isVerified={is_verified}
+            bookingMode={bookingMode}
+            variant="card"
+          />
         </div>
 
         {/* PRO corner ribbon */}
         {is_pro && (
-          <span className="absolute top-9 right-2.5 inline-flex items-center px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-[9px] font-extrabold text-[#1A1A2E] shadow-md">
+          <span className="absolute top-[74px] right-2.5 inline-flex items-center px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-[9px] font-extrabold text-[#1A1A2E] shadow-md">
             PRO
           </span>
         )}

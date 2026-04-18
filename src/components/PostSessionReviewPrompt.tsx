@@ -35,7 +35,7 @@ const PostSessionReviewPrompt = () => {
     }
     if (!pendingReview) return;
 
-    const success = await submitReview(rating, comment);
+    const success = await submitReview({ rating, comment });
     if (success) {
       setShowTip(true);
     }

@@ -47,6 +47,8 @@ import { cn } from "@/lib/utils";
 import TraineeProgressCard from "@/components/TraineeProgressCard";
 import PageLab from "@/components/PageLab";
 import ShareSheet from "@/components/ShareSheet";
+import EndOfScroll from "@/components/EndOfScroll";
+import CancelBookingDialog from "@/components/CancelBookingDialog";
 
 /* ═══════════════════════════════════════════════════════
    TYPES
@@ -139,6 +141,8 @@ const UserProfile = () => {
   const [bioLoaded, setBioLoaded] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [playerTab, setPlayerTab] = useState<PlayerTab>("activity");
+  const [bookingFilter, setBookingFilter] = useState<"upcoming" | "past" | "cancelled">("upcoming");
+  const [cancelTarget, setCancelTarget] = useState<{ id: string; coach_name: string; date: string; time: string; price: number | null } | null>(null);
   const [followedCoaches, setFollowedCoaches] = useState<FollowedCoach[]>([]);
   const [followedLoading, setFollowedLoading] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
@@ -225,8 +229,14 @@ const UserProfile = () => {
     return () => window.removeEventListener("content-uploaded", onUploaded);
   }, [coachProfile?.id]);
 
-  const upcomingBookings = useMemo(() => bookings.filter((b) => b.status === "upcoming" || b.status === "confirmed"), [bookings]);
-  const pastBookings = useMemo(() => bookings.filter((b) => b.status === "completed" || b.status === "cancelled"), [bookings]);
+  const upcomingBookings = useMemo(() => bookings.filter((b) => b.status === "upcoming" || b.status === "confirmed" || b.status === "pending"), [bookings]);
+  const pastBookings = useMemo(() => bookings.filter((b) => b.status === "completed"), [bookings]);
+  const cancelledBookings = useMemo(() => bookings.filter((b) => b.status === "cancelled"), [bookings]);
+  const filteredBookings = useMemo(() => {
+    if (bookingFilter === "upcoming") return upcomingBookings;
+    if (bookingFilter === "past") return pastBookings;
+    return cancelledBookings;
+  }, [bookingFilter, upcomingBookings, pastBookings, cancelledBookings]);
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -417,6 +427,21 @@ const UserProfile = () => {
             >
               <Edit3 className="h-3.5 w-3.5" />
               Edit
+            </button>
+            <button
+              onClick={() => {
+                if (isCoach && coachProfile) {
+                  navigate(`/coach/${coachProfile.id}`);
+                } else {
+                  toast.info("Public athlete profiles are coming soon");
+                }
+              }}
+              className="h-11 px-3 rounded-lg bg-card border border-border/40 flex items-center gap-1.5 text-foreground active:scale-95 transition-transform text-[11px] font-black uppercase tracking-[0.15em]"
+              aria-label="Public view — see how others see your profile"
+              title="Public view"
+            >
+              <Eye className="h-4 w-4" />
+              <span className="hidden xs:inline">Public</span>
             </button>
             <button
               onClick={() => setShareOpen(true)}
@@ -628,6 +653,40 @@ const UserProfile = () => {
             {/* ── BOOKINGS ── */}
             {playerTab === "bookings" && (
               <motion.div key="bookings" {...fadeUp} className="space-y-5">
+                {/* Filter chips — upcoming / past / cancelled (Phase 6.1) */}
+                <div className="flex gap-2" role="tablist" aria-label="Booking status">
+                  {([
+                    { key: "upcoming", label: "Upcoming", count: upcomingBookings.length },
+                    { key: "past", label: "Past", count: pastBookings.length },
+                    { key: "cancelled", label: "Cancelled", count: cancelledBookings.length },
+                  ] as const).map((f) => {
+                    const active = bookingFilter === f.key;
+                    return (
+                      <button
+                        key={f.key}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => setBookingFilter(f.key)}
+                        className={cn(
+                          "flex-1 h-10 px-3 rounded-lg text-[11px] font-black uppercase tracking-[0.14em] transition-colors inline-flex items-center justify-center gap-1.5",
+                          active
+                            ? "bg-gradient-kinetic text-white shadow-[0_6px_18px_rgba(0,212,170,0.25)]"
+                            : "bg-card border border-border/40 text-muted-foreground"
+                        )}
+                      >
+                        {f.label}
+                        {f.count > 0 && (
+                          <span className={cn(
+                            "text-[9px] rounded-full px-1.5 py-0.5",
+                            active ? "bg-white/20" : "bg-muted/40"
+                          )}>{f.count}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 {bookingsLoading ? (
                   <div className="space-y-3">
                     {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded-lg" />)}
@@ -641,56 +700,85 @@ const UserProfile = () => {
                       Find a Coach
                     </Link>
                   </div>
+                ) : filteredBookings.length === 0 ? (
+                  <div className="text-center py-12 bg-card rounded-lg border border-border/40">
+                    <Calendar className="h-10 w-10 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-sm font-bold text-foreground">
+                      {bookingFilter === "upcoming" && "No upcoming sessions"}
+                      {bookingFilter === "past" && "No past sessions yet"}
+                      {bookingFilter === "cancelled" && "Nothing cancelled"}
+                    </p>
+                    {bookingFilter === "upcoming" && (
+                      <Link to="/discover" className="inline-flex items-center gap-1 mt-3 px-4 py-2 rounded-full bg-gradient-kinetic text-white text-xs font-black uppercase tracking-wider">
+                        Find a coach
+                      </Link>
+                    )}
+                  </div>
                 ) : (
-                  <>
-                    {upcomingBookings.length > 0 && (
-                      <section>
-                        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-3">Upcoming</h4>
-                        <div className="space-y-2">
-                          {upcomingBookings.map((b) => (
-                            <div key={b.id} className="flex items-center gap-3 p-4 rounded-lg bg-card border border-border/40">
-                              <div className="h-12 w-12 rounded-lg bg-[#46f1c5]/10 flex items-center justify-center flex-shrink-0">
-                                <Calendar className="h-6 w-6 text-[#46f1c5]" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-foreground truncate">{b.coach_name}</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">
-                                  {new Date(b.date).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
-                                </p>
-                                <p className="text-xs text-muted-foreground">{b.time_label || b.time} · {b.training_type}</p>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-[10px] font-black uppercase tracking-wider text-[#46f1c5]">{b.status}</span>
-                                <p className="text-xs font-bold text-foreground mt-1">₪{b.price}</p>
-                              </div>
-                            </div>
-                          ))}
+                  <div className="space-y-2">
+                    {filteredBookings.map((b) => {
+                      const isPast = bookingFilter !== "upcoming";
+                      return (
+                        <div
+                          key={b.id}
+                          className={cn(
+                            "flex items-center gap-3 p-4 rounded-lg border border-border/40",
+                            isPast ? "bg-card/60 opacity-80" : "bg-card"
+                          )}
+                        >
+                          <div className={cn(
+                            "h-12 w-12 rounded-lg flex items-center justify-center flex-shrink-0",
+                            bookingFilter === "upcoming" ? "bg-[#46f1c5]/10" : "bg-muted/40"
+                          )}>
+                            <Calendar className={cn(
+                              "h-6 w-6",
+                              bookingFilter === "upcoming" ? "text-[#46f1c5]" : "text-muted-foreground"
+                            )} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-foreground truncate">{b.coach_name}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {new Date(b.date).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{b.time_label || b.time} · {b.training_type}</p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className={cn(
+                              "text-[10px] font-black uppercase tracking-wider",
+                              bookingFilter === "upcoming" ? "text-[#46f1c5]" :
+                              bookingFilter === "cancelled" ? "text-destructive" : "text-muted-foreground"
+                            )}>{b.status}</span>
+                            {b.price != null && <p className="text-xs font-bold text-foreground">₪{b.price}</p>}
+                            {bookingFilter === "upcoming" && (
+                              <button
+                                type="button"
+                                onClick={() => setCancelTarget({
+                                  id: b.id,
+                                  coach_name: b.coach_name,
+                                  date: b.date,
+                                  time: b.time,
+                                  price: b.price ?? null,
+                                })}
+                                className="text-[10px] font-black uppercase tracking-wider text-destructive mt-1 hover:underline"
+                                aria-label={`Cancel booking with ${b.coach_name}`}
+                              >
+                                Cancel
+                              </button>
+                            )}
+                            {bookingFilter === "past" && b.coach_id && (
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/coach/${b.coach_id}`)}
+                                className="text-[10px] font-black uppercase tracking-wider text-[#46f1c5] mt-1"
+                              >
+                                Rebook →
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </section>
-                    )}
-
-                    {pastBookings.length > 0 && (
-                      <section>
-                        <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-3">Past sessions</h4>
-                        <div className="space-y-2">
-                          {pastBookings.slice(0, 10).map((b) => (
-                            <div key={b.id} className="flex items-center gap-3 p-3 rounded-lg bg-card/60 border border-border/40 opacity-70">
-                              <div className="h-10 w-10 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
-                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-foreground truncate">{b.coach_name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(b.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · {b.training_type}
-                                </p>
-                              </div>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{b.status}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </section>
-                    )}
-                  </>
+                      );
+                    })}
+                  </div>
                 )}
               </motion.div>
             )}
@@ -876,7 +964,7 @@ const UserProfile = () => {
               </div>
             </section>
 
-            {/* Preview + Page Lab */}
+            {/* Preview + Page Lab + Coach Dashboard (Phase 9.1 surface) */}
             <section className="grid grid-cols-2 gap-3">
               <Link
                 to={`/coach/${coachProfile!.id}`}
@@ -892,6 +980,14 @@ const UserProfile = () => {
                 <Sparkles className="h-4 w-4 text-[#46f1c5]" />
                 {hasCustomLayout ? "Edit layout" : "Page Lab"}
               </button>
+              <Link
+                to="/coach-dashboard"
+                className="col-span-2 h-12 rounded-lg bg-foreground text-background font-black uppercase tracking-[0.15em] text-[11px] flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                aria-label="Open coach dashboard"
+              >
+                <TrendingUp className="h-4 w-4" />
+                Open coach dashboard
+              </Link>
             </section>
 
             {/* Upload content */}
@@ -908,14 +1004,27 @@ const UserProfile = () => {
               </div>
             </button>
 
-            {/* Custom Page Lab sections (if coach has set a custom layout) */}
+            {/* Custom Page Lab sections (if coach has set a custom layout).
+                Supports Full / Half / Quarter flow (Phase 1.2). Each section's
+                layout_size maps to a 4-col grid span so Halves share a row and
+                Quarters line up four-across. */}
             {sectionsLoading ? (
               <div className="py-12 flex items-center justify-center">
                 <div className="h-8 w-8 border-2 border-[#46f1c5] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : hasCustomLayout ? (
-              <div className="flex flex-col gap-3">
-                {visibleSections.map((s) => <div key={s.id}>{renderCoachSection(s)}</div>)}
+              <div className="grid grid-cols-4 gap-3 auto-rows-min">
+                {visibleSections.map((s) => {
+                  const span =
+                    s.layout_size === "quarter" ? "col-span-1"
+                    : s.layout_size === "half" ? "col-span-2"
+                    : "col-span-4";
+                  return (
+                    <div key={s.id} className={cn(span, "min-w-0")}>
+                      {renderCoachSection(s)}
+                    </div>
+                  );
+                })}
               </div>
             ) : null}
           </div>
@@ -1020,6 +1129,9 @@ const UserProfile = () => {
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
+
+        {/* End-of-scroll block */}
+        <EndOfScroll message="More features coming soon." className="-mx-6" />
       </div>
 
       {/* ═══════ MODALS ═══════ */}
@@ -1041,6 +1153,12 @@ const UserProfile = () => {
         title={`${displayName} on Circlo`}
         text="Check out my profile on Circlo! 🏆"
         url="/profile"
+      />
+      <CancelBookingDialog
+        open={!!cancelTarget}
+        booking={cancelTarget}
+        onClose={() => setCancelTarget(null)}
+        onCancelled={() => { /* use-booking-requests' realtime sub refreshes the list */ }}
       />
     </div>
   );

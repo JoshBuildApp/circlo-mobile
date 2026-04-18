@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, User, Star, MapPin, X, Loader2 } from 'lucide-react';
+import { Search, User, Star, MapPin, X, Loader2, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -37,11 +37,25 @@ export function CoachSearchAutocomplete({
   onFocusChange,
   compact = false,
 }: CoachSearchAutocompleteProps) {
+  const RECENT_KEY = "circlo_recent_coach_searches";
+  const MAX_RECENT = 6;
+  const readRecent = (): string[] => {
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem(RECENT_KEY) : null;
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string") : [];
+    } catch { return []; }
+  };
+  const writeRecent = (list: string[]) => {
+    try { localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, MAX_RECENT))); } catch { /* noop */ }
+  };
+
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<CoachSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [recent, setRecent] = useState<string[]>(() => readRecent());
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -85,7 +99,21 @@ export function CoachSearchAutocomplete({
     if (results.length === 0) setFocusedIndex(-1);
   }, [results, loading, searchQuery]);
 
+  const pushRecent = useCallback((term: string) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    const next = [trimmed, ...recent.filter((r) => r.toLowerCase() !== trimmed.toLowerCase())].slice(0, MAX_RECENT);
+    setRecent(next);
+    writeRecent(next);
+  }, [recent]);
+
+  const clearRecent = useCallback(() => {
+    setRecent([]);
+    writeRecent([]);
+  }, []);
+
   const handleCoachSelect = (coach: CoachSearchResult) => {
+    pushRecent(coach.coach_name);
     if (onCoachSelect) {
       onCoachSelect(coach.id);
     } else {
@@ -99,6 +127,7 @@ export function CoachSearchAutocomplete({
 
   const handleSubmit = () => {
     if (searchQuery.trim()) {
+      pushRecent(searchQuery.trim());
       if (onSearchSubmit) {
         onSearchSubmit(searchQuery.trim());
       } else {
@@ -109,6 +138,14 @@ export function CoachSearchAutocomplete({
     }
   };
 
+  const pickRecent = (term: string) => {
+    setSearchQuery(term);
+    if (onSearchSubmit) onSearchSubmit(term);
+    else navigate(`/discover?q=${encodeURIComponent(term)}`);
+    setIsOpen(false);
+    inputRef.current?.blur();
+  };
+
   const handleClear = () => {
     setSearchQuery('');
     setResults([]);
@@ -117,6 +154,7 @@ export function CoachSearchAutocomplete({
 
   const handleFocus = () => {
     if (results.length > 0) setIsOpen(true);
+    else if (searchQuery.length < 2 && recent.length > 0) setIsOpen(true);
     onFocusChange?.(true);
   };
 
@@ -264,6 +302,32 @@ export function CoachSearchAutocomplete({
                   Search all content for "{searchQuery}"
                 </button>
               )}
+            </div>
+          ) : recent.length > 0 ? (
+            <div className="py-2">
+              <div className="px-3 py-1 flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground/70">Recent</span>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={clearRecent}
+                  className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-destructive"
+                >
+                  Clear
+                </button>
+              </div>
+              {recent.map((term) => (
+                <button
+                  key={term}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => pickRecent(term)}
+                  className="w-full px-3 py-2 flex items-center gap-2.5 text-left text-sm hover:bg-secondary/60 transition-colors"
+                >
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground/70 flex-shrink-0" />
+                  <span className="truncate text-foreground/90">{term}</span>
+                </button>
+              ))}
             </div>
           ) : null}
         </div>

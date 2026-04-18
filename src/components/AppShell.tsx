@@ -6,7 +6,7 @@ import {
   Home, Search, CalendarDays, User, MessageSquare, Users, Play, Plus,
   UserPlus, Shield, Video, ArrowLeft, Palette, Bell, Zap, ChevronDown,
   LogOut, Settings, Bookmark, Menu, X, LayoutDashboard, Compass,
-  Clock, Crown, Dumbbell, Trophy, Rocket,
+  Clock, Crown, Dumbbell, Trophy, Rocket, Eye, Edit3, LayoutGrid,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -20,6 +20,7 @@ import DevModeToggle from "@/components/DevModeToggle";
 import { useActivity } from "@/hooks/use-activity";
 import { usePresenceHeartbeat } from "@/hooks/use-presence-heartbeat";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { useNotifications } from "@/hooks/use-notifications";
 import { CoachAvatar } from "@/components/ui/coach-avatar";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -28,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 const NewContentCreator = lazy(() => import("@/components/NewContentCreator"));
 const InviteModal = lazy(() => import("@/components/InviteModal"));
+const NotificationCenter = lazy(() => import("@/components/NotificationCenter"));
 const PostSessionReviewPrompt = lazy(() => import("@/components/PostSessionReviewPrompt"));
 const GuestAuthSheet = lazy(() => import("@/components/GuestAuthSheet"));
 const PWAInstallPrompt = lazy(() =>
@@ -73,6 +75,16 @@ const desktopLinks = [
 
 const TAB_PATHS = ["/home", "/discover", "/plays", "/schedule", "/profile", "/community", "/book"];
 
+// Profile-mode bottom nav — swapped in when the user is on /profile or /edit-profile
+// so the bar reflects profile actions instead of app-level navigation.
+const profileTabs = [
+  { path: "/profile", labelKey: "nav.overview", fallbackLabel: "Overview", icon: LayoutGrid },
+  { path: "/edit-profile", labelKey: "nav.edit", fallbackLabel: "Edit", icon: Edit3 },
+  { path: "/profile?view=public", labelKey: "nav.publicView", fallbackLabel: "Public", icon: Eye, isCenter: true },
+  { path: "/notification-preferences", labelKey: "nav.settings", fallbackLabel: "Settings", icon: Settings },
+  { path: "/home", labelKey: "nav.back", fallbackLabel: "Back", icon: ArrowLeft },
+];
+
 // Agent control dashboard (OpenClaw / Circlo Hub) — opened from the dev panel
 // entry in the top nav. Dev-only; regular users never see the trigger.
 const AGENT_DASHBOARD_URL = "https://circlo-agent-core.lovable.app";
@@ -88,7 +100,9 @@ const AppShell = () => {
   useActivity();
   usePresenceHeartbeat();
   const isCoach = role === "coach" || isAdmin;
-  const tabs = isCoach ? coachTabs : playerTabs;
+  const isProfileMode = pathname.startsWith("/profile") || pathname.startsWith("/edit-profile");
+  const mainTabs = isCoach ? coachTabs : playerTabs;
+  const tabs = isProfileMode ? profileTabs : mainTabs;
   const [createOpen, setCreateOpen] = useState(false);
   const [createInitialType, setCreateInitialType] = useState<string | undefined>();
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -107,6 +121,8 @@ const AppShell = () => {
     localStorage.getItem("notif-banner-dismissed") === "1"
   );
   const { isSupported: pushSupported, permission: pushPermission, subscribe: subscribePush } = usePushNotifications();
+  const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
+  const { unreadCount: notifUnread } = useNotifications();
 
   // Auto-subscribe when user is authenticated and permission already granted
   useEffect(() => {
@@ -298,6 +314,23 @@ const AppShell = () => {
                     >
                       <Plus className="h-4 w-4" strokeWidth={2.2} />
                       <span className="hidden lg:inline text-sm">{t("nav.create")}</span>
+                    </button>
+                  )}
+
+                  {/* Notifications bell — opens the in-app center drawer */}
+                  {user && (
+                    <button
+                      type="button"
+                      onClick={() => setNotifDrawerOpen(true)}
+                      className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all relative"
+                      aria-label={`Notifications${notifUnread > 0 ? `, ${notifUnread} unread` : ""}`}
+                    >
+                      <Bell className="h-[17px] w-[17px]" strokeWidth={1.8} />
+                      {notifUnread > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-[#46f1c5] text-[#005643] text-[9px] font-black px-1 ring-2 ring-background">
+                          {notifUnread > 99 ? "99+" : notifUnread}
+                        </span>
+                      )}
                     </button>
                   )}
 
@@ -680,10 +713,14 @@ const AppShell = () => {
         </main>
       </div>
 
-      {/* Content Creator + Invite modals */}
+      {/* Content Creator + Invite + Notifications + Review prompt */}
       <Suspense fallback={null}>
         {createOpen && <NewContentCreator open={createOpen} onClose={() => { setCreateOpen(false); setCreateInitialType(undefined); }} initialType={createInitialType} />}
         {inviteOpen && <InviteModal open={inviteOpen} onClose={() => setInviteOpen(false)} />}
+        {notifDrawerOpen && <NotificationCenter open={notifDrawerOpen} onClose={() => setNotifDrawerOpen(false)} />}
+        {/* Post-session review prompt (Phase 6.9) — component auto-hides when no
+            session is reviewable, so safe to mount globally for logged-in users. */}
+        {user && <PostSessionReviewPrompt />}
       </Suspense>
 
       {/* ═══ MOBILE BOTTOM TABS (< md) — guest mode shows a single Log in / Sign up bar ═══ */}
@@ -706,10 +743,25 @@ const AppShell = () => {
         </nav>
       )}
       {!hideChrome && !isChat && !isImmersive && user && (
-        <nav role="navigation" aria-label="Main navigation" className="app-bottom-nav fixed bottom-0 left-0 right-0 z-[9999] border-t safe-area-bottom glass border-border/20 shadow-nav md:hidden">
-          <div className="flex items-center justify-around h-[56px] max-w-lg mx-auto px-1">
-            {tabs.map(({ path, labelKey, icon: Icon, isCenter }) => {
-              const label = t(labelKey);
+        <nav
+          role="navigation"
+          aria-label={isProfileMode ? "Profile navigation" : "Main navigation"}
+          className="app-bottom-nav fixed bottom-0 left-0 right-0 z-[9999] border-t safe-area-bottom glass border-border/20 shadow-nav md:hidden"
+        >
+          {/* AnimatePresence variant swap for the morph (Phase 1.4). */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={isProfileMode ? "profile" : "main"}
+              initial={{ y: 20, opacity: 0, scale: 0.96 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: -10, opacity: 0, scale: 0.96 }}
+              transition={{ type: "spring", damping: 26, stiffness: 320 }}
+              className="flex items-center justify-around h-[56px] max-w-lg mx-auto px-1"
+            >
+            {tabs.map((tab) => {
+              const { path, labelKey, icon: Icon, isCenter } = tab;
+              const fallback = (tab as { fallbackLabel?: string }).fallbackLabel;
+              const label = t(labelKey, { defaultValue: fallback ?? labelKey });
               const active = isActive(path);
               if (isCenter) {
                 return (
@@ -751,7 +803,8 @@ const AppShell = () => {
                 </Link>
               );
             })}
-          </div>
+            </motion.div>
+          </AnimatePresence>
         </nav>
       )}
 
