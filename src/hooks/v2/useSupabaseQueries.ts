@@ -134,7 +134,7 @@ export async function fetchMyPlayerProfile(userId: string): Promise<PlayerProfil
     .eq("user_id", userId);
 
   const roleSet = new Set<UserRole>();
-  (roles ?? []).forEach((r: DbUserRoleRow) => {
+  (roles ?? []).forEach((r) => {
     if (r.role === "coach") roleSet.add("coach");
     else roleSet.add("player");
   });
