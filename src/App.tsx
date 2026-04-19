@@ -73,6 +73,8 @@ const DevGateModal = lazy(() => import("@/components/DevGateModal"));
 const V2Guard = lazy(() => import("@/components/v2/V2Guard").then((m) => ({ default: m.V2Guard })));
 const EnableV2 = lazy(() => import("@/pages/v2/EnableV2"));
 const V2Stub = lazy(() => import("@/pages/v2/V2Stub"));
+const V2Home = lazy(() => import("@/pages/v2/HomePage"));
+const V2Discover = lazy(() => import("@/pages/v2/DiscoverPage"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -144,8 +146,8 @@ function App() {
                     {/* v2 routes — feature-flagged, no AppShell (pages render own chrome) */}
                     <Route path="/v2/enable" element={<RouteWrapper routeName="v2-enable"><EnableV2 /></RouteWrapper>} />
                     <Route path="/v2" element={<Navigate to="/v2/home" replace />} />
-                    <Route path="/v2/home" element={<RouteWrapper routeName="v2-home"><V2Guard><V2Stub title="Home" phase={4} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/discover" element={<RouteWrapper routeName="v2-discover"><V2Guard><V2Stub title="Discover" phase={4} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/home" element={<RouteWrapper routeName="v2-home"><V2Guard><V2Home /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/discover" element={<RouteWrapper routeName="v2-discover"><V2Guard><V2Discover /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id" element={<RouteWrapper routeName="v2-coach-about"><V2Guard><V2Stub title="Coach · About" phase={5} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/community" element={<RouteWrapper routeName="v2-coach-community"><V2Guard><V2Stub title="Coach · Community" phase={5} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/content" element={<RouteWrapper routeName="v2-coach-content"><V2Guard><V2Stub title="Content Library" phase={12} /></V2Guard></RouteWrapper>} />
