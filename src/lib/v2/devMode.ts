@@ -28,15 +28,19 @@ export type DataMode = "demo" | "real";
 const DATA_MODE_KEY = "circlo:v2_dev_data_mode";
 
 /** Returns the current data mode for the dev panel. Non-devs never see this,
- *  but the flag is still consulted by useMocks. Default is "demo" so that
- *  new environments land on a populated experience. */
+ *  but the flag is still consulted by useMocks. Default is "real" so that
+ *  production-style previews (force-v2 Capacitor/web builds) never leak
+ *  mock fixtures. Devs can still flip to "demo" from the dev panel. */
 export function getDataMode(): DataMode {
-  if (typeof window === "undefined") return "demo";
+  if (typeof window === "undefined") return "real";
+  // Force-v2 preview builds always use real data so Xcode / production
+  // previews don't accidentally render mocks even if localStorage is stale.
+  if (import.meta.env.VITE_V2_FORCE === "true") return "real";
   try {
     const stored = window.localStorage.getItem(DATA_MODE_KEY);
-    return stored === "real" ? "real" : "demo";
+    return stored === "demo" ? "demo" : "real";
   } catch {
-    return "demo";
+    return "real";
   }
 }
 
