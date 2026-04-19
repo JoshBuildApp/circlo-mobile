@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Search, MapPin, Mic, SlidersHorizontal, TrendingUp, Sparkles, Users, Lock } from "lucide-react";
 import {
   PhoneFrame,
@@ -75,11 +74,22 @@ export default function DiscoverPage() {
         <Mic size={16} />
       </div>
 
+      {/* Filter chips. Location/price/more filters are intentionally disabled
+          until the backend supports them — shown greyed out so the UI doesn't
+          promise what it can't deliver. */}
       <HScroll className="mt-3.5 px-5">
-        <button onClick={() => toast("Sport filter is the only one wired today — more coming soon.")} className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-teal text-navy-deep whitespace-nowrap">● Padel</button>
-        <button onClick={() => toast("Location filter coming soon.")} className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap flex items-center gap-1.5"><MapPin size={12} /> Tel Aviv</button>
-        <button onClick={() => toast("Price filter coming soon.")} className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap">{formatPrice(0).replace(/0$/, "")} Price</button>
-        <button onClick={() => toast("More filters coming soon.")} aria-label="More filters" className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap"><SlidersHorizontal size={12} /></button>
+        <button
+          onClick={() => setActiveSport(activeSport === "padel" ? null : "padel")}
+          className={cn(
+            "px-3.5 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap",
+            activeSport === "padel" ? "bg-teal text-navy-deep" : "bg-navy-card text-offwhite"
+          )}
+        >
+          ● Padel
+        </button>
+        <button disabled aria-disabled className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-v2-muted-2 whitespace-nowrap flex items-center gap-1.5 opacity-50 cursor-not-allowed"><MapPin size={12} /> Tel Aviv</button>
+        <button disabled aria-disabled className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-v2-muted-2 whitespace-nowrap opacity-50 cursor-not-allowed">Price</button>
+        <button disabled aria-disabled aria-label="More filters (coming soon)" className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-v2-muted-2 whitespace-nowrap opacity-50 cursor-not-allowed"><SlidersHorizontal size={12} /></button>
       </HScroll>
 
       {tab === "coaches" ? (
@@ -183,9 +193,9 @@ export default function DiscoverPage() {
           </div>
           <div className="flex justify-between items-center mt-2">
             <div className="flex">
-              <span className="w-5 h-5 rounded-full border border-teal" style={{ background: "#ff9d6c", marginRight: -4 }} />
-              <span className="w-5 h-5 rounded-full border border-teal" style={{ background: "#ffd97a", marginRight: -4 }} />
-              <span className="w-5 h-5 rounded-full border border-teal" style={{ background: "#3dd9b1" }} />
+              <span className="w-5 h-5 rounded-full border border-teal v2-avatar-warm" style={{ marginRight: -4 }} />
+              <span className="w-5 h-5 rounded-full border border-teal v2-avatar-gold" style={{ marginRight: -4 }} />
+              <span className="w-5 h-5 rounded-full border border-teal v2-avatar-mint" />
             </div>
             <span className="bg-black/25 text-navy-deep px-3.5 py-1.5 rounded-full text-[12px] font-bold">Join</span>
           </div>

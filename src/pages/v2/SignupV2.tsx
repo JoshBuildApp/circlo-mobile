@@ -53,7 +53,7 @@ export default function SignupV2() {
         coach_name: fullName.trim(),
         sport: "padel",
       });
-      if (coachErr) console.error("coach_profiles insert failed:", coachErr);
+      if (coachErr) console.error("[v2] coach_profiles insert failed:", coachErr?.code ?? "unknown");
     }
 
     setLoading(false);
@@ -163,7 +163,7 @@ export default function SignupV2() {
                 acceptTerms ? "bg-teal border-teal" : "border-navy-line"
               )}
             >
-              {acceptTerms && <Check size={12} stroke="#0A0A0F" strokeWidth={3} />}
+              {acceptTerms && <Check size={12} strokeWidth={3} className="text-navy-deep" />}
             </span>
             <span className="text-[12px] text-v2-muted leading-snug">
               I agree to Circlo's <span className="text-teal font-semibold">Terms</span> and{" "}
@@ -172,7 +172,7 @@ export default function SignupV2() {
           </button>
 
           {error && (
-            <div className="px-3.5 py-2.5 rounded-[10px] bg-[#ff4d6d1a] text-danger text-[12px] font-semibold">
+            <div className="v2-danger-soft px-3.5 py-2.5 rounded-[10px] text-danger text-[12px] font-semibold">
               {error}
             </div>
           )}

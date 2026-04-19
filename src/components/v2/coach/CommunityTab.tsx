@@ -11,9 +11,9 @@ interface CommunityTabProps {
 export function CommunityTab({ coach, posts, onJoin }: CommunityTabProps) {
   return (
     <div className="pb-32">
-      <div className="mx-5 mb-4 rounded-[18px] overflow-hidden p-5 relative bg-gradient-to-br from-[#0f3b33] to-[#0a2722]">
+      <div data-grad="teal-soft" className="mx-5 mb-4 rounded-[18px] overflow-hidden p-5 relative">
         <Chip variant="teal" leadingDot>{(coach.followerCount ?? 18)} ONLINE</Chip>
-        <div className="w-[70px] h-[70px] rounded-full ml-auto mt-4" style={{ background: "linear-gradient(135deg, #00D4AA, #ffd97a)" }} />
+        <div className="w-[70px] h-[70px] rounded-full ml-auto mt-4 v2-avatar-grad-award" />
         <button
           onClick={onJoin}
           className="absolute top-4 right-4 bg-teal text-navy-deep px-3.5 py-2 rounded-full font-bold text-[13px]"

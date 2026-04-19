@@ -82,7 +82,7 @@ export default function LoginV2() {
           </label>
 
           {error && (
-            <div className="px-3.5 py-2.5 rounded-[10px] bg-[#ff4d6d1a] text-danger text-[12px] font-semibold">
+            <div className="v2-danger-soft px-3.5 py-2.5 rounded-[10px] text-danger text-[12px] font-semibold">
               {error}
             </div>
           )}

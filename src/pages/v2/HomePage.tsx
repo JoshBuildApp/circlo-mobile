@@ -13,6 +13,7 @@ import { LiveCard } from "@/components/v2/home/LiveCard";
 import { CoachCard } from "@/components/v2/home/CoachCard";
 import { PostRow } from "@/components/v2/home/PostRow";
 import { useCoaches, useCirclePosts, useMyPlayerProfile } from "@/hooks/v2/useMocks";
+import { isLiveEnabled } from "@/lib/v2/featureFlag";
 
 export default function HomePageV2() {
   const navigate = useNavigate();
@@ -63,12 +64,16 @@ export default function HomePageV2() {
         <ChevronRight size={18} className="text-v2-muted" />
       </button>
 
-      <SectionHeader title={<span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-orange v2-pulse-dot" />Live now</span>} action="See all" onAction={() => navigate("/v2/discover")} />
-      <HScroll>
-        <LiveCard title="Padel clinic" coach="Daniel" viewers={12} variant="orange" onClick={() => navigate("/v2/live/live-1")} />
-        <LiveCard title="Serve drills" coach="Maya" viewers={8} variant="teal" onClick={() => navigate("/v2/live/live-1")} />
-        <LiveCard title="Mindset" coach="Amir" viewers={5} variant="orange" onClick={() => navigate("/v2/live/live-1")} />
-      </HScroll>
+      {isLiveEnabled() && (
+        <>
+          <SectionHeader title={<span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-orange v2-pulse-dot" />Live now</span>} action="See all" onAction={() => navigate("/v2/discover")} />
+          <HScroll>
+            <LiveCard title="Padel clinic" coach="Daniel" viewers={12} variant="orange" onClick={() => navigate("/v2/live/live-1")} />
+            <LiveCard title="Serve drills" coach="Maya" viewers={8} variant="teal" onClick={() => navigate("/v2/live/live-1")} />
+            <LiveCard title="Mindset" coach="Amir" viewers={5} variant="orange" onClick={() => navigate("/v2/live/live-1")} />
+          </HScroll>
+        </>
+      )}
 
       <SectionHeader title="Coaches for you" action="Discover" onAction={() => navigate("/v2/discover")} />
       <HScroll>

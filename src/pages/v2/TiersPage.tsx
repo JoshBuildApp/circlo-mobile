@@ -54,7 +54,7 @@ export default function TiersPage() {
       </header>
 
       <section className="text-center px-5 pt-5 pb-2">
-        <div className="w-[120px] h-[120px] rounded-full mx-auto mb-5" style={{ background: "linear-gradient(135deg, #00D4AA, #ffd97a)" }} />
+        <div className="w-[120px] h-[120px] rounded-full mx-auto mb-5 v2-avatar-grad-award" />
         <div className="text-[10px] font-extrabold text-teal tracking-widest uppercase">{coach?.firstName ?? "Coach"}'s Circle</div>
         <h2 className="mt-2 text-[24px] font-extrabold">Pick your tier</h2>
         <p className="text-[12px] text-v2-muted mt-1">
@@ -66,10 +66,11 @@ export default function TiersPage() {
         {TIERS.map((t) => (
           <article
             key={t.key}
+            data-grad={t.popular ? "teal-soft" : t.vip ? "orange-soft" : undefined}
             className={cn(
               "mx-5 p-4 rounded-[18px] border relative",
-              t.popular && "border-teal bg-gradient-to-b from-[#0f3b33] to-[#0a2722]",
-              t.vip && "border-orange bg-gradient-to-b from-[#3a1c0f] to-[#1f140a]",
+              t.popular && "border-teal",
+              t.vip && "border-orange",
               !t.popular && !t.vip && "border-navy-line bg-navy-card"
             )}
           >
@@ -91,7 +92,7 @@ export default function TiersPage() {
               </div>
               {t.popular && (
                 <div className="w-9 h-9 rounded-full bg-teal flex items-center justify-center">
-                  <Check size={18} stroke="#0A0A0F" strokeWidth={3} />
+                  <Check size={18} strokeWidth={3} className="text-navy-deep" />
                 </div>
               )}
             </div>

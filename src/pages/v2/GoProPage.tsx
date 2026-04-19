@@ -46,7 +46,7 @@ export default function GoProPage() {
           </ul>
           <div className="text-[11px] text-v2-muted-2">20% Circlo fee</div>
         </div>
-        <div className="p-4 rounded-[16px] bg-gradient-to-b from-[#3a1c0f] to-[#1f140a] border border-orange relative">
+        <div data-grad="orange-soft" className="p-4 rounded-[16px] border border-orange relative">
           <span className="absolute -top-2.5 right-2.5 bg-orange text-white px-2.5 py-1 rounded-full text-[10px] font-bold">Recommended</span>
           <div className="text-[11px] font-extrabold text-orange tracking-wider">PRO</div>
           <div className="text-[24px] font-extrabold tnum mt-1 mb-3">{formatPrice(149)} <span className="text-[11px] text-v2-muted font-semibold">/ mo</span></div>
@@ -108,9 +108,9 @@ export default function GoProPage() {
 
       <div className="mx-5 mb-3.5 px-4 py-3 rounded-[14px] bg-navy-card flex items-center gap-2.5">
         <div className="flex">
-          <div className="w-6 h-6 rounded-full border-2 border-navy-card" style={{ background: "linear-gradient(135deg, #00D4AA, #3dd9b1)" }} />
-          <div className="w-6 h-6 rounded-full border-2 border-navy-card -ml-2" style={{ background: "linear-gradient(135deg, #FF6B2C, #ff9d6c)" }} />
-          <div className="w-6 h-6 rounded-full border-2 border-navy-card -ml-2" style={{ background: "linear-gradient(135deg, #fff, #00D4AA)" }} />
+          <div className="w-6 h-6 rounded-full border-2 border-navy-card v2-avatar-grad-teal" />
+          <div className="w-6 h-6 rounded-full border-2 border-navy-card -ml-2 v2-avatar-grad-orange" />
+          <div className="w-6 h-6 rounded-full border-2 border-navy-card -ml-2 v2-avatar-grad-mix" />
         </div>
         <div className="text-[11px] text-v2-muted flex-1">
           <strong className="text-offwhite">142 coaches upgraded</strong> · avg. 3.2× revenue in 6 months

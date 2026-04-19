@@ -30,3 +30,22 @@ export function setV2Enabled(enabled: boolean): void {
   // Full reload so root-level guards re-evaluate.
   if (typeof window !== "undefined") window.location.reload();
 }
+
+/* Preview-only features. These surfaces render mock data even when the user
+ * is logged in (the real backend isn't wired yet). Keeping them hidden by
+ * default avoids shipping fake activity to real users. Flip via localStorage
+ * for internal testing: `circlo:preview_bob`, `circlo:preview_live`,
+ * `circlo:preview_shop`. */
+function previewFlag(key: string): boolean {
+  if (typeof window === "undefined") return false;
+  if (import.meta.env.VITE_V2_PREVIEW_ALL === "true") return true;
+  try {
+    return window.localStorage.getItem(key) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export const isBobEnabled = () => previewFlag("circlo:preview_bob");
+export const isLiveEnabled = () => previewFlag("circlo:preview_live");
+export const isShopEnabled = () => previewFlag("circlo:preview_shop");

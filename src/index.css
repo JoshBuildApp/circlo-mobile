@@ -720,12 +720,55 @@
 [data-grad="teal-soft"]   { background: linear-gradient(135deg, #0f3b33, #0a2722); }
 [data-grad="teal-card"]   { background: linear-gradient(135deg, #143832, #0f2a25); }
 [data-grad="orange-soft"] { background: linear-gradient(135deg, #3a1c0f, #1f140a); }
+[data-grad="orange-avatar"] { background: linear-gradient(135deg, #FF8A5B 0%, #FF6B2C 60%, #E04E15 100%); }
 [data-grad="navy-thumb"]  { background: linear-gradient(135deg, #1a2a3a, #0f1822); }
+[data-grad="visa-card"]   { background: linear-gradient(135deg, #1a1f71, #0f1447); }
 
 .v2-root[data-theme="light"] [data-grad="teal-soft"]   { background: linear-gradient(135deg, #e1f7f0, #f1fcf8); }
 .v2-root[data-theme="light"] [data-grad="teal-card"]   { background: linear-gradient(135deg, #d8f1ea, #ecf9f4); }
 .v2-root[data-theme="light"] [data-grad="orange-soft"] { background: linear-gradient(135deg, #fde9da, #fef5ec); }
 .v2-root[data-theme="light"] [data-grad="navy-thumb"]  { background: linear-gradient(135deg, #e9eef4, #f4f7fa); }
+/* orange-avatar + visa-card are brand/logo colors — keep identical in both themes. */
+
+/* Inline error banner background — matches --v2-danger at 10% opacity.
+   Defined as its own token so light mode can pick a readable variant. */
+.v2-root                       .v2-danger-soft { background: rgba(255, 77, 109, 0.10); }
+.v2-root[data-theme="light"]   .v2-danger-soft { background: rgba(220, 38, 60, 0.08); }
+
+/* Avatar placeholder palette. Saturated brand colors; identical across themes
+   so the avatar cluster keeps its identity regardless of background. */
+.v2-avatar-warm       { background: #ff9d6c; }
+.v2-avatar-gold       { background: #ffd97a; }
+.v2-avatar-mint       { background: #3dd9b1; }
+.v2-avatar-grad-teal   { background: linear-gradient(135deg, #00D4AA, #3dd9b1); }
+.v2-avatar-grad-orange { background: linear-gradient(135deg, #FF6B2C, #ff9d6c); }
+.v2-avatar-grad-mix    { background: linear-gradient(135deg, #fff, #00D4AA); }
+.v2-avatar-grad-award  { background: linear-gradient(135deg, #00D4AA, #ffd97a); }
+
+/* Video/live player ambient backgrounds — always dark, they're cinema surfaces. */
+[data-grad="video-ambient"] {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(0,212,170,0.25), transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(255,107,44,0.18), transparent 55%),
+    linear-gradient(180deg, #0a1a22 0%, #000 100%);
+}
+[data-grad="live-ambient"] {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255,107,44,0.35), transparent 50%),
+    radial-gradient(circle at 20% 70%, rgba(0,212,170,0.25), transparent 50%),
+    #000;
+}
+
+/* Header fade overlay (profile pages). Blends into page bg in both themes. */
+[data-grad="header-fade"] { background: linear-gradient(180deg, rgba(28,28,48,0.8) 0%, transparent 100%); }
+.v2-root[data-theme="light"] [data-grad="header-fade"] { background: linear-gradient(180deg, rgba(239,235,226,0.9) 0%, transparent 100%); }
+
+/* Coach profile hero backdrop — teal fade into the page bg. */
+[data-grad="hero-teal"] { background: linear-gradient(180deg, #0d2f29 0%, #0A0A0F 70%); }
+.v2-root[data-theme="light"] [data-grad="hero-teal"] { background: linear-gradient(180deg, #c4ebdd 0%, #F5F2EC 70%); }
+
+/* Extra teal variant used in coach shop tiles. */
+.v2-teal-2 { background: #02a683; }
 
 @media (prefers-reduced-motion: reduce) {
   .v2-pulse-dot,

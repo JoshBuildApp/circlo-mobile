@@ -44,7 +44,7 @@ export default function BookingSuccessPage() {
           className="w-[110px] h-[110px] rounded-full bg-teal flex items-center justify-center mx-auto mb-6"
           style={{ boxShadow: "0 0 60px rgba(0,212,170,0.4)" }}
         >
-          <Check size={56} stroke="#0A0A0F" strokeWidth={3} />
+          <Check size={56} strokeWidth={3} className="text-navy-deep" />
         </motion.div>
 
         <h1 className="text-[32px] font-extrabold tracking-tight mb-2">You're booked! 🎾</h1>

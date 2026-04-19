@@ -17,11 +17,14 @@ interface AvatarProps {
   onClick?: () => void;
 }
 
-const gradients: Record<GradientKey, string> = {
-  "teal-gold": "linear-gradient(135deg, #00D4AA, #ffd97a)",
-  "orange-peach": "linear-gradient(135deg, #FF6B2C, #ff9d6c)",
-  "teal-mint": "linear-gradient(135deg, #00D4AA, #3dd9b1)",
-  "gold-teal": "linear-gradient(135deg, #ffd97a, #00D4AA)",
+// Brand placeholder gradients. Constant across themes by design — the gradient
+// IS the identity when no photo is available. Defined as CSS utility classes
+// in index.css so the hex values live in one place.
+const GRADIENT_CLASS: Record<GradientKey, string> = {
+  "teal-gold": "v2-avatar-grad-award",
+  "orange-peach": "v2-avatar-grad-orange",
+  "teal-mint": "v2-avatar-grad-teal",
+  "gold-teal": "v2-avatar-grad-award",
 };
 
 export function Avatar({
@@ -45,10 +48,11 @@ export function Avatar({
       tabIndex={onClick ? 0 : undefined}
       className={cn(
         "relative shrink-0 rounded-full flex items-center justify-center font-bold text-navy-deep overflow-hidden",
+        GRADIENT_CLASS[gradient],
         onClick && "cursor-pointer",
         className
       )}
-      style={{ width: size, height: size, background: gradients[gradient] }}
+      style={{ width: size, height: size }}
     >
       {showImage && (
         <img

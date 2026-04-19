@@ -50,7 +50,7 @@ export function ShopTab({ items }: { items: ShopItem[] }) {
                 "rounded-[16px] p-3.5 h-[150px] flex flex-col justify-between",
                 it.variant === "teal" && "bg-teal text-navy-deep",
                 it.variant === "orange" && "bg-orange text-white",
-                it.variant === "teal-2" && "bg-[#02a683] text-navy-deep",
+                it.variant === "teal-2" && "v2-teal-2 text-navy-deep",
                 it.variant === "dark" && "bg-navy-card text-offwhite"
               )}
             >

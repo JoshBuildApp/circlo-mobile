@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ChevronLeft, Search, ArrowRight, Bell } from "lucide-react";
 import { PhoneFrame, StatusBar, RoundButton, Avatar, VideoThumb, HScroll, Chip } from "@/components/v2/shared";
 import { useCoach, useVideos } from "@/hooks/v2/useMocks";
+import { isLiveEnabled } from "@/lib/v2/featureFlag";
 import { formatPrice, formatCompactNumber } from "@/lib/v2/currency";
 import { cn } from "@/lib/utils";
 
@@ -149,19 +150,23 @@ export default function ContentLibraryPage() {
         </div>
       </div>
 
-      <div className="px-5 pb-2 text-[10px] text-v2-muted font-bold tracking-widest uppercase">LIVE & UPCOMING</div>
-      <div className="px-5 mb-4">
-        <div onClick={() => navigate("/v2/live/live-1")} className="cursor-pointer">
-          <VideoThumb isLive viewerCount={247} />
-          <div className="mt-2 flex justify-between items-start">
-            <div className="flex-1">
-              <div className="text-[14px] font-bold">Serve drills · live session</div>
-              <div className="text-[11px] text-v2-muted mt-0.5">Started 8 min ago · {coach?.firstName ?? "Maya"}</div>
+      {isLiveEnabled() && (
+        <>
+          <div className="px-5 pb-2 text-[10px] text-v2-muted font-bold tracking-widest uppercase">LIVE & UPCOMING</div>
+          <div className="px-5 mb-4">
+            <div onClick={() => navigate("/v2/live/live-1")} className="cursor-pointer">
+              <VideoThumb isLive viewerCount={247} />
+              <div className="mt-2 flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="text-[14px] font-bold">Serve drills · live session</div>
+                  <div className="text-[11px] text-v2-muted mt-0.5">Started 8 min ago · {coach?.firstName ?? "Maya"}</div>
+                </div>
+                <button className="px-3 py-1.5 rounded-full bg-danger text-white font-bold text-[11px]">Join →</button>
+              </div>
             </div>
-            <button className="px-3 py-1.5 rounded-full bg-danger text-white font-bold text-[11px]">Join →</button>
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
       <div className="px-5 pb-12">
         <div className="p-3.5 rounded-[14px] bg-navy-card flex gap-3 items-center">

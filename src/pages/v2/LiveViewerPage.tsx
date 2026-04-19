@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Eye, Send } from "lucide-react";
 import { PhoneFrame, StatusBar, Avatar, Chip } from "@/components/v2/shared";
 import { useLiveSession } from "@/hooks/v2/useMocks";
+import { isLiveEnabled } from "@/lib/v2/featureFlag";
 import { cn } from "@/lib/utils";
 
 export default function LiveViewerPage() {
@@ -10,20 +11,13 @@ export default function LiveViewerPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { data: live } = useLiveSession(sessionId);
   const [val, setVal] = useState("");
+  if (!isLiveEnabled()) return <Navigate to="/v2/home" replace />;
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-24">
       <StatusBar />
       <div className="w-full aspect-video bg-black relative overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(circle at 50% 30%, rgba(255,107,44,0.35), transparent 50%),
-                         radial-gradient(circle at 20% 70%, rgba(0,212,170,0.25), transparent 50%),
-                         #000`,
-          }}
-        />
+        <div aria-hidden data-grad="live-ambient" className="absolute inset-0" />
         <div className="absolute top-0 left-0 right-0 px-3.5 py-3 flex justify-between items-center z-10">
           <div className="flex gap-2 items-center">
             <button

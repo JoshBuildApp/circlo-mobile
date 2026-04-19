@@ -4,6 +4,7 @@ import type { Coach } from "@/types/v2";
 import { cn } from "@/lib/utils";
 import { useShare } from "@/native/useNative";
 import { toast } from "sonner";
+import { isShopEnabled } from "@/lib/v2/featureFlag";
 
 interface CoachProfileHeroProps {
   coach: Coach;
@@ -33,10 +34,7 @@ export function CoachProfileHero({ coach, activeTab, onTab, onBack }: CoachProfi
     }
   };
   return (
-    <div
-      className="px-5 pt-5 relative"
-      style={{ background: "linear-gradient(180deg, #0d2f29 0%, #0A0A0F 70%)" }}
-    >
+    <div data-grad="hero-teal" className="px-5 pt-5 relative">
       <div className="flex justify-between items-center mb-5">
         <RoundButton ariaLabel="Back" onClick={onBack}>
           <ChevronLeft size={16} />
@@ -67,7 +65,7 @@ export function CoachProfileHero({ coach, activeTab, onTab, onBack }: CoachProfi
             { key: "about", label: "About", num: undefined },
             { key: "community", label: "Community", num: coach.followerCount },
             { key: "content", label: "Content", num: 42 },
-            { key: "shop", label: "Shop", num: undefined },
+            ...(isShopEnabled() ? [{ key: "shop" as const, label: "Shop", num: undefined }] : []),
           ] as const
         ).map((t) => (
           <button

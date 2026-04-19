@@ -1,8 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Search, Plus, Pin } from "lucide-react";
 import { PhoneFrame, StatusBar, Avatar } from "@/components/v2/shared";
 import { CoachOnly } from "@/components/v2/bob/CoachOnly";
 import { useBobThreads, useMyCoachProfile } from "@/hooks/v2/useMocks";
+import { isBobEnabled } from "@/lib/v2/featureFlag";
 import type { BobThread } from "@/types/v2";
 
 function groupThreads(threads: BobThread[]) {
@@ -40,6 +41,7 @@ export default function BobDrawerPage() {
   const { data: threads = [] } = useBobThreads();
   const { data: coach } = useMyCoachProfile();
   const groups = groupThreads(threads);
+  if (!isBobEnabled()) return <Navigate to="/v2/home" replace />;
 
   const Section = ({ label, items, icon }: { label: string; items: BobThread[]; icon?: React.ReactNode }) => {
     if (!items.length) return null;

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Send, Sparkles, BarChart3, MessageSquare, Users, DollarSign, ChevronRight, Bot } from "lucide-react";
 import { PhoneFrame, StatusBar } from "@/components/v2/shared";
 import { BobHeader } from "@/components/v2/bob/BobHeader";
 import { CoachOnly } from "@/components/v2/bob/CoachOnly";
 import { useMyCoachProfile } from "@/hooks/v2/useMocks";
+import { isBobEnabled } from "@/lib/v2/featureFlag";
 import { formatPrice } from "@/lib/v2/currency";
 
 const SUGGESTIONS: { icon: typeof BarChart3; label: string }[] = [
@@ -17,6 +18,7 @@ const SUGGESTIONS: { icon: typeof BarChart3; label: string }[] = [
 export default function BobPage() {
   const [params] = useSearchParams();
   const hasChat = params.get("chat") === "1";
+  if (!isBobEnabled()) return <Navigate to="/v2/home" replace />;
   return (
     <CoachOnly>
       <PhoneFrame className="min-h-[100dvh] pb-24">

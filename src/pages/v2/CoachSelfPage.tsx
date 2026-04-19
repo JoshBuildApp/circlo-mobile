@@ -14,6 +14,7 @@ import {
 } from "@/components/v2/shared";
 import { RequestCard } from "@/components/v2/coach/RequestCard";
 import { useMyCoachProfile, useBookingRequests, useBookingRequestAction } from "@/hooks/v2/useMocks";
+import { isBobEnabled } from "@/lib/v2/featureFlag";
 import { useRole } from "@/contexts/v2/RoleContext";
 import { formatPrice, formatCompactNumber } from "@/lib/v2/currency";
 import { cn } from "@/lib/utils";
@@ -93,8 +94,8 @@ export default function CoachSelfPage() {
 
       <div className="px-5 pb-3.5">
         <div
+          data-grad="orange-avatar"
           className="rounded-[20px] p-5 text-white relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #FF8A5B 0%, #FF6B2C 60%, #E04E15 100%)" }}
         >
           <div
             aria-hidden
@@ -121,12 +122,14 @@ export default function CoachSelfPage() {
               ))}
             </div>
           </div>
-          <button
-            onClick={() => navigate("/v2/bob?chat=1")}
-            className="relative z-10 w-full py-2.5 rounded-[10px] bg-white/15 text-white font-bold text-[12px] backdrop-blur-md"
-          >
-            Ask Bob for a breakdown →
-          </button>
+          {isBobEnabled() && (
+            <button
+              onClick={() => navigate("/v2/bob?chat=1")}
+              className="relative z-10 w-full py-2.5 rounded-[10px] bg-white/15 text-white font-bold text-[12px] backdrop-blur-md"
+            >
+              Ask Bob for a breakdown →
+            </button>
+          )}
         </div>
       </div>
 

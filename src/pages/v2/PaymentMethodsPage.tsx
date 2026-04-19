@@ -27,8 +27,8 @@ export default function PaymentMethodsPage() {
 
       <div className="px-5 pt-5">
         <div
+          data-grad="visa-card"
           className="p-5 rounded-[18px] relative overflow-hidden h-[180px] flex flex-col justify-between"
-          style={{ background: "linear-gradient(135deg, #1a1f71 0%, #0f1447 100%)" }}
         >
           <div className="flex justify-between items-start">
             <div>

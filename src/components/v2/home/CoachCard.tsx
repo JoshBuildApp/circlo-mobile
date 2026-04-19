@@ -8,11 +8,12 @@ interface CoachCardProps {
   onClick?: () => void;
 }
 
-const GRADIENTS: Record<Coach["avatarGradient"], string> = {
-  "teal-gold": "linear-gradient(135deg, #00D4AA 0%, #ffd97a 100%)",
-  "orange-peach": "linear-gradient(135deg, #FF6B2C 0%, #ff9d6c 100%)",
-  "teal-mint": "linear-gradient(135deg, #00D4AA 0%, #3dd9b1 100%)",
-  "gold-teal": "linear-gradient(135deg, #ffd97a 0%, #00D4AA 100%)",
+// Brand placeholder classes — hex values live in index.css for a single source of truth.
+const GRADIENT_CLASS: Record<Coach["avatarGradient"], string> = {
+  "teal-gold": "v2-avatar-grad-award",
+  "orange-peach": "v2-avatar-grad-orange",
+  "teal-mint": "v2-avatar-grad-teal",
+  "gold-teal": "v2-avatar-grad-award",
 };
 
 /**
@@ -37,9 +38,9 @@ export function CoachCard({ coach, ctaLabel = "Follow", onClick }: CoachCardProp
     <button
       onClick={onClick}
       className={cn(
-        "min-w-[155px] h-[170px] rounded-card p-3.5 flex flex-col justify-between relative text-left text-white overflow-hidden"
+        "min-w-[155px] h-[170px] rounded-card p-3.5 flex flex-col justify-between relative text-left text-white overflow-hidden",
+        GRADIENT_CLASS[coach.avatarGradient]
       )}
-      style={{ background: GRADIENTS[coach.avatarGradient] }}
     >
       {showImage && (
         <img

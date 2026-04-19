@@ -153,9 +153,10 @@ export default function BookingFlowPage() {
                 <button
                   key={f.key}
                   onClick={() => setFormat(f)}
+                  data-grad={selected ? "orange-soft" : undefined}
                   className={cn(
                     "p-4 rounded-[16px] border flex gap-3.5 text-left transition-colors",
-                    selected ? "border-orange bg-gradient-to-br from-[#3a1c0f] to-[#1f140a]" : "border-transparent bg-navy-card"
+                    selected ? "border-orange" : "border-transparent bg-navy-card"
                   )}
                 >
                   <div className={cn("w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0", f.iconClass)}>
@@ -459,7 +460,7 @@ export default function BookingFlowPage() {
           <div className="px-5 pt-1 text-[10px] text-v2-muted font-bold tracking-wider uppercase pb-2.5">PAYMENT METHOD</div>
           <div className="px-5 flex flex-col gap-2">
             <div className="p-4 rounded-[16px] bg-navy-card border-2 border-orange flex items-center gap-3.5">
-              <div className="w-11 h-8 rounded-md bg-gradient-to-br from-[#1a1f71] to-[#0f1447] flex items-center justify-center text-white text-[11px] font-extrabold italic">VISA</div>
+              <div data-grad="visa-card" className="w-11 h-8 rounded-md flex items-center justify-center text-white text-[11px] font-extrabold italic">VISA</div>
               <div className="flex-1">
                 <div className="text-[14px] font-bold">Visa ···· 4242</div>
                 <div className="text-[11px] text-v2-muted mt-0.5">Expires 09/27 · Default</div>
@@ -478,12 +479,6 @@ export default function BookingFlowPage() {
             <button className="w-full py-3.5 rounded-[14px] bg-transparent border border-dashed border-navy-line text-v2-muted text-[13px] font-semibold flex items-center justify-center gap-1.5">
               <Plus size={14} /> Add new card
             </button>
-          </div>
-
-          <div className="px-5 pt-4 pb-2.5 text-[10px] text-v2-muted font-bold tracking-wider uppercase">PROMO CODE</div>
-          <div className="px-5 flex gap-2 mb-4">
-            <input placeholder="Enter code" className="flex-1 px-3.5 py-3 rounded-[12px] bg-navy-card border-none text-offwhite text-sm outline-none placeholder:text-v2-muted" />
-            <button className="px-5 rounded-[12px] bg-navy-card-2 text-offwhite font-bold text-[13px]">Apply</button>
           </div>
 
           <div className="px-5 pb-3.5">
@@ -591,9 +586,10 @@ function LocationOption({
   return (
     <button
       onClick={onClick}
+      data-grad={selected ? "orange-soft" : undefined}
       className={cn(
         "p-4 rounded-[16px] border flex gap-3.5 text-left transition-colors",
-        selected ? "border-orange bg-gradient-to-br from-[#3a1c0f] to-[#1f140a]" : "border-transparent bg-navy-card"
+        selected ? "border-orange" : "border-transparent bg-navy-card"
       )}
     >
       <div className={cn("w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0", iconClass)}>

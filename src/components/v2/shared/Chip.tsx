@@ -14,7 +14,7 @@ const variantMap: Record<ChipVariant, string> = {
   default: "bg-navy-card text-offwhite",
   teal: "bg-teal-dim text-teal",
   orange: "bg-orange-dim text-orange",
-  danger: "bg-[#ff4d6d1a] text-danger",
+  danger: "v2-danger-soft text-danger",
 };
 
 export function Chip({ variant = "default", children, className, leadingDot }: ChipProps) {

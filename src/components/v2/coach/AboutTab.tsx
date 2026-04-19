@@ -67,7 +67,7 @@ export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
   return (
     <div className="pb-32">
       <div className="px-5 pt-3 pb-3">
-        <div className="px-3.5 py-2.5 rounded-[12px] bg-gradient-to-br from-[#0f3b33] to-[#0a2722] border border-teal-dim flex items-center gap-2.5">
+        <div data-grad="teal-soft" className="px-3.5 py-2.5 rounded-[12px] border border-teal-dim flex items-center gap-2.5">
           <PulseDot />
           <div className="flex-1">
             <div className="text-[11px] text-teal font-bold tracking-wider">AVAILABLE FOR BOOKINGS</div>

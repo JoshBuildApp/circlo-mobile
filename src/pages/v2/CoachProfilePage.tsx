@@ -6,13 +6,14 @@ import { CommunityTab } from "@/components/v2/coach/CommunityTab";
 import { ShopTab } from "@/components/v2/coach/ShopTab";
 import { BookingBar } from "@/components/v2/coach/BookingBar";
 import { useCoach, useCirclePosts, useShopItems } from "@/hooks/v2/useMocks";
+import { isShopEnabled } from "@/lib/v2/featureFlag";
 
 type TabKey = "about" | "community" | "content" | "shop";
 
 function tabFromPath(pathname: string): TabKey {
   if (pathname.endsWith("/community")) return "community";
   if (pathname.endsWith("/content")) return "content";
-  if (pathname.endsWith("/shop")) return "shop";
+  if (pathname.endsWith("/shop") && isShopEnabled()) return "shop";
   return "about";
 }
 

@@ -50,8 +50,8 @@ export default function UserProfileV2() {
     <PhoneFrame className="min-h-[100dvh] pb-28">
       <StatusBar />
       <header
+        data-grad="header-fade"
         className="px-5 pt-3 pb-4 relative"
-        style={{ background: "linear-gradient(180deg, #1c1c30 0%, transparent 100%)" }}
       >
         <div className="flex justify-between mb-3">
           <RoundButton ariaLabel="Back" onClick={() => navigate("/v2/home")}>

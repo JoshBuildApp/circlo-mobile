@@ -28,15 +28,7 @@ export default function VideoPlayerPage() {
       <div
         className="w-full aspect-video bg-black relative overflow-hidden"
       >
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(circle at 30% 30%, rgba(0,212,170,0.25), transparent 50%),
-                         radial-gradient(circle at 70% 60%, rgba(255,107,44,0.18), transparent 55%),
-                         linear-gradient(180deg, #0a1a22 0%, #000 100%)`,
-          }}
-        />
+        <div aria-hidden data-grad="video-ambient" className="absolute inset-0" />
         <div className="absolute top-0 left-0 right-0 px-4 py-3.5 flex justify-between items-center z-10" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.6), transparent)" }}>
           <button
             aria-label="Back"

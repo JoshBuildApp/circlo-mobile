@@ -120,14 +120,6 @@ export function useCoach(id: string | undefined) {
   });
 }
 
-export function useCoachProfile(id: string | undefined) {
-  return useQuery<CoachProfile | null>({
-    queryKey: ["v2", "coach-profile", id],
-    queryFn: () => delay(id === mockCoachProfile.id ? mockCoachProfile : null),
-    enabled: Boolean(id),
-  });
-}
-
 export function useMyPlayerProfile() {
   const { user } = useAuth();
   return useQuery<PlayerProfile>({

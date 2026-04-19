@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Share2, Video, Bell, Star, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame, StatusBar, RoundButton, Avatar, Chip } from "@/components/v2/shared";
 import { useLiveSession } from "@/hooks/v2/useMocks";
+import { isLiveEnabled } from "@/lib/v2/featureFlag";
 
 export default function LiveEndedPage() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export default function LiveEndedPage() {
   const { data: live } = useLiveSession(sessionId);
   const [rating, setRating] = useState<number>(0);
   const [notified, setNotified] = useState(false);
+  if (!isLiveEnabled()) return <Navigate to="/v2/home" replace />;
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-12">
@@ -26,7 +28,7 @@ export default function LiveEndedPage() {
       </header>
 
       <main className="px-5 pt-6 pb-5 text-center">
-        <div className="w-[72px] h-[72px] rounded-full mx-auto mb-4" style={{ background: "linear-gradient(135deg, #00D4AA, #ffd97a)" }} />
+        <div className="w-[72px] h-[72px] rounded-full mx-auto mb-4 v2-avatar-grad-award" />
         <h1 className="text-[24px] font-extrabold tracking-tight mb-1.5">That was great 🎾</h1>
         <p className="text-[13px] text-v2-muted leading-relaxed">
           {live?.coachName ?? "Your coach"} wrapped up.<br />Recording available in 5 minutes.

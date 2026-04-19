@@ -119,7 +119,7 @@ export default function PlanSubscribeFlowPage() {
       <div className="px-5 pt-2 pb-2 text-[10px] text-v2-muted font-bold tracking-widest uppercase">PAYMENT METHOD</div>
       <div className="px-5 mb-3.5">
         <div className="p-4 rounded-[16px] bg-navy-card border-2 border-teal flex items-center gap-3.5">
-          <div className="w-11 h-8 rounded-md bg-gradient-to-br from-[#1a1f71] to-[#0f1447] flex items-center justify-center text-white text-[11px] font-extrabold italic">VISA</div>
+          <div data-grad="visa-card" className="w-11 h-8 rounded-md flex items-center justify-center text-white text-[11px] font-extrabold italic">VISA</div>
           <div className="flex-1">
             <div className="text-[14px] font-bold">Visa ···· 4242</div>
             <div className="text-[11px] text-v2-muted mt-0.5">Default</div>

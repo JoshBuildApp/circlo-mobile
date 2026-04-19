@@ -1,8 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ChevronLeft, Bot, Sparkles, Zap, AlertTriangle, Edit3, Star } from "lucide-react";
 import { PhoneFrame, StatusBar, RoundButton } from "@/components/v2/shared";
 import { CoachOnly } from "@/components/v2/bob/CoachOnly";
+import { isBobEnabled } from "@/lib/v2/featureFlag";
 import { cn } from "@/lib/utils";
 
 type Frequency = "minimal" | "balanced" | "frequent";
@@ -22,6 +23,7 @@ export default function BobSettingsPage() {
     Object.fromEntries(NOTIF_TYPES.map((n) => [n.key, n.default]))
   );
   const [dnd, setDnd] = useState(true);
+  if (!isBobEnabled()) return <Navigate to="/v2/home" replace />;
 
   return (
     <CoachOnly>

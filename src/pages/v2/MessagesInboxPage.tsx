@@ -1,8 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Edit3, Search, Check, CheckCheck } from "lucide-react";
 import { PhoneFrame, StatusBar, TabBar, Avatar, Chip, EmptyState } from "@/components/v2/shared";
 import { useMessageThreads } from "@/hooks/v2/useMocks";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import type { MessageThread } from "@/types/v2";
 import { cn } from "@/lib/utils";
 
@@ -85,8 +88,28 @@ function ThreadRow({ thread, onClick }: { thread: MessageThread; onClick: () => 
 
 export default function MessagesInboxPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { user } = useAuth();
   const [filter, setFilter] = useState<Filter>("all");
   const { data: threads = [] } = useMessageThreads();
+
+  // Realtime: any new message anywhere invalidates the thread list so the
+  // inbox re-ranks without the user having to pull-to-refresh. Partitioned
+  // table + userlevel RLS keep the payload tiny and scoped.
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`v2-inbox:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        () => qc.invalidateQueries({ queryKey: ["v2", "threads"] })
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, qc]);
 
   const filtered = threads.filter((t) => {
     if (filter === "all") return true;

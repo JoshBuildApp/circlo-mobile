@@ -1,9 +1,10 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ChevronLeft, Menu, Bot } from "lucide-react";
 import { PhoneFrame, StatusBar, RoundButton } from "@/components/v2/shared";
 import { CoachOnly } from "@/components/v2/bob/CoachOnly";
 import { useBobInsights } from "@/hooks/v2/useMocks";
+import { isBobEnabled } from "@/lib/v2/featureFlag";
 import type { BobInsight, BobNotificationType } from "@/types/v2";
 import { cn } from "@/lib/utils";
 
@@ -83,6 +84,7 @@ export default function BobInboxPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<typeof FILTERS[number]["key"]>("all");
   const { data: items = [] } = useBobInsights();
+  if (!isBobEnabled()) return <Navigate to="/v2/home" replace />;
 
   const filtered = items.filter((i) => {
     if (filter === "all") return true;
