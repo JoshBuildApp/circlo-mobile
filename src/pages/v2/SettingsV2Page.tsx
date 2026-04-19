@@ -76,7 +76,7 @@ export default function SettingsV2Page() {
     try {
       await signOut();
       toast.success("Signed out.");
-      navigate("/v2/welcome", { replace: true });
+      navigate("/v2/auth/welcome", { replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Sign out failed.");
       setSigningOut(false);

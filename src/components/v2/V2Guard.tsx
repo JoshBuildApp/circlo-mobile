@@ -7,7 +7,7 @@ import { V2ErrorBoundary } from "@/components/v2/V2ErrorBoundary";
 import { DevPanel } from "@/components/v2/DevPanel";
 import { useAuth } from "@/contexts/AuthContext";
 
-/** Routes that don't require auth (auth flow itself + the flag toggle). */
+/** Exact auth-free routes (legacy paths kept for back-compat). */
 const PUBLIC_V2_ROUTES = new Set([
   "/v2/enable",
   "/v2/welcome",
@@ -17,6 +17,14 @@ const PUBLIC_V2_ROUTES = new Set([
   "/v2/forgot-password",
   "/v2/verify-email",
 ]);
+
+/** Path prefixes that bypass auth (new shared-element /v2/auth/* flow). */
+const PUBLIC_V2_PREFIXES = ["/v2/auth"];
+
+function isPublicV2Path(pathname: string): boolean {
+  if (PUBLIC_V2_ROUTES.has(pathname)) return true;
+  return PUBLIC_V2_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
 
 /**
  * Wraps every /v2/* route.
@@ -45,8 +53,8 @@ export function V2Guard({ children }: { children: ReactNode }) {
     return <Navigate to="/v2/enable" replace state={{ from: location.pathname }} />;
   }
 
-  if (!loading && !user && !PUBLIC_V2_ROUTES.has(location.pathname)) {
-    return <Navigate to="/v2/welcome" replace state={{ from: location.pathname }} />;
+  if (!loading && !user && !isPublicV2Path(location.pathname)) {
+    return <Navigate to="/v2/auth/welcome" replace state={{ from: location.pathname }} />;
   }
 
   return (
