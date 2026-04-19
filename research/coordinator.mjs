@@ -51,7 +51,9 @@ async function main() {
   const goalMd = await readFile(goalPath, "utf-8");
 
   const runTs = new Date().toISOString().replace(/[:.]/g, "-");
-  const branch = opts.branch ?? `research/${goalId}-${runTs.slice(0, 10)}`;
+  // Full timestamp in the branch name so multiple runs/day don't collide.
+  // runTs is already unique per run.
+  const branch = opts.branch ?? `research/${goalId}-${runTs}`;
   const worktreePath = join(ROOT, "research", "worktrees", `${goalId}-${runTs}`);
   const logDir = join(ROOT, "research", "logs", goalId, runTs);
 
