@@ -1,29 +1,44 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "./components/PageHeader";
 import { FormField } from "./components/FormField";
 import { PasswordField } from "./components/PasswordField";
 
 /**
- * Login screen for the v2 auth flow.
+ * Login screen for the v2 auth flow — wired to Supabase via
+ * supabase.auth.signInWithPassword. On success, navigates into the v2 shell.
  *
  * Visual reference: prototype/auth-flow.html → screenLogin().
- *
- * The Circlo ring lives at the login variant (top-right, 56px) and is owned
- * by AuthLayout. This screen reserves no top spacer since the ring tucks
- * into the top-right corner rather than centering above the title.
- *
- * Phase-5 scope is UI only. The "Log in" CTA currently routes to the success
- * screen so the shared-element ring transition can be demonstrated end-to-end;
- * real Supabase signIn() wiring comes in a future pass.
  */
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const canSubmit = email.length > 0 && password.length > 0;
+  const canSubmit = email.length > 0 && password.length > 0 && !loading;
+
+  const submit = async () => {
+    if (!canSubmit) return;
+    setError(null);
+    setLoading(true);
+    const { error: err } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    setLoading(false);
+    if (err) {
+      setError(err.message);
+      toast.error(err.message);
+      return;
+    }
+    toast.success("Welcome back!");
+    navigate("/v2/home", { replace: true });
+  };
 
   return (
     <div className="circlo-screen">
@@ -54,6 +69,21 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
+        {error ? (
+          <div
+            role="alert"
+            style={{
+              color: "var(--circlo-error)",
+              fontSize: 13,
+              marginTop: -8,
+              marginBottom: 12,
+              paddingLeft: 4,
+            }}
+          >
+            {error}
+          </div>
+        ) : null}
+
         <div className="circlo-link-row">
           <button type="button" className="circlo-link">
             Forgot password?
@@ -64,9 +94,9 @@ export default function Login() {
           type="button"
           className="circlo-btn circlo-btn-primary"
           disabled={!canSubmit}
-          onClick={() => navigate("/v2/auth/signup/success")}
+          onClick={submit}
         >
-          Log in
+          {loading ? "Signing in…" : "Log in"}
         </button>
 
         <div className="circlo-divider">

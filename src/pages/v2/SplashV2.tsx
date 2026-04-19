@@ -19,7 +19,7 @@ export default function SplashV2() {
 
   useEffect(() => {
     const minDelay = setTimeout(() => {
-      if (!loading) navigate(user ? "/v2/home" : "/v2/login", { replace: true });
+      if (!loading) navigate(user ? "/v2/home" : "/v2/auth/welcome", { replace: true });
     }, 900);
     return () => clearTimeout(minDelay);
   }, [user, loading, navigate]);
@@ -27,7 +27,7 @@ export default function SplashV2() {
   // If auth resolves AFTER the 900ms timer fires we still need a redirect.
   useEffect(() => {
     if (loading) return;
-    const t = setTimeout(() => navigate(user ? "/v2/home" : "/v2/login", { replace: true }), 50);
+    const t = setTimeout(() => navigate(user ? "/v2/home" : "/v2/auth/welcome", { replace: true }), 50);
     return () => clearTimeout(t);
   }, [loading, user, navigate]);
 
