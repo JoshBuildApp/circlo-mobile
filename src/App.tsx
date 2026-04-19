@@ -87,6 +87,10 @@ const V2Chat = lazy(() => import("@/pages/v2/ChatPage"));
 const V2NewMessage = lazy(() => import("@/pages/v2/NewMessagePage"));
 const V2Booking = lazy(() => import("@/pages/v2/BookingFlowPage"));
 const V2BookingSuccess = lazy(() => import("@/pages/v2/BookingSuccessPage"));
+const V2UserProfile = lazy(() => import("@/pages/v2/UserProfileV2"));
+const V2MyBookings = lazy(() => import("@/pages/v2/MyBookingsPage"));
+const V2Settings = lazy(() => import("@/pages/v2/SettingsV2Page"));
+const V2Payments = lazy(() => import("@/pages/v2/PaymentMethodsPage"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -178,10 +182,10 @@ function App() {
                     <Route path="/v2/calendar/:date" element={<RouteWrapper routeName="v2-day-detail"><V2Guard><V2Stub title="Day detail" phase={13} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/book/:coachId" element={<RouteWrapper routeName="v2-book"><V2Guard><V2Booking /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/book/:bookingId/success" element={<RouteWrapper routeName="v2-book-success"><V2Guard><V2BookingSuccess /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/profile" element={<RouteWrapper routeName="v2-profile"><V2Guard><V2Stub title="Profile" phase={10} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/profile/bookings" element={<RouteWrapper routeName="v2-my-bookings"><V2Guard><V2Stub title="My bookings" phase={10} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/profile/settings" element={<RouteWrapper routeName="v2-settings"><V2Guard><V2Stub title="Settings" phase={10} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/profile/payments" element={<RouteWrapper routeName="v2-payments"><V2Guard><V2Stub title="Payments" phase={10} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/profile" element={<RouteWrapper routeName="v2-profile"><V2Guard><V2UserProfile /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/profile/bookings" element={<RouteWrapper routeName="v2-my-bookings"><V2Guard><V2MyBookings /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/profile/settings" element={<RouteWrapper routeName="v2-settings"><V2Guard><V2Settings /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/profile/payments" element={<RouteWrapper routeName="v2-payments"><V2Guard><V2Payments /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach-me" element={<RouteWrapper routeName="v2-coach-me"><V2Guard><V2Stub title="Coach dashboard" phase={11} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach-me/requests" element={<RouteWrapper routeName="v2-coach-requests"><V2Guard><V2Stub title="Coach · Requests" phase={11} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach-me/content" element={<RouteWrapper routeName="v2-coach-content"><V2Guard><V2Stub title="Coach · Content" phase={12} /></V2Guard></RouteWrapper>} />
