@@ -262,6 +262,8 @@ export interface PlayerProfile {
   circleCount: number;
   rating: number;
   roles: UserRole[];
+  /** Public URL of the user's avatar (Supabase storage). */
+  avatarUrl?: string;
   nextSession?: {
     coachName: string;
     when: string;

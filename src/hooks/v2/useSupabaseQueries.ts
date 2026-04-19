@@ -151,6 +151,7 @@ export async function fetchMyPlayerProfile(userId: string): Promise<PlayerProfil
     circleCount: 0,
     rating: 4.8,
     roles: Array.from(roleSet),
+    avatarUrl: profile.avatar_url ?? undefined,
   };
 }
 

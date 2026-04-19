@@ -1,15 +1,48 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Settings as SettingsIcon, ChevronRight, Calendar, MessageSquare, Star, Users, Edit3, Repeat } from "lucide-react";
+import { useRef, useState } from "react";
+import { ChevronLeft, Settings as SettingsIcon, ChevronRight, Calendar, MessageSquare, Star, Users, Edit3, Repeat, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { PhoneFrame, StatusBar, TabBar, RoundButton, Avatar, SectionHeader, HScroll, Chip } from "@/components/v2/shared";
 import { CoachCard } from "@/components/v2/home/CoachCard";
 import { useMyPlayerProfile, useCoaches } from "@/hooks/v2/useMocks";
 import { useRole } from "@/contexts/v2/RoleContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { uploadAvatar } from "@/lib/v2/storage";
 
 export default function UserProfileV2() {
   const navigate = useNavigate();
   const { switchRole } = useRole();
+  const { user } = useAuth();
+  const qc = useQueryClient();
   const { data: me } = useMyPlayerProfile();
   const { data: coaches = [] } = useCoaches();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePickPhoto = () => {
+    if (!user) {
+      toast.error("Sign in to upload an avatar.");
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset so picking the same file again still fires
+    if (!file || !user) return;
+    setUploading(true);
+    try {
+      await uploadAvatar(user.id, file);
+      toast.success("Photo updated.");
+      qc.invalidateQueries({ queryKey: ["v2", "me"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-28">
@@ -43,13 +76,31 @@ export default function UserProfileV2() {
 
         <div className="flex gap-3.5 items-center">
           <div className="relative shrink-0">
-            <Avatar size={72} gradient="teal-mint" />
+            <Avatar
+              size={72}
+              gradient="teal-mint"
+              src={me?.avatarUrl}
+              alt={me?.fullName ?? "You"}
+            />
             <button
               aria-label="Edit photo"
-              className="absolute bottom-[-2px] right-[-2px] w-6 h-6 rounded-full bg-navy-card border-[3px] border-navy-deep flex items-center justify-center"
+              onClick={handlePickPhoto}
+              disabled={uploading}
+              className="absolute bottom-[-2px] right-[-2px] w-6 h-6 rounded-full bg-navy-card border-[3px] border-navy-deep flex items-center justify-center disabled:opacity-60"
             >
-              <Edit3 size={10} className="text-offwhite" strokeWidth={2.5} />
+              {uploading ? (
+                <Loader2 size={10} className="text-offwhite animate-spin" strokeWidth={2.5} />
+              ) : (
+                <Edit3 size={10} className="text-offwhite" strokeWidth={2.5} />
+              )}
             </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFile}
+            />
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-[20px] font-extrabold tracking-tight leading-tight">{me?.fullName ?? "Member"}</h2>

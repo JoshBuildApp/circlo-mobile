@@ -5,7 +5,9 @@
  * mocks — replace one-by-one per V2_UPGRADE_PLAN Step 3.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   fetchMyPlayerProfile,
   fetchCoaches,
@@ -148,7 +150,8 @@ export function useMySessions(filter: "upcoming" | "past" | "cancelled" = "upcom
 
 export function useBookingRequests(filter: "new" | "responded" | "declined" = "new") {
   const { user } = useAuth();
-  return useQuery<BookingRequest[]>({
+  const qc = useQueryClient();
+  const query = useQuery<BookingRequest[]>({
     queryKey: ["v2", "booking-requests", filter, user?.id ?? "guest"],
     queryFn: async () => {
       if (!user) {
@@ -159,6 +162,30 @@ export function useBookingRequests(filter: "new" | "responded" | "declined" = "n
       return fetchBookingRequestsForCoach(user.id, filter);
     },
   });
+
+  // Realtime: any change to public.bookings invalidates this list and the
+  // sessions list. Filtering server-side per coach would require we know the
+  // coach_profiles.id here; the cheap approach is to invalidate on any change
+  // and let react-query re-run the scoped query.
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`v2-bookings:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "bookings" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["v2", "booking-requests"] });
+          qc.invalidateQueries({ queryKey: ["v2", "sessions"] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, qc]);
+
+  return query;
 }
 
 export function useSession(bookingId: string | undefined) {
@@ -272,7 +299,8 @@ export function useMessageThreads() {
 
 export function useChat(threadId: string | undefined) {
   const { user } = useAuth();
-  return useQuery<Message[]>({
+  const qc = useQueryClient();
+  const query = useQuery<Message[]>({
     queryKey: ["v2", "chat", threadId, user?.id ?? "guest"],
     queryFn: async () => {
       if (!threadId) return [];
@@ -281,6 +309,29 @@ export function useChat(threadId: string | undefined) {
     },
     enabled: Boolean(threadId),
   });
+
+  // Realtime: invalidate this chat (and the inbox) when any message lands.
+  // We could narrow with a server-side filter, but messages are partitioned
+  // by month so a global subscription is simpler and the payload is tiny.
+  useEffect(() => {
+    if (!user || !threadId) return;
+    const channel = supabase
+      .channel(`v2-chat:${threadId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["v2", "chat", threadId] });
+          qc.invalidateQueries({ queryKey: ["v2", "threads"] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, threadId, qc]);
+
+  return query;
 }
 
 export function useVideos(coachId: string | undefined) {
