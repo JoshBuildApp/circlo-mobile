@@ -3,7 +3,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { User, Users, Video, Check, MapPin, Home, Lock, Edit3, ChevronRight, Calendar, Plus } from "lucide-react";
 import { PhoneFrame, StatusBar, Avatar, Chip } from "@/components/v2/shared";
 import { StepShell } from "@/components/v2/booking/StepShell";
-import { useCoach } from "@/hooks/v2/useMocks";
+import { useCoach, useCreateBooking } from "@/hooks/v2/useMocks";
+import { toast } from "sonner";
 import { formatPrice } from "@/lib/v2/currency";
 import { cn } from "@/lib/utils";
 import type { SessionFormat } from "@/types/v2";
@@ -45,6 +46,7 @@ export default function BookingFlowPage() {
   const [note, setNote] = useState("");
 
   const { data: coach } = useCoach(coachId);
+  const createBookingMutation = useCreateBooking();
 
   const totalsILS = useMemo(() => {
     const base = format.price;
@@ -53,9 +55,41 @@ export default function BookingFlowPage() {
     return { base, fee, surcharge, total: base + fee + surcharge };
   }, [format, location]);
 
+  const submitBooking = async () => {
+    if (!coachId || !coach) {
+      toast.error("Missing coach. Please go back and try again.");
+      return;
+    }
+    if (createBookingMutation.isPending) return;
+    const dateStr = date.toISOString().slice(0, 10);
+    try {
+      const session = await createBookingMutation.mutateAsync({
+        coachId,
+        coachName: coach.name,
+        date: dateStr,
+        time: slot,
+        durationMin: format.duration,
+        priceILS: totalsILS.base + totalsILS.surcharge,
+        feeILS: totalsILS.fee,
+        format: format.key,
+        note: note || undefined,
+        location:
+          location === "home"
+            ? "Jaffa Padel Club"
+            : location === "park"
+              ? "Hayarkon Park"
+              : "Private — your court",
+      });
+      toast.success("Booking sent — coach will confirm.");
+      navigate(`/v2/book/${session.id}/success`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't create the booking. Try again.");
+    }
+  };
+
   const goNext = () => {
     if (step < 5) setStep((s) => (s + 1) as Step);
-    else navigate(`/v2/book/CRC-${Date.now().toString().slice(-4)}/success`);
+    else void submitBooking();
   };
   const goBack = () => {
     if (step > 1) setStep((s) => (s - 1) as Step);
@@ -360,9 +394,15 @@ export default function BookingFlowPage() {
           sub={`You won't be charged until ${coach?.firstName ?? "your coach"} confirms.`}
           bottomBar={
             <>
-              <button onClick={goNext} className="w-full py-4 rounded-[16px] bg-orange text-white font-bold text-[15px] flex items-center justify-center gap-2">
+              <button
+                onClick={goNext}
+                disabled={createBookingMutation.isPending}
+                className="w-full py-4 rounded-[16px] bg-orange text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-60"
+              >
                 <Lock size={16} strokeWidth={2.5} />
-                Pay {formatPrice(totalsILS.total)} and book
+                {createBookingMutation.isPending
+                  ? "Sending booking…"
+                  : `Pay ${formatPrice(totalsILS.total)} and book`}
               </button>
               <div className="text-center text-[11px] text-v2-muted-2 mt-1.5">
                 By booking, you agree to Circlo's Terms &amp; Cancellation Policy

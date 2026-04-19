@@ -344,6 +344,68 @@ export async function fetchBookingRequestsForCoach(
   return rows.map((r) => rowToBookingRequest(r, r.user_id ? nameMap.get(r.user_id) : undefined));
 }
 
+export async function fetchSession(bookingId: string): Promise<Session | null> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id, user_id, coach_id, coach_name, date, time, time_label, status, price, total_participants, is_group, training_type, booking_code, created_at")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (error || !data) {
+    if (error) console.error("[v2] fetchSession failed:", error.message);
+    return null;
+  }
+  return rowToSession(data as DbBookingRow);
+}
+
+export interface CreateBookingInput {
+  userId: string;
+  coachId: string;
+  coachName: string;
+  date: string;          // YYYY-MM-DD
+  time: string;          // HH:MM
+  durationMin: number;
+  priceILS: number;
+  feeILS: number;
+  format: "one-on-one" | "group" | "video-review";
+  note?: string;
+  location?: string;
+}
+
+function generateBookingCode(): string {
+  const n = Math.floor(1000 + Math.random() * 9000);
+  return `CRC-${n}`;
+}
+
+export async function createBooking(input: CreateBookingInput): Promise<Session> {
+  const code = generateBookingCode();
+  const insert = {
+    user_id: input.userId,
+    coach_id: input.coachId,
+    coach_name: input.coachName,
+    date: input.date,
+    time: input.time,
+    time_label: input.time,
+    status: "pending" as const,
+    price: input.priceILS,
+    platform_fee: input.feeILS,
+    is_group: input.format === "group",
+    training_type: input.format,
+    booking_code: code,
+  };
+  const { data, error } = await supabase
+    .from("bookings")
+    .insert(insert)
+    .select(
+      "id, user_id, coach_id, coach_name, date, time, time_label, status, price, total_participants, is_group, training_type, booking_code, created_at"
+    )
+    .single();
+  if (error || !data) {
+    console.error("[v2] createBooking failed:", error?.message);
+    throw error ?? new Error("Booking insert returned no row");
+  }
+  return rowToSession(data as DbBookingRow);
+}
+
 export async function setBookingStatus(bookingId: string, action: "accept" | "decline"): Promise<void> {
   const status = action === "accept" ? "confirmed" : "cancelled";
   const { error } = await supabase.from("bookings").update({ status }).eq("id", bookingId);

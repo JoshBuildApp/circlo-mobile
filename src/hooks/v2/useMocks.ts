@@ -21,7 +21,10 @@ import {
   fetchCoachReviewSummary,
   fetchMessageThreads,
   fetchChatMessages,
+  fetchSession,
+  createBooking,
   type CoachReview,
+  type CreateBookingInput,
 } from "@/hooks/v2/useSupabaseQueries";
 import {
   mockCoaches,
@@ -154,6 +157,47 @@ export function useBookingRequests(filter: "new" | "responded" | "declined" = "n
         return delay(mockBookingRequests.filter((r) => r.status === "accepted"));
       }
       return fetchBookingRequestsForCoach(user.id, filter);
+    },
+  });
+}
+
+export function useSession(bookingId: string | undefined) {
+  const { user } = useAuth();
+  return useQuery<Session | null>({
+    queryKey: ["v2", "session", bookingId, user?.id ?? "guest"],
+    queryFn: async () => {
+      if (!bookingId) return null;
+      // Mock id pattern from old preview path: CRC-XXXX. Render mock session.
+      if (bookingId.startsWith("CRC-")) return mockSessions[0];
+      if (!user) return mockSessions.find((s) => s.id === bookingId) ?? mockSessions[0];
+      const real = await fetchSession(bookingId);
+      return real ?? mockSessions[0];
+    },
+    enabled: Boolean(bookingId),
+  });
+}
+
+export function useCreateBooking() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (input: Omit<CreateBookingInput, "userId">) => {
+      if (!user) {
+        // Guest preview — return a mock-shaped Session without writing.
+        await delay(null, 500);
+        return {
+          ...mockSessions[0],
+          id: `CRC-${Math.floor(1000 + Math.random() * 9000)}`,
+          coachId: input.coachId,
+          coachName: input.coachName,
+          status: "pending" as const,
+        };
+      }
+      return createBooking({ ...input, userId: user.id });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["v2", "sessions"] });
+      qc.invalidateQueries({ queryKey: ["v2", "booking-requests"] });
     },
   });
 }

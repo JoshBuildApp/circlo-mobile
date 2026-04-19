@@ -2,11 +2,28 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { X, Check, Calendar, MessageSquare } from "lucide-react";
 import { PhoneFrame, StatusBar, Avatar } from "@/components/v2/shared";
+import { useSession } from "@/hooks/v2/useMocks";
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+function fmtTimeRange(startIso: string, endIso: string) {
+  const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
+  return `${new Date(startIso).toLocaleTimeString([], opts)} → ${new Date(endIso).toLocaleTimeString([], opts)}`;
+}
 
 export default function BookingSuccessPage() {
   const navigate = useNavigate();
   const { bookingId } = useParams<{ bookingId: string }>();
   const reduceMotion = useReducedMotion();
+  const { data: session } = useSession(bookingId);
+  const refLabel = session?.ref ?? bookingId ?? "—";
+  const coachName = session?.coachName ?? "Maya Rosenfeld";
+  const formatLabel = session?.format === "group" ? "Group · 90 min" : session?.format === "video-review" ? "Video review" : `1-on-1 · ${session?.durationMin ?? 60} min`;
+  const whenLabel = session ? fmtDate(session.startsAt) : "Fri";
+  const timeLabel = session ? fmtTimeRange(session.startsAt, session.endsAt) : "18:00 → 19:00";
+  const where = session?.location ?? "Jaffa Padel Club";
+  const whereSub = session?.locationSubline ?? "2.1 km away";
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-12 relative">
@@ -44,25 +61,25 @@ export default function BookingSuccessPage() {
         >
           <div className="flex justify-between items-center mb-3.5">
             <div className="text-[10px] font-bold text-teal tracking-wider">✓ CONFIRMED</div>
-            <div className="text-[11px] text-v2-muted font-semibold tnum">#{bookingId}</div>
+            <div className="text-[11px] text-v2-muted font-semibold tnum">#{refLabel}</div>
           </div>
           <div className="flex gap-3.5 items-center mb-3.5">
             <Avatar size={48} gradient="teal-gold" />
             <div>
-              <div className="text-[15px] font-bold">Maya Rosenfeld</div>
-              <div className="text-[12px] text-v2-muted">1-on-1 · 60 min</div>
+              <div className="text-[15px] font-bold">{coachName}</div>
+              <div className="text-[12px] text-v2-muted">{formatLabel}</div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             <div className="p-3 rounded-[10px] bg-black/20">
               <div className="text-[10px] text-teal font-bold tracking-wider">WHEN</div>
-              <div className="text-[13px] font-bold mt-0.5">Fri</div>
-              <div className="text-[11px] text-v2-muted mt-0.5">18:00 → 19:00</div>
+              <div className="text-[13px] font-bold mt-0.5">{whenLabel}</div>
+              <div className="text-[11px] text-v2-muted mt-0.5 tnum">{timeLabel}</div>
             </div>
             <div className="p-3 rounded-[10px] bg-black/20">
               <div className="text-[10px] text-teal font-bold tracking-wider">WHERE</div>
-              <div className="text-[13px] font-bold mt-0.5">Jaffa Padel Club</div>
-              <div className="text-[11px] text-v2-muted mt-0.5">2.1 km away</div>
+              <div className="text-[13px] font-bold mt-0.5">{where}</div>
+              <div className="text-[11px] text-v2-muted mt-0.5">{whereSub}</div>
             </div>
           </div>
         </div>
