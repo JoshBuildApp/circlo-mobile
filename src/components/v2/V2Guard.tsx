@@ -4,6 +4,7 @@ import { isV2Enabled, setV2Enabled } from "@/lib/v2/featureFlag";
 import { V2RoleProvider } from "@/contexts/v2/RoleContext";
 import { V2ThemeProvider } from "@/contexts/v2/ThemeContext";
 import { V2ErrorBoundary } from "@/components/v2/V2ErrorBoundary";
+import { DevPanel } from "@/components/v2/DevPanel";
 import { useAuth } from "@/contexts/AuthContext";
 
 /** Routes that don't require auth (auth flow itself + the flag toggle). */
@@ -51,7 +52,11 @@ export function V2Guard({ children }: { children: ReactNode }) {
   return (
     <V2ErrorBoundary>
       <V2ThemeProvider>
-        <V2RoleProvider>{children}</V2RoleProvider>
+        <V2RoleProvider>
+          {children}
+          {/* Internal dev panel — renders null for non-allowlisted users. */}
+          <DevPanel />
+        </V2RoleProvider>
       </V2ThemeProvider>
     </V2ErrorBoundary>
   );

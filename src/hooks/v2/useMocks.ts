@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { shouldUseMocks, shouldFallbackToMocks, getDataMode, devOverrideActive } from "@/lib/v2/devMode";
 import {
   fetchMyPlayerProfile,
   fetchCoaches,
@@ -78,9 +79,11 @@ function delay<T>(value: T, ms = MOCK_DELAY_MS): Promise<T> {
 export function useCoaches(filters: CoachSearchFilters = {}) {
   const { user } = useAuth();
   // Cache key includes the filter shape so distinct searches don't collide.
+  // Dev data mode is part of the key so flipping the toggle re-fetches.
   const filterKey = JSON.stringify(filters);
+  const sourceKey = devOverrideActive(user) ? getDataMode() : user ? "live" : "mock";
   return useQuery<Coach[]>({
-    queryKey: ["v2", "coaches", filterKey, user ? "live" : "mock"],
+    queryKey: ["v2", "coaches", filterKey, sourceKey],
     queryFn: async () => {
       const filterMock = (list: Coach[]) => {
         let out = list;
@@ -99,9 +102,10 @@ export function useCoaches(filters: CoachSearchFilters = {}) {
         }
         return out;
       };
-      if (!user) return delay(filterMock(mockCoaches));
+      if (shouldUseMocks(user)) return delay(filterMock(mockCoaches));
       const real = await fetchCoaches(filters);
-      return real.length > 0 ? real : filterMock(mockCoaches);
+      if (real.length > 0) return real;
+      return shouldFallbackToMocks(user) ? filterMock(mockCoaches) : [];
     },
   });
 }
@@ -112,9 +116,10 @@ export function useCoach(id: string | undefined) {
     queryKey: ["v2", "coach", id, user ? "live" : "mock"],
     queryFn: async () => {
       if (!id) return null;
-      if (!user) return delay(mockCoaches.find((c) => c.id === id) ?? mockCoaches[0] ?? null);
+      if (shouldUseMocks(user)) return delay(mockCoaches.find((c) => c.id === id) ?? mockCoaches[0] ?? null);
       const real = await fetchCoach(id);
-      return real ?? mockCoaches.find((c) => c.id === id) ?? null;
+      if (real) return real;
+      return shouldFallbackToMocks(user) ? mockCoaches.find((c) => c.id === id) ?? null : null;
     },
     enabled: Boolean(id),
   });
@@ -125,9 +130,9 @@ export function useMyPlayerProfile() {
   return useQuery<PlayerProfile>({
     queryKey: ["v2", "me", user?.id ?? "guest"],
     queryFn: async () => {
-      if (!user) return delay(mockPlayer);
+      if (shouldUseMocks(user)) return delay(mockPlayer);
       const real = await fetchMyPlayerProfile(user.id);
-      if (!real) return mockPlayer;
+      if (!real) return shouldFallbackToMocks(user) ? mockPlayer : ({ ...mockPlayer, fullName: user?.email ?? "You", email: user?.email ?? "" });
       // Inject the real email from auth into the profile.
       return { ...real, email: user.email ?? "" };
     },
@@ -139,9 +144,9 @@ export function useMyCoachProfile() {
   return useQuery<CoachProfile>({
     queryKey: ["v2", "me", "coach", user?.id ?? "guest"],
     queryFn: async () => {
-      if (!user) return delay(mockCoachProfile);
+      if (shouldUseMocks(user)) return delay(mockCoachProfile);
       const real = await fetchMyCoachProfile(user.id);
-      return real ?? mockCoachProfile;
+      return real ?? (shouldFallbackToMocks(user) ? mockCoachProfile : { ...mockCoachProfile, name: "", tagline: "", bio: "" });
     },
   });
 }
@@ -151,7 +156,7 @@ export function useMySessions(filter: "upcoming" | "past" | "cancelled" = "upcom
   return useQuery<Session[]>({
     queryKey: ["v2", "sessions", filter, user?.id ?? "guest"],
     queryFn: async () => {
-      if (!user) {
+      if (shouldUseMocks(user)) {
         const now = Date.now();
         const all = mockSessions;
         if (filter === "upcoming") return delay(all.filter((s) => new Date(s.startsAt).getTime() >= now));
@@ -171,7 +176,7 @@ export function useBookingRequests(filter: "new" | "responded" | "declined" = "n
   const query = useQuery<BookingRequest[]>({
     queryKey: ["v2", "booking-requests", filter, user?.id ?? "guest"],
     queryFn: async () => {
-      if (!user) {
+      if (shouldUseMocks(user)) {
         if (filter === "new") return delay(mockBookingRequests.filter((r) => r.status === "pending"));
         if (filter === "declined") return delay(mockBookingRequests.filter((r) => r.status === "declined"));
         return delay(mockBookingRequests.filter((r) => r.status === "accepted"));
@@ -213,9 +218,9 @@ export function useSession(bookingId: string | undefined) {
       if (!bookingId) return null;
       // Mock id pattern from old preview path: CRC-XXXX. Render mock session.
       if (bookingId.startsWith("CRC-")) return mockSessions[0];
-      if (!user) return mockSessions.find((s) => s.id === bookingId) ?? mockSessions[0];
+      if (shouldUseMocks(user)) return mockSessions.find((s) => s.id === bookingId) ?? mockSessions[0];
       const real = await fetchSession(bookingId);
-      return real ?? mockSessions[0];
+      return real ?? (shouldFallbackToMocks(user) ? mockSessions[0] : null);
     },
     enabled: Boolean(bookingId),
   });
@@ -226,7 +231,7 @@ export function useCreateBooking() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (input: Omit<CreateBookingInput, "userId">) => {
-      if (!user) {
+      if (shouldUseMocks(user)) {
         // Guest preview — return a mock-shaped Session without writing.
         await delay(null, 500);
         return {
@@ -251,7 +256,7 @@ export function useBookingRequestAction() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async ({ id, action }: { id: string; action: "accept" | "decline" }) => {
-      if (!user) {
+      if (shouldUseMocks(user)) {
         const req = mockBookingRequests.find((r) => r.id === id);
         if (!req) throw new Error("Request not found");
         req.status = action === "accept" ? "accepted" : "declined";
@@ -286,9 +291,10 @@ export function useCirclePosts(coachId?: string) {
   return useQuery<CirclePost[]>({
     queryKey: ["v2", "circle-posts", coachId ?? "all", user ? "live" : "mock"],
     queryFn: async () => {
-      if (!user) return delay(mockCirclePosts);
+      if (shouldUseMocks(user)) return delay(mockCirclePosts);
       const real = await fetchCirclePosts(coachId);
-      return real.length > 0 ? real : mockCirclePosts;
+      if (real.length > 0) return real;
+      return shouldFallbackToMocks(user) ? mockCirclePosts : [];
     },
   });
 }
@@ -306,7 +312,7 @@ export function useMessageThreads() {
   return useQuery<MessageThread[]>({
     queryKey: ["v2", "threads", user?.id ?? "guest"],
     queryFn: async () => {
-      if (!user) return delay(mockThreads);
+      if (shouldUseMocks(user)) return delay(mockThreads);
       const real = await fetchMessageThreads(user.id);
       // Empty inbox is a real state — show it instead of mocks once authed.
       return real;
@@ -321,7 +327,7 @@ export function useChat(threadId: string | undefined) {
     queryKey: ["v2", "chat", threadId, user?.id ?? "guest"],
     queryFn: async () => {
       if (!threadId) return [];
-      if (!user) return delay(mockMessages[threadId] ?? []);
+      if (shouldUseMocks(user)) return delay(mockMessages[threadId] ?? []);
       return fetchChatMessages(threadId, user.id);
     },
     enabled: Boolean(threadId),
@@ -356,9 +362,10 @@ export function useVideos(coachId: string | undefined) {
   return useQuery<Video[]>({
     queryKey: ["v2", "videos", coachId, user ? "live" : "mock"],
     queryFn: async () => {
-      if (!user) return delay(mockVideos.filter((v) => !coachId || v.coachId === coachId));
+      if (shouldUseMocks(user)) return delay(mockVideos.filter((v) => !coachId || v.coachId === coachId));
       const real = await fetchVideos(coachId);
-      return real.length > 0 ? real : mockVideos.filter((v) => !coachId || v.coachId === coachId);
+      if (real.length > 0) return real;
+      return shouldFallbackToMocks(user) ? mockVideos.filter((v) => !coachId || v.coachId === coachId) : [];
     },
   });
 }
@@ -369,9 +376,10 @@ export function useVideo(id: string | undefined) {
     queryKey: ["v2", "video", id, user ? "live" : "mock"],
     queryFn: async () => {
       if (!id) return null;
-      if (!user) return delay(mockVideos.find((v) => v.id === id) ?? null);
+      if (shouldUseMocks(user)) return delay(mockVideos.find((v) => v.id === id) ?? null);
       const real = await fetchVideo(id);
-      return real ?? mockVideos.find((v) => v.id === id) ?? null;
+      if (real) return real;
+      return shouldFallbackToMocks(user) ? mockVideos.find((v) => v.id === id) ?? null : null;
     },
     enabled: Boolean(id),
   });
@@ -383,7 +391,7 @@ export function useCoachReviews(coachId: string | undefined) {
     queryKey: ["v2", "coach-reviews", coachId, user ? "live" : "mock"],
     queryFn: async () => {
       if (!coachId) return [];
-      if (!user) return [];
+      if (shouldUseMocks(user)) return [];
       return fetchCoachReviews(coachId);
     },
     enabled: Boolean(coachId),
@@ -416,9 +424,10 @@ export function useTrainingPlan(id: string | undefined) {
     queryKey: ["v2", "plan", id, user ? "live" : "mock"],
     queryFn: async () => {
       if (!id) return null;
-      if (!user) return mockTrainingPlans.find((p) => p.id === id) ?? null;
+      if (shouldUseMocks(user)) return mockTrainingPlans.find((p) => p.id === id) ?? null;
       const real = await fetchTrainingPlan(id);
-      return real ?? mockTrainingPlans.find((p) => p.id === id) ?? null;
+      if (real) return real;
+      return shouldFallbackToMocks(user) ? mockTrainingPlans.find((p) => p.id === id) ?? null : null;
     },
     enabled: Boolean(id),
   });
@@ -429,9 +438,10 @@ export function useCoachPlans(coachId: string | undefined) {
   return useQuery<TrainingPlan[]>({
     queryKey: ["v2", "plans", coachId, user ? "live" : "mock"],
     queryFn: async () => {
-      if (!user) return mockTrainingPlans.filter((p) => !coachId || p.coachId === coachId);
+      if (shouldUseMocks(user)) return mockTrainingPlans.filter((p) => !coachId || p.coachId === coachId);
       const real = await fetchCoachPlans(coachId);
-      return real.length > 0 ? real : mockTrainingPlans.filter((p) => !coachId || p.coachId === coachId);
+      if (real.length > 0) return real;
+      return shouldFallbackToMocks(user) ? mockTrainingPlans.filter((p) => !coachId || p.coachId === coachId) : [];
     },
   });
 }
@@ -441,7 +451,7 @@ export function useCalendarEvents(startDate?: Date, endDate?: Date) {
   return useQuery<CalendarEvent[]>({
     queryKey: ["v2", "calendar", startDate?.toISOString(), endDate?.toISOString(), user?.id ?? "guest"],
     queryFn: async () => {
-      if (!user) {
+      if (shouldUseMocks(user)) {
         if (!startDate || !endDate) return delay(mockCalendarEvents);
         const s = startDate.getTime();
         const e = endDate.getTime();
@@ -461,7 +471,7 @@ export function useDayEvents(date: Date | undefined) {
     queryKey: ["v2", "day-events", date?.toDateString(), user?.id ?? "guest"],
     queryFn: async () => {
       if (!date) return [];
-      if (!user) {
+      if (shouldUseMocks(user)) {
         return delay(
           mockCalendarEvents.filter((ev) => new Date(ev.startsAt).toDateString() === date.toDateString())
         );
@@ -481,7 +491,7 @@ export function useAddWorkout() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (workout: Omit<CalendarEvent, "id"> & { id?: string }) => {
-      if (!user) {
+      if (shouldUseMocks(user)) {
         // Guest preview — push into mock.
         const event: CalendarEvent = { id: `ce-${Date.now()}`, ...workout };
         mockCalendarEvents.push(event);
@@ -509,7 +519,7 @@ export function useSubscribeToPlan() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async ({ planId, startDate }: { planId: string; startDate: Date }) => {
-      if (!user) {
+      if (shouldUseMocks(user)) {
         // Guest preview path — write into mock array.
         const plan = mockTrainingPlans.find((p) => p.id === planId);
         if (!plan) throw new Error("Plan not found");
