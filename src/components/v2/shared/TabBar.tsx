@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
 import { Home, Search, Calendar, MessageSquare, User, LayoutGrid, Bot, Film } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/contexts/v2/RoleContext";
 
 export type PlayerTab = "home" | "discover" | "calendar" | "messages" | "profile";
 export type CoachTab = "dashboard" | "messages" | "bob" | "content" | "profile";
 export type AnyTab = PlayerTab | CoachTab;
 
 export interface TabBarProps {
-  mode: "player" | "coach";
+  /** Optional override; defaults to current RoleContext role. */
+  mode?: "player" | "coach";
   active: AnyTab;
   className?: string;
 }
@@ -33,7 +35,10 @@ const COACH_TABS: { key: CoachTab; label: string; to: string; icon: typeof Home 
  * respects Capacitor safe area. Active tab shows teal icon/label.
  */
 export function TabBar({ mode, active, className }: TabBarProps) {
-  const tabs = mode === "coach" ? COACH_TABS : PLAYER_TABS;
+  // Default to current role context if no explicit override provided.
+  const ctx = useRole();
+  const resolvedMode: "player" | "coach" = mode ?? ctx.role;
+  const tabs = resolvedMode === "coach" ? COACH_TABS : PLAYER_TABS;
   return (
     <nav
       aria-label="Primary"
