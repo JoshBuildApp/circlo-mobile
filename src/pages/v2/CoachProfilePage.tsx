@@ -1,7 +1,7 @@
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { PhoneFrame, StatusBar, TabBar } from "@/components/v2/shared";
 import { CoachProfileHero } from "@/components/v2/coach/CoachProfileHero";
-import { AboutTab } from "@/components/v2/coach/AboutTab";
+import { AboutBuilderTab } from "@/components/v2/coach/AboutBuilderTab";
 import { CommunityTab } from "@/components/v2/coach/CommunityTab";
 import { ShopTab } from "@/components/v2/coach/ShopTab";
 import { BookingBar } from "@/components/v2/coach/BookingBar";
@@ -74,7 +74,7 @@ export default function CoachProfilePage() {
       <StatusBar />
       <CoachProfileHero coach={coach} activeTab={tab} onTab={setTab} onBack={() => navigate(-1)} />
       {tab === "about" && (
-        <AboutTab
+        <AboutBuilderTab
           coach={coach}
           onFollow={() => navigate(`/v2/coach/${coach.id}/join`)}
           onMessage={() => navigate(`/v2/messages/th-${coach.id}`)}
