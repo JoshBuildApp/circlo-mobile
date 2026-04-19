@@ -1,0 +1,161 @@
+/* =========================================================================
+ * Sports screen — 3-column emoji grid, scrollable with a bottom fade mask,
+ * count chip, context-aware CTA. Mirrors .sport-* classes from
+ * prototype/auth-flow.html.
+ * ========================================================================= */
+
+/* Selection count chip above the grid. */
+.circlo-sel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0, 212, 170, 0.12);
+  color: var(--circlo-teal);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.circlo-sel-chip--empty {
+  background: var(--circlo-navy-card);
+  color: var(--circlo-text-dim);
+}
+
+/* Scrollable wrapper with a bottom fade so cards feather out above the CTA. */
+.circlo-sport-scroll {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0 -8px;
+  padding: 0 8px 12px;
+  mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 32px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 32px),
+    transparent 100%
+  );
+}
+.circlo-sport-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.circlo-sport-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding-bottom: 16px;
+}
+
+.circlo-sport-card {
+  aspect-ratio: 1;
+  background: var(--circlo-navy-card);
+  border: 1.5px solid var(--circlo-border);
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  position: relative;
+  font-family: inherit;
+  color: var(--circlo-text);
+  padding: 8px;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.circlo-sport-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 110%,
+    rgba(0, 212, 170, 0.12),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s;
+  pointer-events: none;
+}
+
+.circlo-sport-card:hover {
+  background: var(--circlo-navy-elev);
+  transform: translateY(-2px);
+}
+.circlo-sport-card:hover::before {
+  opacity: 1;
+}
+
+.circlo-sport-card[aria-pressed="true"] {
+  border-color: var(--circlo-teal);
+  background: rgba(0, 212, 170, 0.08);
+}
+.circlo-sport-card[aria-pressed="true"]::before {
+  opacity: 1;
+  background: radial-gradient(
+    circle at 50% 110%,
+    rgba(0, 212, 170, 0.25),
+    transparent 70%
+  );
+}
+
+.circlo-sport-emoji {
+  font-size: 32px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s;
+  line-height: 1;
+}
+.circlo-sport-card[aria-pressed="true"] .circlo-sport-emoji {
+  transform: scale(1.1);
+}
+
+.circlo-sport-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--circlo-text);
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.circlo-sport-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--circlo-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 212, 170, 0.4);
+  color: var(--circlo-navy-deep);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.15s, transform 0.15s;
+  pointer-events: none;
+}
+.circlo-sport-card[aria-pressed="true"] .circlo-sport-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circlo-sport-card,
+  .circlo-sport-card::before,
+  .circlo-sport-emoji,
+  .circlo-sport-check {
+    transition: none !important;
+  }
+}
