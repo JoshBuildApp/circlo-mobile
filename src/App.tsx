@@ -85,6 +85,8 @@ const V2BobInbox = lazy(() => import("@/pages/v2/BobInboxPage"));
 const V2Messages = lazy(() => import("@/pages/v2/MessagesInboxPage"));
 const V2Chat = lazy(() => import("@/pages/v2/ChatPage"));
 const V2NewMessage = lazy(() => import("@/pages/v2/NewMessagePage"));
+const V2Booking = lazy(() => import("@/pages/v2/BookingFlowPage"));
+const V2BookingSuccess = lazy(() => import("@/pages/v2/BookingSuccessPage"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -174,8 +176,8 @@ function App() {
                     <Route path="/v2/calendar" element={<RouteWrapper routeName="v2-calendar"><V2Guard><V2Stub title="Calendar" phase={13} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/calendar/add-workout" element={<RouteWrapper routeName="v2-add-workout"><V2Guard><V2Stub title="Add workout" phase={13} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/calendar/:date" element={<RouteWrapper routeName="v2-day-detail"><V2Guard><V2Stub title="Day detail" phase={13} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/book/:coachId" element={<RouteWrapper routeName="v2-book"><V2Guard><V2Stub title="Book" phase={9} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/book/:bookingId/success" element={<RouteWrapper routeName="v2-book-success"><V2Guard><V2Stub title="Booking success" phase={9} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/book/:coachId" element={<RouteWrapper routeName="v2-book"><V2Guard><V2Booking /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/book/:bookingId/success" element={<RouteWrapper routeName="v2-book-success"><V2Guard><V2BookingSuccess /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/profile" element={<RouteWrapper routeName="v2-profile"><V2Guard><V2Stub title="Profile" phase={10} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/profile/bookings" element={<RouteWrapper routeName="v2-my-bookings"><V2Guard><V2Stub title="My bookings" phase={10} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/profile/settings" element={<RouteWrapper routeName="v2-settings"><V2Guard><V2Stub title="Settings" phase={10} /></V2Guard></RouteWrapper>} />
