@@ -104,6 +104,9 @@ const V2AddWorkout = lazy(() => import("@/pages/v2/AddWorkoutPage"));
 const V2PlanDetail = lazy(() => import("@/pages/v2/TrainingPlanDetailPage"));
 const V2PlanSubscribe = lazy(() => import("@/pages/v2/PlanSubscribeFlowPage"));
 const V2Splash = lazy(() => import("@/pages/v2/SplashV2"));
+const V2Welcome = lazy(() => import("@/pages/v2/WelcomeV2"));
+const V2Login = lazy(() => import("@/pages/v2/LoginV2"));
+const V2Signup = lazy(() => import("@/pages/v2/SignupV2"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -153,8 +156,8 @@ const ShellWrapper = ({ children, routeName }: { children: React.ReactNode; rout
 
 function RootRoute() {
   // Builds with VITE_V2_FORCE=true (or with the localStorage flag set) land
-  // straight on v2 — used for Xcode preview builds and dev.
-  if (isV2Enabled()) return <Navigate to="/v2/home" replace />;
+  // on the v2 splash, which then routes to /v2/home or /v2/login.
+  if (isV2Enabled()) return <Navigate to="/v2/splash" replace />;
   const { loading, user } = useAuth();
   // While Supabase is rehydrating the saved session, show the branded splash.
   if (loading) return <CircloSplash />;
@@ -178,7 +181,10 @@ function App() {
                     {/* v2 routes — feature-flagged, no AppShell (pages render own chrome) */}
                     <Route path="/v2/enable" element={<RouteWrapper routeName="v2-enable"><EnableV2 /></RouteWrapper>} />
                     <Route path="/v2/splash" element={<RouteWrapper routeName="v2-splash"><V2Guard><V2Splash /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2" element={<Navigate to="/v2/home" replace />} />
+                    <Route path="/v2/welcome" element={<RouteWrapper routeName="v2-welcome"><V2Guard><V2Welcome /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/login" element={<RouteWrapper routeName="v2-login"><V2Guard><V2Login /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/signup" element={<RouteWrapper routeName="v2-signup"><V2Guard><V2Signup /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2" element={<Navigate to="/v2/splash" replace />} />
                     <Route path="/v2/home" element={<RouteWrapper routeName="v2-home"><V2Guard><V2Home /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/discover" element={<RouteWrapper routeName="v2-discover"><V2Guard><V2Discover /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id" element={<RouteWrapper routeName="v2-coach-about"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />

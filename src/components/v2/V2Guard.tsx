@@ -3,17 +3,34 @@ import { Navigate, useLocation } from "react-router-dom";
 import { isV2Enabled, setV2Enabled } from "@/lib/v2/featureFlag";
 import { V2RoleProvider } from "@/contexts/v2/RoleContext";
 import { V2ThemeProvider } from "@/contexts/v2/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+
+/** Routes that don't require auth (auth flow itself + the flag toggle). */
+const PUBLIC_V2_ROUTES = new Set([
+  "/v2/enable",
+  "/v2/welcome",
+  "/v2/login",
+  "/v2/signup",
+  "/v2/splash",
+]);
 
 /**
- * Wraps every /v2/* route. If the user appends ?flag=on the flag is set
- * and the page reloads. Otherwise, if the flag is off, we redirect to
- * /v2/enable where a button can turn it on.
+ * Wraps every /v2/* route.
+ * 1. ?flag=on|off persists the v2 feature flag and reloads.
+ * 2. Flag off → redirect to /v2/enable.
+ * 3. Auth resolved + no user + on a private route → redirect to /v2/welcome.
+ *    Mock data still works without a user, but the auth gate is the
+ *    expected production behaviour. Toggle GUEST_BROWSE below to allow
+ *    browsing without an account during preview.
  */
+const GUEST_BROWSE = true; // set to false to enforce auth on every v2 page
+
 export function V2Guard({ children }: { children: ReactNode }) {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const flagParam = params.get("flag");
   const enabled = isV2Enabled();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     if (flagParam === "on") setV2Enabled(true);
@@ -22,6 +39,15 @@ export function V2Guard({ children }: { children: ReactNode }) {
 
   if (!enabled && location.pathname !== "/v2/enable") {
     return <Navigate to="/v2/enable" replace state={{ from: location.pathname }} />;
+  }
+
+  if (
+    !GUEST_BROWSE &&
+    !loading &&
+    !user &&
+    !PUBLIC_V2_ROUTES.has(location.pathname)
+  ) {
+    return <Navigate to="/v2/welcome" replace state={{ from: location.pathname }} />;
   }
 
   return (
