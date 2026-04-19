@@ -102,10 +102,60 @@
   margin: 0 auto 32px;
 }
 
+/* -------------------------------------------------------------------------
+ * Living C — once the C has formed, each of the six gradient stops drifts
+ * through the brand palette on a 3.5s loop. Orange-family stops cycle
+ * FF6B2C → FF8A4C → FFD700; teal-family stops cycle 00D4AA → 00E5B8 →
+ * 00B894 → 1AEAC0. Staggered 150ms delays make the colour band flow around
+ * the arc. Combined with the SVG-side SMIL animations on the gradient's
+ * x1/y1/x2/y2 endpoints (inside CirloRing), the C breathes with drifting
+ * colour bands rather than a static gradient.
+ * ------------------------------------------------------------------------- */
+
+.circlo-ring--opening .circlo-gstop-1 {
+  animation: circlo-stop-flow-orange 3.5s ease-in-out 1.60s infinite;
+}
+.circlo-ring--opening .circlo-gstop-2 {
+  animation: circlo-stop-flow-orange 3.5s ease-in-out 1.75s infinite;
+}
+.circlo-ring--opening .circlo-gstop-3 {
+  animation: circlo-stop-flow-teal 3.5s ease-in-out 1.90s infinite;
+}
+.circlo-ring--opening .circlo-gstop-4 {
+  animation: circlo-stop-flow-teal 3.5s ease-in-out 2.05s infinite;
+}
+.circlo-ring--opening .circlo-gstop-5 {
+  animation: circlo-stop-flow-orange 3.5s ease-in-out 2.20s infinite;
+}
+.circlo-ring--opening .circlo-gstop-6 {
+  animation: circlo-stop-flow-orange 3.5s ease-in-out 2.35s infinite;
+}
+
+@keyframes circlo-stop-flow-orange {
+  0%   { stop-color: #FF6B2C; }
+  25%  { stop-color: #FF8A4C; }
+  50%  { stop-color: #FFD700; }
+  75%  { stop-color: #FF8A4C; }
+  100% { stop-color: #FF6B2C; }
+}
+@keyframes circlo-stop-flow-teal {
+  0%   { stop-color: #00D4AA; }
+  25%  { stop-color: #00E5B8; }
+  50%  { stop-color: #00B894; }
+  75%  { stop-color: #1AEAC0; }
+  100% { stop-color: #00D4AA; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .circlo-ring--opening .circlo-ring-arc-teal,
   .circlo-ring--opening .circlo-ring-arc-orange,
   .circlo-ring--opening .circlo-success-burst,
+  .circlo-ring--opening .circlo-gstop-1,
+  .circlo-ring--opening .circlo-gstop-2,
+  .circlo-ring--opening .circlo-gstop-3,
+  .circlo-ring--opening .circlo-gstop-4,
+  .circlo-ring--opening .circlo-gstop-5,
+  .circlo-ring--opening .circlo-gstop-6,
   .circlo-confetti {
     animation: none !important;
   }
