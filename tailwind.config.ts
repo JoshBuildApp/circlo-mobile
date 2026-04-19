@@ -104,14 +104,19 @@ export default {
         teal: {
           DEFAULT: "#00D4AA",
           dark: "#00B892",
-          soft: "#00D4AA33",
+          // `dim` lives in two places for legacy reasons — 0x1A alpha token
+          // plus the Book-flow palette's deeper shade. We alias the deeper
+          // shade explicitly so Book components read it unambiguously.
           dim: "#00D4AA1A",
+          deep: "#00B894",
+          soft: "#00D4AA33",
         },
         orange: {
           DEFAULT: "#FF6B2C",
           dark: "#E55A1B",
-          soft: "#FF6B2C33",
           dim: "#FF6B2C1A",
+          deep: "#E55A1F",
+          soft: "#FF6B2C33",
         },
         // v2 surfaces use CSS variables (defined in src/index.css under .v2-root)
         // so the same Tailwind classes auto-flip on theme change. v1 pages
