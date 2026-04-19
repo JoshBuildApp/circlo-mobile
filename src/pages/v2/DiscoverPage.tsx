@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Search, MapPin, Mic, SlidersHorizontal, TrendingUp, Sparkles, Users, Lock } from "lucide-react";
 import {
   PhoneFrame,
@@ -59,10 +60,10 @@ export default function DiscoverPage() {
       </div>
 
       <HScroll className="mt-3.5 px-5">
-        <button className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-teal text-navy-deep whitespace-nowrap">● Padel</button>
-        <button className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap flex items-center gap-1.5"><MapPin size={12} /> Tel Aviv</button>
-        <button className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap">{formatPrice(0).replace(/0$/, "")} Price</button>
-        <button className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap"><SlidersHorizontal size={12} /></button>
+        <button onClick={() => toast("Sport filter is the only one wired today — more coming soon.")} className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-teal text-navy-deep whitespace-nowrap">● Padel</button>
+        <button onClick={() => toast("Location filter coming soon.")} className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap flex items-center gap-1.5"><MapPin size={12} /> Tel Aviv</button>
+        <button onClick={() => toast("Price filter coming soon.")} className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap">{formatPrice(0).replace(/0$/, "")} Price</button>
+        <button onClick={() => toast("More filters coming soon.")} aria-label="More filters" className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap"><SlidersHorizontal size={12} /></button>
       </HScroll>
 
       {tab === "coaches" ? (

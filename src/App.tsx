@@ -289,7 +289,18 @@ function App() {
                     </Route>
                   </Routes>
                   <Toaster />
-                  <SonnerToaster position="top-center" richColors />
+                  <SonnerToaster
+                    position="bottom-center"
+                    richColors
+                    closeButton
+                    expand={false}
+                    offset={96}
+                    toastOptions={{
+                      classNames: {
+                        toast: "font-sans",
+                      },
+                    }}
+                  />
                   <Suspense fallback={null}>
                     <OfflineBanner />
                     <DevGateModal />

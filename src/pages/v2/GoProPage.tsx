@@ -60,7 +60,7 @@ export default function GoProPage() {
 
       <div
         className="mx-5 mb-3.5 p-4 rounded-[18px] border border-orange-dim"
-        style={{ background: "linear-gradient(135deg, #3a1c0f, #1f140a)" }}
+        data-grad="orange-soft"
       >
         <div className="flex gap-2.5 items-center mb-3">
           <div className="w-11 h-11 rounded-[12px] bg-orange flex items-center justify-center">

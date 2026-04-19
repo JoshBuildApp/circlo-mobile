@@ -112,9 +112,9 @@ export default function SettingsV2Page() {
       <div className="px-5 mb-4">
         <SettingsList
           rows={[
-            { icon: User, title: "Personal info", sub: "Name, email, phone" },
+            { icon: User, title: "Personal info", sub: "Name, email, phone", onClick: () => navigate("/v2/profile/edit") },
             { icon: CreditCard, title: "Payment methods", sub: "Visa ···· 4242 · Apple Pay", onClick: () => navigate("/v2/profile/payments") },
-            { icon: Lock, title: "Security", sub: "Password · 2-step verification" },
+            { icon: Lock, title: "Security", sub: "Password · 2-step verification", onClick: () => toast("Security settings coming soon.") },
           ]}
         />
       </div>
@@ -123,9 +123,9 @@ export default function SettingsV2Page() {
       <div className="px-5 mb-4">
         <SettingsList
           rows={[
-            { icon: Bell, title: "Notifications", sub: "Push, email, SMS" },
-            { icon: Globe, title: "Language", sub: "English", trailing: <span className="text-v2-muted text-[13px]">EN ›</span> },
-            { icon: DollarSign, title: "Currency", sub: "Israeli Shekel (₪)", trailing: <span className="text-v2-muted text-[13px]">ILS ›</span> },
+            { icon: Bell, title: "Notifications", sub: "Push, email, SMS", onClick: () => toast("Notification preferences coming soon.") },
+            { icon: Globe, title: "Language", sub: "English", trailing: <span className="text-v2-muted text-[13px]">EN ›</span>, onClick: () => toast("Language switcher coming soon (English + Hebrew).") },
+            { icon: DollarSign, title: "Currency", sub: "Israeli Shekel (₪)", trailing: <span className="text-v2-muted text-[13px]">ILS ›</span>, onClick: () => toast("Currency switcher coming soon.") },
             { icon: Sun, title: "Appearance", sub: dark ? "Dark mode" : "Light mode", trailing: <Toggle on={dark} onChange={setDark} /> },
           ]}
         />
@@ -137,7 +137,7 @@ export default function SettingsV2Page() {
           rows={[
             { icon: Eye, title: "Profile visibility", sub: "Coaches can see your profile", trailing: <Toggle on={profileVisible} onChange={setProfileVisible} /> },
             { icon: MapPin, title: "Share location", sub: "For nearby coaches · Near you section", trailing: <Toggle on={shareLocation} onChange={setShareLocation} /> },
-            { icon: FileText, title: "Data & privacy", sub: "Download or delete your data" },
+            { icon: FileText, title: "Data & privacy", sub: "Download or delete your data", onClick: () => toast("Data export + delete flow coming soon.") },
           ]}
         />
       </div>
@@ -146,8 +146,8 @@ export default function SettingsV2Page() {
       <div className="px-5 mb-5">
         <SettingsList
           rows={[
-            { icon: HelpCircle, title: "Help center", sub: "FAQ · contact support" },
-            { icon: FileText, title: "Terms & policies", sub: "Terms of service · Privacy" },
+            { icon: HelpCircle, title: "Help center", sub: "FAQ · contact support", onClick: () => window.open("mailto:support@circloclub.com", "_blank") },
+            { icon: FileText, title: "Terms & policies", sub: "Terms of service · Privacy", onClick: () => window.open("https://circloclub.com/legal/terms", "_blank") },
             { icon: Award, iconClass: "text-orange", title: "Become a coach", sub: "Start coaching on Circlo", onClick: () => navigate("/v2/go-pro") },
           ]}
         />

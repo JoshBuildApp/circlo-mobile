@@ -4,7 +4,7 @@ import { ChevronLeft, Settings as SettingsIcon, ChevronRight, Calendar, MessageS
 import { toast } from "sonner";
 import { PhoneFrame, StatusBar, TabBar, RoundButton, Avatar, SectionHeader, HScroll, Chip } from "@/components/v2/shared";
 import { CoachCard } from "@/components/v2/home/CoachCard";
-import { useMyPlayerProfile, useCoaches } from "@/hooks/v2/useMocks";
+import { useMyPlayerProfile, useCoaches, useMySessions } from "@/hooks/v2/useMocks";
 import { useRole } from "@/contexts/v2/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,6 +17,8 @@ export default function UserProfileV2() {
   const qc = useQueryClient();
   const { data: me } = useMyPlayerProfile();
   const { data: coaches = [] } = useCoaches();
+  const { data: pastSessions = [] } = useMySessions("past");
+  const { data: upcomingSessions = [] } = useMySessions("upcoming");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -137,7 +139,7 @@ export default function UserProfileV2() {
           <button
             onClick={() => navigate("/v2/profile/bookings")}
             className="w-full p-4 rounded-[16px] flex items-center gap-3.5 text-left border border-teal-dim"
-            style={{ background: "linear-gradient(135deg, #0f3b33, #0a2722)" }}
+            data-grad="teal-soft"
           >
             <Avatar size={44} gradient="teal-gold" />
             <div className="flex-1">
@@ -180,10 +182,39 @@ export default function UserProfileV2() {
 
       <SectionHeader title="Activity" />
       <div className="px-5 flex flex-col gap-2 pb-8">
-        <ActivityRow icon={Calendar} iconClass="bg-teal-dim text-teal" title="Completed session with Maya" sub="3 days ago · 60 min · ₪280" />
-        <ActivityRow icon={Star} iconClass="bg-orange-dim text-orange" title="Maya left you a review" sub='"Great footwork improvement this month" · 5★' />
-        <ActivityRow icon={Users} iconClass="bg-teal-dim text-teal" title="Joined Maya's Padel Circle" sub="1 week ago · Circle Member tier" />
-        <ActivityRow icon={MessageSquare} iconClass="bg-teal-dim text-teal" title="Messaged Daniel" sub="2 weeks ago" />
+        {(() => {
+          // Pull a small recent timeline from real sessions. Falls back to a
+          // helpful prompt when the user has no history yet.
+          const items = [
+            ...upcomingSessions.slice(0, 1).map((s) => ({
+              key: `upcoming-${s.id}`,
+              icon: Calendar,
+              iconClass: "bg-teal-dim text-teal",
+              title: `Booked ${s.format === "group" ? "group session" : "1-on-1"} with ${s.coachName}`,
+              sub: `${new Date(s.startsAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${s.durationMin} min · ${s.status}`,
+            })),
+            ...pastSessions.slice(0, 2).map((s) => ({
+              key: `past-${s.id}`,
+              icon: Star,
+              iconClass: "bg-orange-dim text-orange",
+              title: `Completed session with ${s.coachName}`,
+              sub: `${new Date(s.startsAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${s.durationMin} min`,
+            })),
+          ];
+          if (items.length === 0) {
+            return (
+              <ActivityRow
+                icon={Calendar}
+                iconClass="bg-navy-card-2 text-v2-muted"
+                title="No activity yet"
+                sub="Bookings and milestones will show up here."
+              />
+            );
+          }
+          return items.map((it) => (
+            <ActivityRow key={it.key} icon={it.icon} iconClass={it.iconClass} title={it.title} sub={it.sub} />
+          ));
+        })()}
       </div>
 
       <TabBar mode="player" active="profile" />

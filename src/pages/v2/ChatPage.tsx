@@ -20,7 +20,7 @@ function MessageBubble({ m, gradient }: { m: Message; gradient: "teal-gold" | "o
     return (
       <div
         className="self-start max-w-[82%] ml-5 mb-2 p-3 rounded-[14px] cursor-pointer border border-teal-dim"
-        style={{ background: "linear-gradient(135deg, #0f3b33, #0a2722)" }}
+        data-grad="teal-soft"
       >
         <div className="text-[10px] text-teal font-bold tracking-wider mb-1.5 flex items-center gap-1.5">
           <Calendar size={10} /> BOOKING REMINDER

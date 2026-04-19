@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Edit3, Search, Check, CheckCheck } from "lucide-react";
-import { PhoneFrame, StatusBar, TabBar, Avatar, Chip } from "@/components/v2/shared";
+import { PhoneFrame, StatusBar, TabBar, Avatar, Chip, EmptyState } from "@/components/v2/shared";
 import { useMessageThreads } from "@/hooks/v2/useMocks";
 import type { MessageThread } from "@/types/v2";
 import { cn } from "@/lib/utils";
@@ -160,7 +160,13 @@ export default function MessagesInboxPage() {
         ) : null
       )}
       {filtered.length === 0 && (
-        <div className="px-8 py-12 text-center text-v2-muted text-[13px]">No messages match this filter.</div>
+        <EmptyState
+          icon={Edit3}
+          title={threads.length === 0 ? "No messages yet" : "Nothing matches this filter"}
+          description={threads.length === 0 ? "Message a coach to start a conversation." : "Try All to see everything."}
+          ctaLabel={threads.length === 0 ? "Start a chat" : undefined}
+          onCta={threads.length === 0 ? () => navigate("/v2/messages/new") : undefined}
+        />
       )}
 
       <TabBar mode="player" active="messages" />

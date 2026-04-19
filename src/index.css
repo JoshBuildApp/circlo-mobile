@@ -713,6 +713,20 @@
 
 .v2-pulse-dot { animation: v2-pulse-dot 1.8s ease-in-out infinite; }
 
+/* ----- Theme-safe surface gradients used across v2 cards -----
+ *  Use as: <div data-grad="teal-soft" />.
+ *  Dark defaults; .v2-root[data-theme="light"] overrides below.
+ */
+[data-grad="teal-soft"]   { background: linear-gradient(135deg, #0f3b33, #0a2722); }
+[data-grad="teal-card"]   { background: linear-gradient(135deg, #143832, #0f2a25); }
+[data-grad="orange-soft"] { background: linear-gradient(135deg, #3a1c0f, #1f140a); }
+[data-grad="navy-thumb"]  { background: linear-gradient(135deg, #1a2a3a, #0f1822); }
+
+.v2-root[data-theme="light"] [data-grad="teal-soft"]   { background: linear-gradient(135deg, #e1f7f0, #f1fcf8); }
+.v2-root[data-theme="light"] [data-grad="teal-card"]   { background: linear-gradient(135deg, #d8f1ea, #ecf9f4); }
+.v2-root[data-theme="light"] [data-grad="orange-soft"] { background: linear-gradient(135deg, #fde9da, #fef5ec); }
+.v2-root[data-theme="light"] [data-grad="navy-thumb"]  { background: linear-gradient(135deg, #e9eef4, #f4f7fa); }
+
 @media (prefers-reduced-motion: reduce) {
   .v2-pulse-dot,
   .v2-animate-float-up,

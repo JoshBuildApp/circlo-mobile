@@ -20,7 +20,7 @@ export function ShopTab({ items }: { items: ShopItem[] }) {
       {featured && (
         <div
           className="mx-5 mb-3.5 p-4 rounded-[18px] relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #3a1c0f, #1f140a)" }}
+          data-grad="orange-soft"
         >
           <div className="inline-flex items-center gap-1 text-[10px] font-extrabold text-orange tracking-wider uppercase">
             ★ BEST SELLER

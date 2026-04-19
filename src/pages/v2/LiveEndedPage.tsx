@@ -41,7 +41,7 @@ export default function LiveEndedPage() {
       <div className="px-5 mb-3.5">
         <div
           className="p-4 rounded-[16px] border border-teal-dim"
-          style={{ background: "linear-gradient(135deg, #0f3b33, #0a2722)" }}
+          data-grad="teal-soft"
         >
           <div className="flex gap-3 items-center mb-3">
             <div className="w-10 h-10 rounded-[10px] bg-teal text-navy-deep flex items-center justify-center shrink-0">
@@ -90,7 +90,7 @@ export default function LiveEndedPage() {
         <button
           onClick={() => navigate(`/v2/book/${live?.coachId ?? "maya"}`)}
           className="w-full p-4 rounded-[16px] flex gap-3 items-center text-left border border-orange-dim"
-          style={{ background: "linear-gradient(135deg, #3a1c0f, #1f140a)" }}
+          data-grad="orange-soft"
         >
           <Avatar size={44} gradient="teal-gold" />
           <div className="flex-1">

@@ -40,10 +40,7 @@ export function VideoThumb({
         onClick && "cursor-pointer",
         className
       )}
-      style={{
-        aspectRatio: aspect.replace("/", " / "),
-        background: "linear-gradient(135deg, #1a2a3a, #0f1822)",
-      }}
+      data-grad="navy-thumb"
     >
       <div
         aria-hidden

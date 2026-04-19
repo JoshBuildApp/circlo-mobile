@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ChevronLeft, Menu } from "lucide-react";
-import { PhoneFrame, StatusBar, TabBar, RoundButton, Avatar, Chip } from "@/components/v2/shared";
+import { Inbox } from "lucide-react";
+import { PhoneFrame, StatusBar, TabBar, RoundButton, Avatar, Chip, EmptyState } from "@/components/v2/shared";
 import { RequestCard } from "@/components/v2/coach/RequestCard";
 import { useBookingRequests, useBookingRequestAction } from "@/hooks/v2/useMocks";
 import { cn } from "@/lib/utils";
@@ -56,9 +57,11 @@ export default function CoachRequestsPage() {
 
       <div className="px-5 flex flex-col gap-2">
         {requests.length === 0 ? (
-          <div className="text-center text-v2-muted text-[13px] py-12">
-            {tab === "new" ? "No new requests · you're all caught up." : `No ${tab} requests.`}
-          </div>
+          <EmptyState
+            icon={Inbox}
+            title={tab === "new" ? "All caught up" : `No ${tab} requests`}
+            description={tab === "new" ? "When students request bookings they'll appear here." : "Booked sessions don't show in this list."}
+          />
         ) : (
           requests.map((r) => (
             <RequestCard

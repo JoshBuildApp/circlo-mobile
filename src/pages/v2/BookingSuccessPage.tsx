@@ -57,7 +57,7 @@ export default function BookingSuccessPage() {
       <div className="px-5 mb-3.5">
         <div
           className="p-5 rounded-[18px] border border-teal-dim"
-          style={{ background: "linear-gradient(135deg, #0f3b33, #0a2722)" }}
+          data-grad="teal-soft"
         >
           <div className="flex justify-between items-center mb-3.5">
             <div className="text-[10px] font-bold text-teal tracking-wider">✓ CONFIRMED</div>
@@ -127,7 +127,7 @@ export default function BookingSuccessPage() {
         <button
           onClick={() => navigate("/v2/coach/maya/join")}
           className="w-full p-3.5 rounded-[14px] flex items-center gap-3 text-left border border-orange-dim"
-          style={{ background: "linear-gradient(135deg, #3a1c0f, #1f140a)" }}
+          data-grad="orange-soft"
         >
           <Avatar size={40} gradient="teal-gold" />
           <div className="flex-1">

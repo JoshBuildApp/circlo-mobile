@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ChevronLeft, Calendar as CalIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { PhoneFrame, StatusBar, TabBar, RoundButton, Avatar, Chip } from "@/components/v2/shared";
+import { PhoneFrame, StatusBar, TabBar, RoundButton, Avatar, Chip, EmptyState } from "@/components/v2/shared";
 import { useMySessions } from "@/hooks/v2/useMocks";
 import { cancelBooking } from "@/hooks/v2/useSupabaseQueries";
 import { cn } from "@/lib/utils";
@@ -133,9 +133,13 @@ export default function MyBookingsPage() {
       <div className="px-5 pb-2 text-[10px] text-v2-muted font-bold tracking-widest uppercase">{tab.toUpperCase()}</div>
       <div className="px-5 flex flex-col gap-2.5">
         {sessions.length === 0 && (
-          <div className="text-center text-v2-muted text-[13px] py-12">
-            {tab === "upcoming" ? "No upcoming sessions. Book one →" : `No ${tab} sessions.`}
-          </div>
+          <EmptyState
+            icon={CalIcon}
+            title={tab === "upcoming" ? "No upcoming sessions" : `No ${tab} sessions`}
+            description={tab === "upcoming" ? "Find a coach in Discover and book your first session." : "Anything you book will show up here."}
+            ctaLabel={tab === "upcoming" ? "Discover coaches" : undefined}
+            onCta={tab === "upcoming" ? () => navigate("/v2/discover") : undefined}
+          />
         )}
         {sessions.map((s) => (
           <SessionCard

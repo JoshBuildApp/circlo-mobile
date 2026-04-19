@@ -89,7 +89,7 @@ export default function ContentLibraryPage() {
       <div className="px-5 mb-4">
         <div
           className="p-5 rounded-[18px] relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #3a1c0f, #1f140a)" }}
+          data-grad="orange-soft"
         >
           <div className="inline-flex items-center gap-1 text-[10px] font-extrabold text-orange tracking-widest uppercase">
             ★ BEST SELLER

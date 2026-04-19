@@ -45,7 +45,7 @@ function BobEmpty() {
 
         <section
           className="mt-5 mb-6 p-3.5 rounded-[16px] border border-teal-dim text-left"
-          style={{ background: "linear-gradient(135deg, #0f3b33, #0a2722)" }}
+          data-grad="teal-soft"
         >
           <div className="text-[10px] font-extrabold text-teal tracking-wider uppercase flex items-center gap-1">
             <Sparkles size={12} /> INSIGHT FOR TODAY

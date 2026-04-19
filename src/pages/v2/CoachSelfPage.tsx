@@ -81,7 +81,7 @@ export default function CoachSelfPage() {
       </div>
 
       <div className="px-5 pb-3.5">
-        <button className="w-full px-3.5 py-3 rounded-[14px] flex items-center gap-3 cursor-pointer border border-teal-dim text-left" style={{ background: "linear-gradient(135deg, #0f3b33, #0a2722)" }}>
+        <button className="w-full px-3.5 py-3 rounded-[14px] flex items-center gap-3 cursor-pointer border border-teal-dim text-left" data-grad="teal-soft">
           <PulseDot />
           <div className="flex-1">
             <div className="text-[11px] text-teal font-bold tracking-wider">AVAILABLE FOR BOOKINGS</div>

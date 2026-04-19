@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, MapPin, Dumbbell, Activity, Play, MessageSquare, Plus } from "lucide-react";
-import { PhoneFrame, StatusBar, RoundButton, Avatar } from "@/components/v2/shared";
+import { CalendarOff } from "lucide-react";
+import { PhoneFrame, StatusBar, RoundButton, Avatar, EmptyState } from "@/components/v2/shared";
 import { useDayEvents } from "@/hooks/v2/useMocks";
 import type { CalendarEvent } from "@/types/v2";
 import { cn } from "@/lib/utils";
@@ -82,10 +83,12 @@ export default function DayDetailPage() {
 
       <main className="px-5 pt-5 pb-32 flex flex-col gap-4">
         {events.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-[15px] font-bold mb-2">Nothing planned</div>
-            <p className="text-[13px] text-v2-muted mb-5">Book a session or add a workout for this day.</p>
-          </div>
+          <EmptyState
+            icon={CalendarOff}
+            title="Nothing planned"
+            description="Book a session or add a workout to fill this day."
+            variant="page"
+          />
         )}
 
         {sessions.length > 0 && (

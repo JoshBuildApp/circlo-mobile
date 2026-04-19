@@ -45,7 +45,7 @@ export default function TrainingPlanDetailPage() {
 
       <div
         className="mx-5 mt-4 mb-3.5 p-5 rounded-[18px] relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #3a1c0f, #1f140a)" }}
+        data-grad="orange-soft"
       >
         {plan.isBestSeller && (
           <Chip variant="orange" className="text-[10px] mb-3">★ BEST SELLER</Chip>

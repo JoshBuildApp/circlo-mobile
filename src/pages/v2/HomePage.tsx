@@ -51,7 +51,7 @@ export default function HomePageV2() {
       <button
         onClick={() => navigate("/v2/profile/bookings")}
         className="mx-5 mt-5 mb-6 p-4 rounded-[18px] flex items-center gap-3.5 text-left"
-        style={{ background: "linear-gradient(135deg, #143832, #0f2a25)" }}
+        data-grad="teal-card"
       >
         <span className="w-12 h-12 rounded-xl bg-teal-dim text-teal flex items-center justify-center">
           <Calendar size={20} />
