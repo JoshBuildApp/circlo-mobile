@@ -116,6 +116,8 @@ const V2CoachOnboarding = lazy(() => import("@/pages/v2/CoachOnboardingV2"));
 const V2AuthLayout = lazy(() => import("@/pages/v2/auth/AuthLayout"));
 const V2AuthWelcome = lazy(() => import("@/pages/v2/auth/Welcome"));
 const V2AuthLogin = lazy(() => import("@/pages/v2/auth/Login"));
+const V2AuthSignupOutlet = lazy(() => import("@/pages/v2/auth/SignupOutlet").then((m) => ({ default: m.SignupOutlet })));
+const V2AuthRole = lazy(() => import("@/pages/v2/auth/signup/Role"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -194,6 +196,10 @@ function App() {
                       <Route index element={<Navigate to="welcome" replace />} />
                       <Route path="welcome" element={<RouteWrapper routeName="v2-auth-welcome"><V2AuthWelcome /></RouteWrapper>} />
                       <Route path="login" element={<RouteWrapper routeName="v2-auth-login"><V2AuthLogin /></RouteWrapper>} />
+                      <Route path="signup" element={<V2AuthSignupOutlet />}>
+                        <Route index element={<Navigate to="role" replace />} />
+                        <Route path="role" element={<RouteWrapper routeName="v2-auth-signup-role"><V2AuthRole /></RouteWrapper>} />
+                      </Route>
                     </Route>
                     <Route path="/v2/splash" element={<RouteWrapper routeName="v2-splash"><V2Guard><V2Splash /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/welcome" element={<RouteWrapper routeName="v2-welcome"><V2Guard><V2Welcome /></V2Guard></RouteWrapper>} />
