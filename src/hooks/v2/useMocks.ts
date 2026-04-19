@@ -1,9 +1,17 @@
 /**
- * v2 mock-data hooks. Each wraps a mock array with useQuery + 300ms delay
- * so screens exercise loading states. Replace internals with real Supabase
- * queries phase-by-phase; hook contracts stay stable.
+ * v2 hooks. Phase-3 progress: useMyPlayerProfile, useCoaches, useCoach,
+ * useMyCoachProfile now hit real Supabase when an auth session exists,
+ * and fall back to mock data for guest browsing. Other hooks still use
+ * mocks — replace one-by-one per V2_UPGRADE_PLAN Step 3.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  fetchMyPlayerProfile,
+  fetchCoaches,
+  fetchCoach,
+  fetchMyCoachProfile,
+} from "@/hooks/v2/useSupabaseQueries";
 import {
   mockCoaches,
   mockPlayer,
@@ -46,16 +54,27 @@ function delay<T>(value: T, ms = MOCK_DELAY_MS): Promise<T> {
 }
 
 export function useCoaches() {
+  const { user } = useAuth();
   return useQuery<Coach[]>({
-    queryKey: ["v2", "coaches"],
-    queryFn: () => delay(mockCoaches),
+    queryKey: ["v2", "coaches", user ? "live" : "mock"],
+    queryFn: async () => {
+      if (!user) return delay(mockCoaches);
+      const real = await fetchCoaches();
+      return real.length > 0 ? real : mockCoaches;
+    },
   });
 }
 
 export function useCoach(id: string | undefined) {
+  const { user } = useAuth();
   return useQuery<Coach | null>({
-    queryKey: ["v2", "coach", id],
-    queryFn: () => delay(mockCoaches.find((c) => c.id === id) ?? null),
+    queryKey: ["v2", "coach", id, user ? "live" : "mock"],
+    queryFn: async () => {
+      if (!id) return null;
+      if (!user) return delay(mockCoaches.find((c) => c.id === id) ?? mockCoaches[0] ?? null);
+      const real = await fetchCoach(id);
+      return real ?? mockCoaches.find((c) => c.id === id) ?? null;
+    },
     enabled: Boolean(id),
   });
 }
@@ -69,16 +88,28 @@ export function useCoachProfile(id: string | undefined) {
 }
 
 export function useMyPlayerProfile() {
+  const { user } = useAuth();
   return useQuery<PlayerProfile>({
-    queryKey: ["v2", "me"],
-    queryFn: () => delay(mockPlayer),
+    queryKey: ["v2", "me", user?.id ?? "guest"],
+    queryFn: async () => {
+      if (!user) return delay(mockPlayer);
+      const real = await fetchMyPlayerProfile(user.id);
+      if (!real) return mockPlayer;
+      // Inject the real email from auth into the profile.
+      return { ...real, email: user.email ?? "" };
+    },
   });
 }
 
 export function useMyCoachProfile() {
+  const { user } = useAuth();
   return useQuery<CoachProfile>({
-    queryKey: ["v2", "me", "coach"],
-    queryFn: () => delay(mockCoachProfile),
+    queryKey: ["v2", "me", "coach", user?.id ?? "guest"],
+    queryFn: async () => {
+      if (!user) return delay(mockCoachProfile);
+      const real = await fetchMyCoachProfile(user.id);
+      return real ?? mockCoachProfile;
+    },
   });
 }
 
