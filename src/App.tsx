@@ -93,6 +93,10 @@ const V2Settings = lazy(() => import("@/pages/v2/SettingsV2Page"));
 const V2Payments = lazy(() => import("@/pages/v2/PaymentMethodsPage"));
 const V2CoachSelf = lazy(() => import("@/pages/v2/CoachSelfPage"));
 const V2CoachRequests = lazy(() => import("@/pages/v2/CoachRequestsPage"));
+const V2Library = lazy(() => import("@/pages/v2/ContentLibraryPage"));
+const V2VideoPlayer = lazy(() => import("@/pages/v2/VideoPlayerPage"));
+const V2Live = lazy(() => import("@/pages/v2/LiveViewerPage"));
+const V2LiveEnded = lazy(() => import("@/pages/v2/LiveEndedPage"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -168,7 +172,7 @@ function App() {
                     <Route path="/v2/discover" element={<RouteWrapper routeName="v2-discover"><V2Guard><V2Discover /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id" element={<RouteWrapper routeName="v2-coach-about"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/community" element={<RouteWrapper routeName="v2-coach-community"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/coach/:id/content" element={<RouteWrapper routeName="v2-coach-content"><V2Guard><V2Stub title="Content Library" phase={12} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/coach/:id/content" element={<RouteWrapper routeName="v2-coach-content"><V2Guard><V2Library /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/shop" element={<RouteWrapper routeName="v2-coach-shop"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/join" element={<RouteWrapper routeName="v2-tiers"><V2Guard><V2Tiers /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/go-pro" element={<RouteWrapper routeName="v2-go-pro"><V2Guard><V2GoPro /></V2Guard></RouteWrapper>} />
@@ -190,10 +194,10 @@ function App() {
                     <Route path="/v2/profile/payments" element={<RouteWrapper routeName="v2-payments"><V2Guard><V2Payments /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach-me" element={<RouteWrapper routeName="v2-coach-me"><V2Guard><V2CoachSelf /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach-me/requests" element={<RouteWrapper routeName="v2-coach-requests"><V2Guard><V2CoachRequests /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/coach-me/content" element={<RouteWrapper routeName="v2-coach-content"><V2Guard><V2Stub title="Coach · Content" phase={12} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/video/:videoId" element={<RouteWrapper routeName="v2-video"><V2Guard><V2Stub title="Video" phase={12} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/live/:sessionId" element={<RouteWrapper routeName="v2-live"><V2Guard><V2Stub title="Live" phase={12} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/live/:sessionId/ended" element={<RouteWrapper routeName="v2-live-ended"><V2Guard><V2Stub title="Live · Recap" phase={12} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/coach-me/content" element={<RouteWrapper routeName="v2-coach-content"><V2Guard><V2Library /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/video/:videoId" element={<RouteWrapper routeName="v2-video"><V2Guard><V2VideoPlayer /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/live/:sessionId" element={<RouteWrapper routeName="v2-live"><V2Guard><V2Live /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/live/:sessionId/ended" element={<RouteWrapper routeName="v2-live-ended"><V2Guard><V2LiveEnded /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/plans/:planId" element={<RouteWrapper routeName="v2-plan"><V2Guard><V2Stub title="Training plan" phase={13} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/plans/:planId/subscribe" element={<RouteWrapper routeName="v2-plan-subscribe"><V2Guard><V2Stub title="Plan subscribe" phase={13} /></V2Guard></RouteWrapper>} />
 
