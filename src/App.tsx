@@ -103,6 +103,7 @@ const V2DayDetail = lazy(() => import("@/pages/v2/DayDetailPage"));
 const V2AddWorkout = lazy(() => import("@/pages/v2/AddWorkoutPage"));
 const V2PlanDetail = lazy(() => import("@/pages/v2/TrainingPlanDetailPage"));
 const V2PlanSubscribe = lazy(() => import("@/pages/v2/PlanSubscribeFlowPage"));
+const V2Splash = lazy(() => import("@/pages/v2/SplashV2"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -176,6 +177,7 @@ function App() {
                   <Routes>
                     {/* v2 routes — feature-flagged, no AppShell (pages render own chrome) */}
                     <Route path="/v2/enable" element={<RouteWrapper routeName="v2-enable"><EnableV2 /></RouteWrapper>} />
+                    <Route path="/v2/splash" element={<RouteWrapper routeName="v2-splash"><V2Guard><V2Splash /></V2Guard></RouteWrapper>} />
                     <Route path="/v2" element={<Navigate to="/v2/home" replace />} />
                     <Route path="/v2/home" element={<RouteWrapper routeName="v2-home"><V2Guard><V2Home /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/discover" element={<RouteWrapper routeName="v2-discover"><V2Guard><V2Discover /></V2Guard></RouteWrapper>} />
