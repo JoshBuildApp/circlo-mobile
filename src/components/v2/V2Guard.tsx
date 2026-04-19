@@ -12,6 +12,8 @@ const PUBLIC_V2_ROUTES = new Set([
   "/v2/login",
   "/v2/signup",
   "/v2/splash",
+  "/v2/forgot-password",
+  "/v2/verify-email",
 ]);
 
 /**
@@ -19,11 +21,13 @@ const PUBLIC_V2_ROUTES = new Set([
  * 1. ?flag=on|off persists the v2 feature flag and reloads.
  * 2. Flag off → redirect to /v2/enable.
  * 3. Auth resolved + no user + on a private route → redirect to /v2/welcome.
- *    Mock data still works without a user, but the auth gate is the
- *    expected production behaviour. Toggle GUEST_BROWSE below to allow
- *    browsing without an account during preview.
+ *
+ * GUEST_BROWSE: when true, anyone can browse /v2/* without an account
+ * (mock data fills the gaps). Useful for preview/Stitch demos. MUST be
+ * false for any TestFlight or production build — leave it false unless
+ * you're staging a guest tour.
  */
-const GUEST_BROWSE = true; // set to false to enforce auth on every v2 page
+const GUEST_BROWSE = false;
 
 export function V2Guard({ children }: { children: ReactNode }) {
   const location = useLocation();

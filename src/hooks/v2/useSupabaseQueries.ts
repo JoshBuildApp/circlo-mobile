@@ -159,12 +159,39 @@ export async function fetchMyPlayerProfile(userId: string): Promise<PlayerProfil
   };
 }
 
-export async function fetchCoaches(): Promise<Coach[]> {
-  const { data, error } = await supabase
+export interface CoachSearchFilters {
+  /** Free-text search (matches name, tagline, bio, sport). */
+  query?: string;
+  /** Limit to a single sport. */
+  sport?: SportKey | null;
+  /** Optional max price in ILS. */
+  priceMax?: number;
+  /** Optional min rating (0-5). */
+  minRating?: number;
+}
+
+export async function fetchCoaches(filters: CoachSearchFilters = {}): Promise<Coach[]> {
+  let q = supabase
     .from("coach_profiles")
     .select(
       "id, user_id, coach_name, sport, tagline, bio, image_url, location, price, rating, followers, total_sessions, is_verified, specialties"
-    )
+    );
+
+  if (filters.sport) q = q.eq("sport", filters.sport);
+  if (typeof filters.priceMax === "number") q = q.lte("price", filters.priceMax);
+  if (typeof filters.minRating === "number" && filters.minRating > 0) {
+    q = q.gte("rating", filters.minRating);
+  }
+  if (filters.query && filters.query.trim()) {
+    const term = filters.query.trim();
+    // Postgres ILIKE wildcard search across the most-relevant text columns.
+    // We OR them so any field can match; Supabase string syntax for OR.
+    q = q.or(
+      `coach_name.ilike.%${term}%,tagline.ilike.%${term}%,bio.ilike.%${term}%,sport.ilike.%${term}%`
+    );
+  }
+
+  const { data, error } = await q
     .order("followers", { ascending: false })
     .limit(40);
   if (error) {

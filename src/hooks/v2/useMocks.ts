@@ -25,6 +25,7 @@ import {
   fetchChatMessages,
   fetchSession,
   createBooking,
+  type CoachSearchFilters,
   fetchTrainingPlan,
   fetchCoachPlans,
   subscribeToPlanReal,
@@ -74,14 +75,33 @@ function delay<T>(value: T, ms = MOCK_DELAY_MS): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
 }
 
-export function useCoaches() {
+export function useCoaches(filters: CoachSearchFilters = {}) {
   const { user } = useAuth();
+  // Cache key includes the filter shape so distinct searches don't collide.
+  const filterKey = JSON.stringify(filters);
   return useQuery<Coach[]>({
-    queryKey: ["v2", "coaches", user ? "live" : "mock"],
+    queryKey: ["v2", "coaches", filterKey, user ? "live" : "mock"],
     queryFn: async () => {
-      if (!user) return delay(mockCoaches);
-      const real = await fetchCoaches();
-      return real.length > 0 ? real : mockCoaches;
+      const filterMock = (list: Coach[]) => {
+        let out = list;
+        if (filters.sport) out = out.filter((c) => c.sports.includes(filters.sport!));
+        if (typeof filters.priceMax === "number") out = out.filter((c) => c.priceFromILS <= filters.priceMax!);
+        if (typeof filters.minRating === "number" && filters.minRating > 0) {
+          out = out.filter((c) => c.rating >= filters.minRating!);
+        }
+        const term = filters.query?.trim().toLowerCase();
+        if (term) {
+          out = out.filter((c) =>
+            (c.name + " " + c.tagline + " " + c.bio + " " + c.sports.join(" "))
+              .toLowerCase()
+              .includes(term)
+          );
+        }
+        return out;
+      };
+      if (!user) return delay(filterMock(mockCoaches));
+      const real = await fetchCoaches(filters);
+      return real.length > 0 ? real : filterMock(mockCoaches);
     },
   });
 }

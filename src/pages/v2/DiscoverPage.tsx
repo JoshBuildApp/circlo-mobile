@@ -25,8 +25,13 @@ const SPORTS: { key: string; label: string; emoji: string; tone: "teal" | "orang
 
 export default function DiscoverPage() {
   const navigate = useNavigate();
-  const { data: coaches = [] } = useCoaches();
   const [tab, setTab] = useState<"coaches" | "communities">("coaches");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSport, setActiveSport] = useState<string | null>("padel");
+  const { data: coaches = [] } = useCoaches({
+    query: searchQuery,
+    sport: activeSport as never,
+  });
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-28">
@@ -53,9 +58,20 @@ export default function DiscoverPage() {
       <div className="mx-5 px-4 py-3 rounded-[14px] bg-navy-card flex items-center gap-2.5 text-v2-muted">
         <Search size={16} />
         <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search coaches, sports, clubs..."
           className="flex-1 bg-transparent border-none text-offwhite text-sm outline-none placeholder:text-v2-muted"
         />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            aria-label="Clear search"
+            className="text-v2-muted text-xs"
+          >
+            ✕
+          </button>
+        )}
         <Mic size={16} />
       </div>
 
@@ -70,20 +86,25 @@ export default function DiscoverPage() {
         <>
       <SectionHeader title={<span className="text-[13px] text-v2-muted font-bold tracking-wider uppercase">Browse by sport</span>} className="mt-5 mb-2" />
       <HScroll>
-        {SPORTS.map((s) => (
-          <div
-            key={s.key}
-            className={cn(
-              "min-w-[88px] h-[88px] rounded-[16px] p-3 flex flex-col justify-between font-bold text-[13px]",
-              s.tone === "teal" && "bg-teal text-navy-deep",
-              s.tone === "orange" && "bg-orange text-white",
-              s.tone === "dark" && "bg-navy-card text-offwhite"
-            )}
-          >
-            <span className="text-2xl">{s.emoji}</span>
-            <span>{s.label}</span>
-          </div>
-        ))}
+        {SPORTS.map((s) => {
+          const selected = activeSport === s.key;
+          return (
+            <button
+              key={s.key}
+              onClick={() => setActiveSport(selected ? null : s.key)}
+              className={cn(
+                "min-w-[88px] h-[88px] rounded-[16px] p-3 flex flex-col justify-between font-bold text-[13px] text-left transition-transform active:scale-95",
+                selected ? "ring-2 ring-offwhite" : "",
+                s.tone === "teal" && "bg-teal text-navy-deep",
+                s.tone === "orange" && "bg-orange text-white",
+                s.tone === "dark" && "bg-navy-card text-offwhite"
+              )}
+            >
+              <span className="text-2xl">{s.emoji}</span>
+              <span>{s.label}</span>
+            </button>
+          );
+        })}
       </HScroll>
 
       <SectionHeader

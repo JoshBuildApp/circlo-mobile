@@ -59,10 +59,11 @@ export default function SignupV2() {
     setLoading(false);
     if (data.session) {
       toast.success("Account created!");
-      navigate("/v2/home", { replace: true });
+      // Send straight into the right onboarding flow.
+      navigate(role === "coach" ? "/v2/coach-onboarding" : "/v2/onboarding", { replace: true });
     } else {
-      toast.success("Check your email to confirm your account.");
-      navigate("/v2/login", { replace: true });
+      // Email confirmation required — show the verify-your-email screen.
+      navigate(`/v2/verify-email?email=${encodeURIComponent(email)}`, { replace: true });
     }
   };
 
