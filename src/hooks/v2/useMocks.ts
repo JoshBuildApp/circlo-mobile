@@ -19,6 +19,8 @@ import {
   fetchVideo,
   fetchCoachReviews,
   fetchCoachReviewSummary,
+  fetchMessageThreads,
+  fetchChatMessages,
   type CoachReview,
 } from "@/hooks/v2/useSupabaseQueries";
 import {
@@ -212,16 +214,27 @@ export function useShopItems(coachId: string | undefined) {
 }
 
 export function useMessageThreads() {
+  const { user } = useAuth();
   return useQuery<MessageThread[]>({
-    queryKey: ["v2", "threads"],
-    queryFn: () => delay(mockThreads),
+    queryKey: ["v2", "threads", user?.id ?? "guest"],
+    queryFn: async () => {
+      if (!user) return delay(mockThreads);
+      const real = await fetchMessageThreads(user.id);
+      // Empty inbox is a real state — show it instead of mocks once authed.
+      return real;
+    },
   });
 }
 
 export function useChat(threadId: string | undefined) {
+  const { user } = useAuth();
   return useQuery<Message[]>({
-    queryKey: ["v2", "chat", threadId],
-    queryFn: () => delay(threadId ? mockMessages[threadId] ?? [] : []),
+    queryKey: ["v2", "chat", threadId, user?.id ?? "guest"],
+    queryFn: async () => {
+      if (!threadId) return [];
+      if (!user) return delay(mockMessages[threadId] ?? []);
+      return fetchChatMessages(threadId, user.id);
+    },
     enabled: Boolean(threadId),
   });
 }

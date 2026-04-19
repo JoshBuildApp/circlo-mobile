@@ -19,6 +19,8 @@ import type {
   Coach,
   CoachBadge,
   CoachProfile,
+  Message,
+  MessageThread,
   PlayerProfile,
   Session,
   SessionStatus,
@@ -513,6 +515,118 @@ export async function fetchCoachReviewSummary(coachId: string): Promise<{ avg: n
   const ratings = (data ?? []).map((r: { rating: number }) => r.rating ?? 0).filter((n: number) => n > 0);
   const avg = ratings.length ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 0;
   return { avg: Math.round(avg * 10) / 10, count: count ?? ratings.length };
+}
+
+/* ---------- messages ---------- */
+
+interface DbMessageRow {
+  id: string;
+  sender_id: string | null;
+  receiver_id: string | null;
+  content: string | null;
+  is_read: boolean | null;
+  conversation_id: string | null;
+  created_at: string | null;
+}
+
+export async function fetchMessageThreads(userId: string): Promise<MessageThread[]> {
+  // Grab the most recent ~200 messages I'm a party to. Group by peer.
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id, sender_id, receiver_id, content, is_read, conversation_id, created_at")
+    .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) {
+    console.error("[v2] messages fetch failed:", error.message);
+    return [];
+  }
+  const rows = (data ?? []) as DbMessageRow[];
+  if (rows.length === 0) return [];
+
+  type Acc = { last: DbMessageRow; unread: number; peerId: string };
+  const byPeer = new Map<string, Acc>();
+  rows.forEach((m) => {
+    const peerId = m.sender_id === userId ? m.receiver_id : m.sender_id;
+    if (!peerId) return;
+    const existing = byPeer.get(peerId);
+    if (!existing) {
+      byPeer.set(peerId, {
+        last: m,
+        unread: m.receiver_id === userId && !m.is_read ? 1 : 0,
+        peerId,
+      });
+    } else {
+      // rows arrive newest-first, so existing.last is already the latest
+      if (m.receiver_id === userId && !m.is_read) existing.unread += 1;
+    }
+  });
+  if (byPeer.size === 0) return [];
+
+  const peerIds = Array.from(byPeer.keys());
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id, username, avatar_url")
+    .in("user_id", peerIds);
+  const profileMap = new Map<string, { username: string | null; avatar_url: string | null }>();
+  (profiles ?? []).forEach((p: { user_id: string; username: string | null; avatar_url: string | null }) =>
+    profileMap.set(p.user_id, p)
+  );
+
+  const { data: coachRows } = await supabase
+    .from("coach_profiles")
+    .select("user_id")
+    .in("user_id", peerIds);
+  const coachSet = new Set((coachRows ?? []).map((r: { user_id: string }) => r.user_id));
+
+  return Array.from(byPeer.values())
+    .sort((a, b) => new Date(b.last.created_at ?? 0).getTime() - new Date(a.last.created_at ?? 0).getTime())
+    .map<MessageThread>((acc) => {
+      const profile = profileMap.get(acc.peerId);
+      return {
+        id: acc.last.conversation_id ?? acc.peerId,
+        peerId: acc.peerId,
+        peerName: profile?.username ?? "Member",
+        peerGradient: undefined,
+        peerIsCoach: coachSet.has(acc.peerId),
+        lastMessagePreview: acc.last.content ?? "",
+        lastMessageAt: acc.last.created_at ?? new Date().toISOString(),
+        unreadCount: acc.unread,
+      };
+    });
+}
+
+export async function fetchChatMessages(threadId: string, userId: string): Promise<Message[]> {
+  // threadId may be a conversation_id (uuid) or a fallback peer id.
+  // Try conversation_id first, fall back to peer-pair lookup.
+  let query = supabase
+    .from("messages")
+    .select("id, sender_id, receiver_id, content, is_read, conversation_id, created_at")
+    .order("created_at", { ascending: true })
+    .limit(200);
+  // If looks like a uuid, prefer conversation_id; otherwise treat as peer.
+  if (/^[0-9a-f-]{30,}$/i.test(threadId)) {
+    query = query.eq("conversation_id", threadId);
+  } else {
+    query = query.or(`and(sender_id.eq.${userId},receiver_id.eq.${threadId}),and(sender_id.eq.${threadId},receiver_id.eq.${userId})`);
+  }
+  const { data, error } = await query;
+  if (error) {
+    console.error("[v2] chat fetch failed:", error.message);
+    return [];
+  }
+  const rows = (data ?? []) as DbMessageRow[];
+  return rows.map<Message>((r) => ({
+    id: r.id,
+    threadId,
+    authorId: r.sender_id ?? "",
+    authorName: r.sender_id === userId ? "You" : "",
+    body: r.content ?? "",
+    sentAt: r.created_at ?? new Date().toISOString(),
+    isMe: r.sender_id === userId,
+    read: r.is_read ?? false,
+    delivered: true,
+  }));
 }
 
 export async function fetchMyCoachProfile(userId: string): Promise<CoachProfile | null> {

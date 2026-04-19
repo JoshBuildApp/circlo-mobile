@@ -1,6 +1,7 @@
 import { PulseDot, StatCard, Chip } from "@/components/v2/shared";
 import { formatPrice } from "@/lib/v2/currency";
 import type { Coach } from "@/types/v2";
+import { useCoachReviews, useCoachReviewSummary } from "@/hooks/v2/useMocks";
 
 interface AboutTabProps {
   coach: Coach;
@@ -9,6 +10,10 @@ interface AboutTabProps {
 }
 
 export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
+  const { data: summary } = useCoachReviewSummary(coach.id);
+  const { data: reviews = [] } = useCoachReviews(coach.id);
+  const ratingValue = summary?.avg && summary.avg > 0 ? summary.avg : coach.rating;
+  const reviewCount = summary?.count && summary.count > 0 ? summary.count : coach.reviewCount;
   return (
     <div className="pb-32">
       <div className="px-5 pt-3 pb-3">
@@ -43,10 +48,10 @@ export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
           label="Rating"
           value={
             <span>
-              {coach.rating.toFixed(1)} <span className="text-teal">★</span>
+              {ratingValue.toFixed(1)} <span className="text-teal">★</span>
             </span>
           }
-          sub={`${coach.reviewCount} reviews`}
+          sub={`${reviewCount} reviews`}
         />
         <StatCard
           label="From"
@@ -67,6 +72,26 @@ export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
           ))}
         </div>
       </div>
+
+      {reviews.length > 0 && (
+        <div className="mx-5 mt-3 p-4 rounded-[14px] bg-navy-card">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-[10px] text-v2-muted font-bold uppercase tracking-wider">Reviews</div>
+            <div className="text-[11px] text-v2-muted tnum">{reviewCount} total</div>
+          </div>
+          <div className="flex flex-col gap-3">
+            {reviews.slice(0, 3).map((r) => (
+              <div key={r.id} className="border-b border-navy-line last:border-b-0 pb-3 last:pb-0">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="text-[13px] font-semibold">{r.authorName}</div>
+                  <div className="text-[12px] text-orange tnum">{"★".repeat(Math.max(1, r.rating))}{"☆".repeat(Math.max(0, 5 - r.rating))}</div>
+                </div>
+                {r.comment && <div className="text-[12px] text-v2-muted leading-snug italic">"{r.comment}"</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
