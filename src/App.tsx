@@ -78,6 +78,10 @@ const V2Discover = lazy(() => import("@/pages/v2/DiscoverPage"));
 const V2CoachProfile = lazy(() => import("@/pages/v2/CoachProfilePage"));
 const V2Tiers = lazy(() => import("@/pages/v2/TiersPage"));
 const V2GoPro = lazy(() => import("@/pages/v2/GoProPage"));
+const V2Bob = lazy(() => import("@/pages/v2/BobPage"));
+const V2BobDrawer = lazy(() => import("@/pages/v2/BobDrawerPage"));
+const V2BobSettings = lazy(() => import("@/pages/v2/BobSettingsPage"));
+const V2BobInbox = lazy(() => import("@/pages/v2/BobInboxPage"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -157,10 +161,10 @@ function App() {
                     <Route path="/v2/coach/:id/shop" element={<RouteWrapper routeName="v2-coach-shop"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/join" element={<RouteWrapper routeName="v2-tiers"><V2Guard><V2Tiers /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/go-pro" element={<RouteWrapper routeName="v2-go-pro"><V2Guard><V2GoPro /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/bob" element={<RouteWrapper routeName="v2-bob"><V2Guard><V2Stub title="Bob" phase={7} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/bob/threads" element={<RouteWrapper routeName="v2-bob-threads"><V2Guard><V2Stub title="Bob · Threads" phase={7} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/bob/settings" element={<RouteWrapper routeName="v2-bob-settings"><V2Guard><V2Stub title="Bob · Settings" phase={7} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/bob/inbox" element={<RouteWrapper routeName="v2-bob-inbox"><V2Guard><V2Stub title="Bob · Inbox" phase={7} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/bob" element={<RouteWrapper routeName="v2-bob"><V2Guard><V2Bob /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/bob/threads" element={<RouteWrapper routeName="v2-bob-threads"><V2Guard><V2BobDrawer /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/bob/settings" element={<RouteWrapper routeName="v2-bob-settings"><V2Guard><V2BobSettings /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/bob/inbox" element={<RouteWrapper routeName="v2-bob-inbox"><V2Guard><V2BobInbox /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/messages" element={<RouteWrapper routeName="v2-messages"><V2Guard><V2Stub title="Messages" phase={8} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/messages/new" element={<RouteWrapper routeName="v2-new-message"><V2Guard><V2Stub title="New message" phase={8} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/messages/:threadId" element={<RouteWrapper routeName="v2-chat"><V2Guard><V2Stub title="Chat" phase={8} /></V2Guard></RouteWrapper>} />
