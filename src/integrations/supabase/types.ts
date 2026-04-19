@@ -3214,6 +3214,48 @@ export type Database = {
           },
         ]
       }
+      personal_workouts: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          duration_min: number
+          id: string
+          notes: string | null
+          plan_subscription_id: string | null
+          plan_workout_id: string | null
+          starts_at: string
+          title: string
+          user_id: string
+          workout_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          duration_min: number
+          id?: string
+          notes?: string | null
+          plan_subscription_id?: string | null
+          plan_workout_id?: string | null
+          starts_at: string
+          title: string
+          user_id: string
+          workout_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          duration_min?: number
+          id?: string
+          notes?: string | null
+          plan_subscription_id?: string | null
+          plan_workout_id?: string | null
+          starts_at?: string
+          title?: string
+          user_id?: string
+          workout_type?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string | null
