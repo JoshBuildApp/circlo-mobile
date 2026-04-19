@@ -1,0 +1,6 @@
+# Worktrees are per-run, ephemeral — never committed to the main repo.
+worktrees/
+
+# Logs grow unbounded. Agents can archive outside the repo if they need to
+# keep them; the repo only tracks the current-session summary manually.
+logs/
