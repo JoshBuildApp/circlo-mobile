@@ -1,4 +1,4 @@
-import { CSSProperties, useId } from "react";
+import { CSSProperties, forwardRef, useId } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
 /**
@@ -19,8 +19,14 @@ import { motion, useReducedMotion } from "framer-motion";
  * sway. Breathing is applied to the inner <motion.svg>, NOT the outer wrapper,
  * so the drop-shadow filter on the wrapper stays anchored while the ring sways.
  *
- * `opening` prop is a scaffold for the Success C-collapse animation (Phase 11
- * of the v2 auth rollout). In this phase it is accepted but has no effect.
+ * Shared-element transitions (Phase 3+): AuthLayout renders ONE persistent
+ * CirloRing whose `variant` prop changes when the route changes. Passing a
+ * `layout` or `layoutId` prop turns on framer-motion's FLIP animation between
+ * the old and new bounding boxes. `onLayoutAnimationComplete` fires after the
+ * ring settles — AuthLayout uses it to trigger the landing effects.
+ *
+ * `opening` prop is a scaffold for the Success C-collapse animation (Phase 11).
+ * In earlier phases it is accepted but has no effect.
  */
 
 export type CirloRingVariant =
@@ -41,10 +47,19 @@ interface VariantConfig {
   filter: string;
 }
 
+// Centered variants use negative margin-left (instead of transform:
+// translateX(-50%)) so framer-motion's layout animation — which uses transform
+// — doesn't fight the centering.
+const buildCentered = (size: number, top: number): CSSProperties => ({
+  top,
+  left: "50%",
+  marginLeft: -size / 2,
+});
+
 const VARIANTS: Record<CirloRingVariant, VariantConfig> = {
   welcome: {
     size: 120,
-    position: { top: 140, left: "50%", transform: "translateX(-50%)" },
+    position: buildCentered(120, 140),
     filter:
       "drop-shadow(0 8px 36px rgba(0, 212, 170, 0.45)) drop-shadow(0 4px 24px rgba(255, 107, 44, 0.28))",
   },
@@ -56,7 +71,7 @@ const VARIANTS: Record<CirloRingVariant, VariantConfig> = {
   },
   role: {
     size: 64,
-    position: { top: 80, left: "50%", transform: "translateX(-50%)" },
+    position: buildCentered(64, 80),
     filter:
       "drop-shadow(0 6px 20px rgba(0, 212, 170, 0.35)) drop-shadow(0 3px 14px rgba(255, 107, 44, 0.22))",
   },
@@ -74,13 +89,13 @@ const VARIANTS: Record<CirloRingVariant, VariantConfig> = {
   },
   verify: {
     size: 80,
-    position: { top: 96, left: "50%", transform: "translateX(-50%)" },
+    position: buildCentered(80, 96),
     filter:
       "drop-shadow(0 6px 20px rgba(0, 212, 170, 0.35)) drop-shadow(0 3px 14px rgba(255, 107, 44, 0.22))",
   },
   success: {
     size: 140,
-    position: { top: 130, left: "50%", transform: "translateX(-50%)" },
+    position: buildCentered(140, 130),
     filter:
       "drop-shadow(0 0 50px rgba(0, 212, 170, 0.55)) drop-shadow(0 0 30px rgba(255, 107, 44, 0.4))",
   },
@@ -88,14 +103,20 @@ const VARIANTS: Record<CirloRingVariant, VariantConfig> = {
 
 export interface CirloRingProps {
   variant: CirloRingVariant;
-  /** When false, the idle breathing animation is paused (used during the travel transition and on success C-collapse). */
+  /** When false, the idle breathing animation is paused. */
   breathing?: boolean;
-  /**
-   * Scaffold for the Success C-collapse animation.
-   * Phase 1: accepted but inert. Phase 11 will wire up the stroke-dasharray
-   * collapse + living-gradient swap.
-   */
+  /** Scaffold for the Success C-collapse — wired up in Phase 11. */
   opening?: boolean;
+  /**
+   * Enable framer-motion FLIP animation when the variant changes.
+   * AuthLayout sets this to true so the single persistent ring animates
+   * smoothly between screens.
+   */
+  layout?: boolean;
+  /** Optional shared-layout id (framer-motion). */
+  layoutId?: string;
+  /** Fired after the layout animation settles. Used by AuthLayout to trigger landing effects. */
+  onLayoutAnimationComplete?: () => void;
   /** Extra className applied to the outer positioned wrapper. */
   className?: string;
   /** Inline style merged onto the outer wrapper (after the variant defaults). */
@@ -104,89 +125,113 @@ export interface CirloRingProps {
   "aria-label"?: string;
 }
 
-export function CirloRing({
-  variant,
-  breathing = true,
-  opening: _opening = false,
-  className,
-  style,
-  "aria-label": ariaLabel = "Circlo",
-}: CirloRingProps) {
-  const config = VARIANTS[variant];
-  const prefersReduced = useReducedMotion();
-  const shouldBreathe = breathing && !prefersReduced;
+export const CirloRing = forwardRef<HTMLDivElement, CirloRingProps>(
+  function CirloRing(
+    {
+      variant,
+      breathing = true,
+      opening: _opening = false,
+      layout = false,
+      layoutId,
+      onLayoutAnimationComplete,
+      className,
+      style,
+      "aria-label": ariaLabel = "Circlo",
+    },
+    ref,
+  ) {
+    const config = VARIANTS[variant];
+    const prefersReduced = useReducedMotion();
+    const shouldBreathe = breathing && !prefersReduced;
 
-  // Unique per-instance IDs so multiple rings on one page don't collide on
-  // gradient refs (important during framer-motion layout animations where both
-  // origin and target mount briefly).
-  const rawId = useId();
-  const gradId = rawId.replace(/:/g, "");
-  const tealGradId = `${gradId}-teal`;
-  const orangeGradId = `${gradId}-orange`;
+    // Unique per-instance gradient IDs so multiple rings don't collide.
+    const rawId = useId();
+    const gradId = rawId.replace(/:/g, "");
+    const tealGradId = `${gradId}-teal`;
+    const orangeGradId = `${gradId}-orange`;
 
-  return (
-    <div
-      aria-label={ariaLabel}
-      role="img"
-      className={className ? `circlo-ring ${className}` : "circlo-ring"}
-      style={{
-        position: "absolute",
-        width: config.size,
-        height: config.size,
-        filter: config.filter,
-        pointerEvents: "none",
-        zIndex: 3,
-        ...config.position,
-        ...style,
-      }}
-    >
-      <motion.svg
-        viewBox="0 0 200 200"
-        fill="none"
-        style={{ width: "100%", height: "100%", display: "block" }}
-        animate={
-          shouldBreathe
-            ? { scale: [1, 1.03, 1], rotate: [0, 2, 0] }
-            : { scale: 1, rotate: 0 }
-        }
-        transition={
-          shouldBreathe
-            ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
-            : { duration: 0 }
-        }
+    return (
+      <motion.div
+        ref={ref}
+        aria-label={ariaLabel}
+        role="img"
+        className={className ? `circlo-ring ${className}` : "circlo-ring"}
+        data-variant={variant}
+        layout={layout}
+        layoutId={layoutId}
+        onLayoutAnimationComplete={onLayoutAnimationComplete}
+        transition={{ type: "spring", stiffness: 100, damping: 18 }}
+        style={{
+          position: "absolute",
+          width: config.size,
+          height: config.size,
+          filter: config.filter,
+          pointerEvents: "none",
+          zIndex: 3,
+          ...config.position,
+          ...style,
+        }}
       >
-        <defs>
-          <linearGradient id={tealGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00D4AA" />
-            <stop offset="100%" stopColor="#00B894" />
-          </linearGradient>
-          <linearGradient id={orangeGradId} x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#FF6B2C" />
-            <stop offset="100%" stopColor="#FF8A4C" />
-          </linearGradient>
-        </defs>
+        <motion.svg
+          viewBox="0 0 200 200"
+          fill="none"
+          style={{ width: "100%", height: "100%", display: "block" }}
+          animate={
+            shouldBreathe
+              ? { scale: [1, 1.03, 1], rotate: [0, 2, 0] }
+              : { scale: 1, rotate: 0 }
+          }
+          transition={
+            shouldBreathe
+              ? { duration: 4, repeat: Infinity, ease: "easeInOut" }
+              : { duration: 0 }
+          }
+        >
+          <defs>
+            <linearGradient
+              id={tealGradId}
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
+            >
+              <stop offset="0%" stopColor="#00D4AA" />
+              <stop offset="100%" stopColor="#00B894" />
+            </linearGradient>
+            <linearGradient
+              id={orangeGradId}
+              x1="100%"
+              y1="0%"
+              x2="0%"
+              y2="100%"
+            >
+              <stop offset="0%" stopColor="#FF6B2C" />
+              <stop offset="100%" stopColor="#FF8A4C" />
+            </linearGradient>
+          </defs>
 
-        {/* Long arc — ~270° teal sweep from top down around to the bottom. */}
-        <path
-          d="M 150 42 A 70 70 0 1 0 145 157"
-          stroke={`url(#${tealGradId})`}
-          strokeWidth={18}
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* Short arc — orange cap at the top-right closing the ring. */}
-        <path
-          d="M 150 42 A 70 70 0 0 1 145 157"
-          stroke={`url(#${orangeGradId})`}
-          strokeWidth={18}
-          strokeLinecap="round"
-          fill="none"
-        />
-        {/* Orange dot where the two arcs meet at the top. Hidden on success. */}
-        {variant !== "success" && (
-          <circle cx={150} cy={42} r={13} fill="#FF6B2C" />
-        )}
-      </motion.svg>
-    </div>
-  );
-}
+          {/* Long arc — ~270° teal sweep. */}
+          <path
+            d="M 150 42 A 70 70 0 1 0 145 157"
+            stroke={`url(#${tealGradId})`}
+            strokeWidth={18}
+            strokeLinecap="round"
+            fill="none"
+          />
+          {/* Short orange arc closing the ring at the top-right. */}
+          <path
+            d="M 150 42 A 70 70 0 0 1 145 157"
+            stroke={`url(#${orangeGradId})`}
+            strokeWidth={18}
+            strokeLinecap="round"
+            fill="none"
+          />
+          {/* Orange dot at the top join. Hidden on success for a clean C. */}
+          {variant !== "success" && (
+            <circle cx={150} cy={42} r={13} fill="#FF6B2C" />
+          )}
+        </motion.svg>
+      </motion.div>
+    );
+  },
+);
