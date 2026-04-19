@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, User, CreditCard, Lock, Bell, Globe, DollarSign, Sun, Eye, MapPin, FileText, HelpCircle, Award } from "lucide-react";
 import { PhoneFrame, StatusBar, RoundButton, Avatar } from "@/components/v2/shared";
 import { useMyPlayerProfile } from "@/hooks/v2/useMocks";
+import { useV2Theme } from "@/contexts/v2/ThemeContext";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -58,7 +59,9 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (on: boolean) => void
 export default function SettingsV2Page() {
   const navigate = useNavigate();
   const { data: me } = useMyPlayerProfile();
-  const [dark, setDark] = useState(true);
+  const { theme, setTheme } = useV2Theme();
+  const dark = theme === "dark";
+  const setDark = (next: boolean) => setTheme(next ? "dark" : "light");
   const [profileVisible, setProfileVisible] = useState(true);
   const [shareLocation, setShareLocation] = useState(true);
 
@@ -100,7 +103,7 @@ export default function SettingsV2Page() {
             { icon: Bell, title: "Notifications", sub: "Push, email, SMS" },
             { icon: Globe, title: "Language", sub: "English", trailing: <span className="text-v2-muted text-[13px]">EN ›</span> },
             { icon: DollarSign, title: "Currency", sub: "Israeli Shekel (₪)", trailing: <span className="text-v2-muted text-[13px]">ILS ›</span> },
-            { icon: Sun, title: "Appearance", sub: "Dark mode", trailing: <Toggle on={dark} onChange={setDark} /> },
+            { icon: Sun, title: "Appearance", sub: dark ? "Dark mode" : "Light mode", trailing: <Toggle on={dark} onChange={setDark} /> },
           ]}
         />
       </div>

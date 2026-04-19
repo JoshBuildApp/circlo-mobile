@@ -57,7 +57,7 @@ export default function NewMessagePage() {
             onClick={() => navigate(`/v2/messages/th-${c.id}`)}
             className="w-full flex gap-3 items-center px-3.5 py-3 border-b border-navy-line text-left"
           >
-            <Avatar size={44} gradient={c.avatarGradient} online={c.isOnline} />
+            <Avatar size={44} src={c.avatarUrl} alt={c.name} gradient={c.avatarGradient} online={c.isOnline} />
             <div className="flex-1">
               <div className="text-[14px] font-bold flex items-center gap-1.5">
                 {c.name}

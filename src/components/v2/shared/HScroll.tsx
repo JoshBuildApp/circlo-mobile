@@ -8,8 +8,13 @@ interface HScrollProps {
 }
 
 /**
- * Horizontal scroll container tuned for touch. Hides scrollbars and
- * disables vertical pan so the outer page scroll wins on vertical gestures.
+ * Horizontal scroll container tuned for touch.
+ * NOTE: We do NOT set `touch-action: pan-x` because that prevents iOS
+ * from passing vertical swipes through to the page scroll, causing the
+ * "stuck swipe" feeling. Browsers correctly route gestures based on
+ * direction when touch-action is left at its default `auto`.
+ * `overscroll-behavior-inline: contain` keeps horizontal overscroll from
+ * bubbling up to the page (which would otherwise trigger swipe-back).
  */
 export function HScroll({ children, className, snap }: HScrollProps) {
   return (
@@ -19,7 +24,11 @@ export function HScroll({ children, className, snap }: HScrollProps) {
         snap && "snap-x snap-mandatory [&>*]:snap-start",
         className
       )}
-      style={{ touchAction: "pan-x", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}
+      style={{
+        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none",
+        overscrollBehaviorInline: "contain",
+      }}
     >
       {children}
     </div>

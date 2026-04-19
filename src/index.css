@@ -661,13 +661,33 @@
 @layer utilities {
   /* Tabular numerals for all stats / money / time / counts */
   .tnum { font-variant-numeric: tabular-nums; }
-  /* v2 root class for pages — sets dark theme + Manrope */
+
+  /* v2 root class for pages — applies the active theme via CSS vars.
+     Dark is default. Light is opted into with [data-theme="light"]. */
   .v2-root {
-    background: #0A0A0F;
-    color: #F5F2EC;
+    --v2-bg:           #0A0A0F;
+    --v2-card:         #1A1A2E;
+    --v2-card-2:       #21213A;
+    --v2-line:         #2A2A42;
+    --v2-text:         #F5F2EC;
+    --v2-text-muted:   #9A9AB0;
+    --v2-text-muted-2: #6B6B80;
+    background: var(--v2-bg);
+    color: var(--v2-text);
     font-family: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     min-height: 100dvh;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
+  .v2-root[data-theme="light"] {
+    --v2-bg:           #F5F2EC;
+    --v2-card:         #FFFFFF;
+    --v2-card-2:       #EFEBE2;
+    --v2-line:         #DED9CD;
+    --v2-text:         #1A1A2E;
+    --v2-text-muted:   #5C5C70;
+    --v2-text-muted-2: #8B8B9D;
+  }
+
   /* Safe-area helpers for sticky/fixed bars in v2 */
   .v2-safe-top    { padding-top: env(safe-area-inset-top, 0); }
   .v2-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }

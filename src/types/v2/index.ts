@@ -23,6 +23,8 @@ export interface Coach {
   reviewCount: number;
   priceFromILS: number;
   badges: CoachBadge[];
+  /** Avatar image URL — falls back to gradient when missing or fails to load. */
+  avatarUrl?: string;
   avatarGradient: "teal-gold" | "orange-peach" | "teal-mint" | "gold-teal";
   isOnline?: boolean;
   isAvailable?: boolean;

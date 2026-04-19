@@ -35,8 +35,23 @@ export default function CoachSelfPage() {
   return (
     <PhoneFrame className="min-h-[100dvh] pb-28">
       <StatusBar />
-      <header className="px-5 pt-3 flex justify-between items-center">
-        <div className="text-[18px] font-extrabold tracking-tight">Circlo</div>
+      <header className="px-5 pt-3 flex justify-between items-center gap-2">
+        <button
+          onClick={() => {
+            switchRole("player");
+            navigate("/v2/home");
+          }}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange text-white text-[12px] font-bold shrink-0"
+          style={{ boxShadow: "0 4px 12px rgba(255,107,44,0.25)" }}
+        >
+          <Repeat size={12} strokeWidth={2.5} /> Player
+        </button>
+        <button
+          onClick={() => navigate(`/v2/coach/${coach?.id ?? "maya"}`)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-navy-card text-offwhite text-[12px] font-semibold border border-navy-line"
+        >
+          <Eye size={12} /> Preview public
+        </button>
         <div className="flex gap-2 items-center">
           <RoundButton ariaLabel="Requests" variant="solid-navy" size="sm" onClick={() => navigate("/v2/coach-me/requests")} className="relative">
             <Inbox size={16} />
@@ -250,23 +265,8 @@ export default function CoachSelfPage() {
         </div>
       </div>
 
-      <div className="px-5 pt-5 pb-2 flex justify-between items-center">
-        <button
-          onClick={() => {
-            switchRole("player");
-            navigate(`/v2/coach/${coach?.id ?? "maya"}`);
-          }}
-          className="text-[13px] text-v2-muted font-semibold flex items-center gap-1.5"
-        >
-          <Eye size={14} />
-          View public profile
-        </button>
-        <button
-          onClick={() => switchRole("player")}
-          className="text-[12px] text-orange font-semibold flex items-center gap-1.5"
-        >
-          <Repeat size={12} /> Switch to player
-        </button>
+      <div className="px-5 pt-5 pb-2 text-center text-[11px] text-v2-muted-2">
+        Coach mode · v0.8.2
       </div>
 
       <TabBar mode="coach" active="dashboard" />

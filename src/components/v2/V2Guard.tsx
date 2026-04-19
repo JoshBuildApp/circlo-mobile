@@ -2,6 +2,7 @@ import { type ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { isV2Enabled, setV2Enabled } from "@/lib/v2/featureFlag";
 import { V2RoleProvider } from "@/contexts/v2/RoleContext";
+import { V2ThemeProvider } from "@/contexts/v2/ThemeContext";
 
 /**
  * Wraps every /v2/* route. If the user appends ?flag=on the flag is set
@@ -23,5 +24,9 @@ export function V2Guard({ children }: { children: ReactNode }) {
     return <Navigate to="/v2/enable" replace state={{ from: location.pathname }} />;
   }
 
-  return <V2RoleProvider>{children}</V2RoleProvider>;
+  return (
+    <V2ThemeProvider>
+      <V2RoleProvider>{children}</V2RoleProvider>
+    </V2ThemeProvider>
+  );
 }

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Search, MapPin, Mic, SlidersHorizontal, TrendingUp, Sparkles } from "lucide-react";
+import { Search, MapPin, Mic, SlidersHorizontal, TrendingUp, Sparkles, Users, Lock } from "lucide-react";
 import {
   PhoneFrame,
   StatusBar,
@@ -11,7 +11,7 @@ import {
   Chip,
 } from "@/components/v2/shared";
 import { useCoaches } from "@/hooks/v2/useMocks";
-import { formatPrice } from "@/lib/v2/currency";
+import { formatPrice, formatCompactNumber } from "@/lib/v2/currency";
 import { cn } from "@/lib/utils";
 
 const SPORTS: { key: string; label: string; emoji: string; tone: "teal" | "orange" | "dark" }[] = [
@@ -65,6 +65,8 @@ export default function DiscoverPage() {
         <button className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-offwhite whitespace-nowrap"><SlidersHorizontal size={12} /></button>
       </HScroll>
 
+      {tab === "coaches" ? (
+        <>
       <SectionHeader title={<span className="text-[13px] text-v2-muted font-bold tracking-wider uppercase">Browse by sport</span>} className="mt-5 mb-2" />
       <HScroll>
         {SPORTS.map((s) => (
@@ -118,7 +120,7 @@ export default function DiscoverPage() {
             className="flex items-center gap-3 px-4 py-3 bg-navy-card rounded-[16px] text-left"
           >
             <div className="text-[22px] font-extrabold text-v2-muted min-w-[22px] tnum">{i + 1}</div>
-            <Avatar size={40} gradient={c.avatarGradient} />
+            <Avatar size={40} src={c.avatarUrl} alt={c.name} gradient={c.avatarGradient} />
             <div className="flex-1">
               <div className="text-[14px] font-bold">{c.name}</div>
               <div className="text-[12px] text-v2-muted">{c.sports[0]} · {c.sessionsThisWeek ?? 0} sessions</div>
@@ -174,8 +176,157 @@ export default function DiscoverPage() {
           </div>
         </button>
       </HScroll>
+        </>
+      ) : (
+        <CommunitiesView coaches={coaches} navigate={navigate} />
+      )}
 
       <TabBar mode="player" active="discover" />
     </PhoneFrame>
+  );
+}
+
+interface CommunitiesViewProps {
+  coaches: ReturnType<typeof useCoaches>["data"];
+  navigate: ReturnType<typeof useNavigate>;
+}
+
+const FEATURED_COMMUNITIES = [
+  { id: "tlv-padel", name: "Tel Aviv Padel", members: 1240, online: 24, sport: "Padel", tone: "teal", isPro: false, joined: false, activity: "32 new posts today" },
+  { id: "pro-fight", name: "Pro Fight Club", members: 340, online: 12, sport: "Boxing", tone: "orange", isPro: true, joined: false, activity: "Verified coaches only" },
+  { id: "yoga-anywhere", name: "Yoga Anywhere", members: 880, online: 18, sport: "Yoga", tone: "teal", isPro: false, joined: true, activity: "Daily morning flow" },
+  { id: "marathon-il", name: "Marathon Israel", members: 2100, online: 41, sport: "Running", tone: "orange", isPro: false, joined: true, activity: "Sunday long-run group" },
+  { id: "strength-tel-aviv", name: "Strength TLV", members: 560, online: 8, sport: "Strength", tone: "teal", isPro: false, joined: false, activity: "PR boards updated weekly" },
+];
+
+function CommunitiesView({ coaches, navigate }: CommunitiesViewProps) {
+  const myCoach = coaches[0];
+  return (
+    <>
+      <SectionHeader title={<span className="text-[13px] text-v2-muted font-bold tracking-wider uppercase">Your circles</span>} className="mt-5 mb-2" />
+      <div className="px-5 flex flex-col gap-2 mb-2">
+        {myCoach && (
+          <button
+            onClick={() => navigate(`/v2/coach/${myCoach.id}/community`)}
+            className="p-3.5 rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
+          >
+            <Avatar size={40} gradient={myCoach.avatarGradient} />
+            <div className="flex-1">
+              <div className="text-[14px] font-bold flex items-center gap-1.5">
+                {myCoach.firstName}'s {myCoach.sports[0]} Circle
+                <Chip variant="teal" className="text-[9px] !px-1.5 !py-0.5">MEMBER</Chip>
+              </div>
+              <div className="text-[11px] text-v2-muted mt-0.5 tnum">
+                {myCoach.followerCount?.toLocaleString() ?? 0} members · 12 new this week
+              </div>
+            </div>
+            <span className="text-[12px] text-teal font-bold">Open →</span>
+          </button>
+        )}
+        <button
+          onClick={() => navigate("/v2/coach/maya/community")}
+          className="p-3.5 rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
+        >
+          <Avatar size={40} gradient="orange-peach" />
+          <div className="flex-1">
+            <div className="text-[14px] font-bold">Tel Aviv Padel</div>
+            <div className="text-[11px] text-v2-muted mt-0.5">Follower · 1,240 members</div>
+          </div>
+          <span className="text-[12px] text-v2-muted font-bold">Open →</span>
+        </button>
+      </div>
+
+      <SectionHeader
+        title={<span className="flex items-center gap-1.5"><Users size={16} className="text-teal" /> Trending circles</span>}
+        action="See all"
+      />
+      <HScroll>
+        {FEATURED_COMMUNITIES.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => navigate(`/v2/coach/${myCoach?.id ?? "maya"}/community`)}
+            className={cn(
+              "min-w-[220px] rounded-card p-4 flex flex-col gap-2.5 text-left",
+              c.tone === "teal" && "bg-teal text-navy-deep",
+              c.tone === "orange" && "bg-orange text-white"
+            )}
+          >
+            <Chip className={cn(c.tone === "teal" ? "!bg-black/20 !text-navy-deep" : "!bg-black/30 !text-white")} leadingDot>
+              {c.isPro ? "PRO ONLY" : `${c.online} ONLINE`}
+            </Chip>
+            <div>
+              <div className="font-bold text-[15px]">{c.name}</div>
+              <div className="text-[11px] opacity-80 mt-0.5 tnum">
+                {formatCompactNumber(c.members)} · {c.activity}
+              </div>
+            </div>
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-[11px] opacity-80">{c.sport}</span>
+              {c.isPro ? (
+                <Lock size={14} className="opacity-80" />
+              ) : (
+                <span className={cn("px-3 py-1 rounded-full text-[11px] font-bold", c.tone === "teal" ? "bg-black/25 text-navy-deep" : "bg-black/30 text-white")}>
+                  {c.joined ? "Joined ✓" : "Join"}
+                </span>
+              )}
+            </div>
+          </button>
+        ))}
+      </HScroll>
+
+      <SectionHeader
+        title={<span className="text-[13px] text-v2-muted font-bold tracking-wider uppercase">By sport</span>}
+        className="mt-5 mb-2"
+      />
+      <HScroll>
+        {SPORTS.map((s) => (
+          <button
+            key={s.key}
+            className={cn(
+              "min-w-[88px] h-[88px] rounded-[16px] p-3 flex flex-col justify-between font-bold text-[13px]",
+              s.tone === "teal" && "bg-teal text-navy-deep",
+              s.tone === "orange" && "bg-orange text-white",
+              s.tone === "dark" && "bg-navy-card text-offwhite"
+            )}
+          >
+            <span className="text-2xl">{s.emoji}</span>
+            <span>{s.label}</span>
+          </button>
+        ))}
+      </HScroll>
+
+      <SectionHeader
+        title={<span className="flex items-center gap-1.5"><Sparkles size={16} className="text-teal" /> Newly opened</span>}
+      />
+      <div className="px-5 flex flex-col gap-2 pb-4">
+        {FEATURED_COMMUNITIES.slice(2).map((c) => (
+          <button
+            key={c.id + "-row"}
+            onClick={() => navigate(`/v2/coach/${myCoach?.id ?? "maya"}/community`)}
+            className="p-3.5 rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
+          >
+            <div
+              className={cn(
+                "w-10 h-10 rounded-[12px] flex items-center justify-center text-lg shrink-0",
+                c.tone === "teal" ? "bg-teal text-navy-deep" : "bg-orange text-white"
+              )}
+            >
+              {c.sport[0]}
+            </div>
+            <div className="flex-1">
+              <div className="text-[14px] font-bold">{c.name}</div>
+              <div className="text-[11px] text-v2-muted mt-0.5 tnum">
+                {formatCompactNumber(c.members)} members · {c.online} online
+              </div>
+            </div>
+            {c.joined ? (
+              <Chip variant="teal" className="text-[10px]">JOINED</Chip>
+            ) : (
+              <span className="text-[12px] text-teal font-bold">Join</span>
+            )}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }

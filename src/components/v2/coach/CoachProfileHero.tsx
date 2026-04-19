@@ -32,7 +32,7 @@ export function CoachProfileHero({ coach, activeTab, onTab, onBack }: CoachProfi
       </div>
 
       <div className="flex justify-center mb-3.5">
-        <Avatar size={96} gradient={coach.avatarGradient} online={coach.isOnline} />
+        <Avatar size={96} src={coach.avatarUrl} alt={coach.name} gradient={coach.avatarGradient} online={coach.isOnline} />
       </div>
 
       <h1 className="text-center text-[26px] font-extrabold tracking-tight text-offwhite mb-1">

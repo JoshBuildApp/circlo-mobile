@@ -14,73 +14,70 @@ export default function UserProfileV2() {
   return (
     <PhoneFrame className="min-h-[100dvh] pb-28">
       <StatusBar />
-      <div
-        className="px-5 pt-5"
-        style={{ background: "linear-gradient(180deg, #1c1c30 0%, #0A0A0F 70%)" }}
+      <header
+        className="px-5 pt-3 pb-4 relative"
+        style={{ background: "linear-gradient(180deg, #1c1c30 0%, transparent 100%)" }}
       >
-        <div className="flex justify-between mb-5">
+        <div className="flex justify-between mb-3">
           <RoundButton ariaLabel="Back" onClick={() => navigate("/v2/home")}>
             <ChevronLeft size={16} />
           </RoundButton>
-          <RoundButton ariaLabel="Settings" onClick={() => navigate("/v2/profile/settings")}>
-            <SettingsIcon size={16} />
-          </RoundButton>
+          <div className="flex gap-2">
+            {me?.roles.includes("coach") && (
+              <button
+                onClick={() => {
+                  switchRole("coach");
+                  navigate("/v2/coach-me");
+                }}
+                className="px-3 py-1.5 rounded-full bg-orange text-white text-[12px] font-bold inline-flex items-center gap-1.5 self-center"
+                style={{ boxShadow: "0 4px 12px rgba(255,107,44,0.25)" }}
+              >
+                <Repeat size={12} strokeWidth={2.5} /> Coach
+              </button>
+            )}
+            <RoundButton ariaLabel="Settings" onClick={() => navigate("/v2/profile/settings")}>
+              <SettingsIcon size={16} />
+            </RoundButton>
+          </div>
         </div>
 
-        <div className="flex justify-center mb-3.5 relative">
-          <div className="relative">
-            <Avatar size={96} gradient="teal-mint" />
+        <div className="flex gap-3.5 items-center">
+          <div className="relative shrink-0">
+            <Avatar size={72} gradient="teal-mint" />
             <button
               aria-label="Edit photo"
-              className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-navy-card border-[3px] border-navy-deep flex items-center justify-center"
+              className="absolute bottom-[-2px] right-[-2px] w-6 h-6 rounded-full bg-navy-card border-[3px] border-navy-deep flex items-center justify-center"
             >
-              <Edit3 size={12} className="text-offwhite" strokeWidth={2.5} />
+              <Edit3 size={10} className="text-offwhite" strokeWidth={2.5} />
             </button>
           </div>
-        </div>
-
-        <h2 className="text-center text-[24px] font-extrabold tracking-tight mb-1">{me?.fullName ?? "Member"}</h2>
-        <div className="text-center text-v2-muted text-[13px] mb-3">
-          📍 {me?.city} · Member since {me ? new Date(me.joinedAt).toLocaleDateString("en-US", { month: "short", year: "2-digit" }) : "—"}
-        </div>
-
-        <div className="flex gap-1.5 justify-center mb-3">
-          <Chip variant="teal">🎾 {me?.sport ?? "Sport"} · {me?.level}</Chip>
-          <Chip>💪 {me?.sportsCount ?? 0} sports</Chip>
-        </div>
-
-        {me?.roles.includes("coach") && (
-          <div className="flex justify-center mb-5">
-            <button
-              onClick={() => {
-                switchRole("coach");
-                navigate("/v2/coach-me");
-              }}
-              className="px-4 py-2.5 rounded-full text-white text-[12px] font-bold inline-flex items-center gap-2"
-              style={{
-                background: "linear-gradient(135deg, #FF6B2C, #ff9d6c)",
-                boxShadow: "0 4px 14px rgba(255,107,44,0.25)",
-              }}
-            >
-              <Repeat size={14} strokeWidth={2.5} />
-              Switch to coach view
-            </button>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-[20px] font-extrabold tracking-tight leading-tight">{me?.fullName ?? "Member"}</h2>
+            <div className="text-v2-muted text-[12px] mt-0.5 truncate">
+              📍 {me?.city} · Since {me ? new Date(me.joinedAt).toLocaleDateString("en-US", { month: "short", year: "2-digit" }) : "—"}
+            </div>
+            <div className="flex gap-1 mt-1.5">
+              <Chip variant="teal" className="!text-[10px] !px-2 !py-0.5">🎾 {me?.sport ?? "Sport"} · {me?.level}</Chip>
+              <Chip className="!text-[10px] !px-2 !py-0.5">💪 {me?.sportsCount ?? 0}</Chip>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      </header>
 
-      <div className="grid grid-cols-3 gap-2 px-5 mb-5">
-        <div className="p-3.5 rounded-[14px] bg-navy-card text-center">
-          <div className="text-[20px] font-extrabold tnum">{me?.sessionCount ?? 0}</div>
-          <div className="text-[11px] text-v2-muted mt-0.5">sessions</div>
-        </div>
-        <div className="p-3.5 rounded-[14px] bg-navy-card text-center">
-          <div className="text-[20px] font-extrabold tnum text-teal">{me?.circleCount ?? 0}</div>
-          <div className="text-[11px] text-v2-muted mt-0.5">circles joined</div>
-        </div>
-        <div className="p-3.5 rounded-[14px] bg-navy-card text-center">
-          <div className="text-[20px] font-extrabold tnum text-orange">{me?.rating ?? 0}★</div>
-          <div className="text-[11px] text-v2-muted mt-0.5">player rating</div>
+      <div className="px-5 mb-4">
+        <div className="bg-navy-card rounded-[16px] grid grid-cols-3 overflow-hidden">
+          <div className="text-center py-3 border-r border-navy-line">
+            <div className="text-[18px] font-extrabold tnum">{me?.sessionCount ?? 0}</div>
+            <div className="text-[10px] text-v2-muted mt-0.5 uppercase tracking-wider font-semibold">sessions</div>
+          </div>
+          <div className="text-center py-3 border-r border-navy-line">
+            <div className="text-[18px] font-extrabold tnum text-teal">{me?.circleCount ?? 0}</div>
+            <div className="text-[10px] text-v2-muted mt-0.5 uppercase tracking-wider font-semibold">circles</div>
+          </div>
+          <div className="text-center py-3">
+            <div className="text-[18px] font-extrabold tnum text-orange">{me?.rating ?? 0}★</div>
+            <div className="text-[10px] text-v2-muted mt-0.5 uppercase tracking-wider font-semibold">rating</div>
+          </div>
         </div>
       </div>
 
@@ -118,7 +115,7 @@ export default function UserProfileV2() {
             onClick={() => navigate(`/v2/coach/${c.id}/community`)}
             className="p-3.5 rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
           >
-            <Avatar size={40} gradient={c.avatarGradient} />
+            <Avatar size={40} src={c.avatarUrl} alt={c.name} gradient={c.avatarGradient} />
             <div className="flex-1">
               <div className="text-[14px] font-bold">{c.firstName}'s {c.sports[0]} Circle</div>
               <div className="text-[11px] text-v2-muted mt-0.5">

@@ -1,9 +1,13 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 
 type GradientKey = "teal-gold" | "orange-peach" | "teal-mint" | "gold-teal";
 
 interface AvatarProps {
+  /** Image URL — when present, renders the photo with the gradient as placeholder behind. */
+  src?: string;
+  alt?: string;
   size?: number;
   gradient?: GradientKey;
   initials?: string;
@@ -21,6 +25,8 @@ const gradients: Record<GradientKey, string> = {
 };
 
 export function Avatar({
+  src,
+  alt = "",
   size = 40,
   gradient = "teal-gold",
   initials,
@@ -30,17 +36,32 @@ export function Avatar({
   onClick,
 }: AvatarProps) {
   const badgeSize = Math.max(10, Math.round(size * 0.22));
+  const [errored, setErrored] = useState(false);
+  const showImage = Boolean(src) && !errored;
   return (
     <div
       onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={cn(
-        "relative shrink-0 rounded-full flex items-center justify-center font-bold text-navy-deep",
+        "relative shrink-0 rounded-full flex items-center justify-center font-bold text-navy-deep overflow-hidden",
         onClick && "cursor-pointer",
         className
       )}
       style={{ width: size, height: size, background: gradients[gradient] }}
     >
-      {initials && <span style={{ fontSize: Math.round(size * 0.36) }}>{initials}</span>}
+      {showImage && (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          onError={() => setErrored(true)}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
+      {!showImage && initials && (
+        <span style={{ fontSize: Math.round(size * 0.36) }}>{initials}</span>
+      )}
       {online && (
         <span
           className="absolute bottom-0 right-0 rounded-full bg-teal border-2 border-navy-deep"

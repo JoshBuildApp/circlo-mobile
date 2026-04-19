@@ -113,15 +113,18 @@ export default {
           soft: "#FF6B2C33",
           dim: "#FF6B2C1A",
         },
-        "navy-deep": "#0A0A0F",
-        "navy-card": "#1A1A2E",
-        "navy-card-2": "#21213A",
-        "navy-line": "#2A2A42",
+        // v2 surfaces use CSS variables (defined in src/index.css under .v2-root)
+        // so the same Tailwind classes auto-flip on theme change. v1 pages
+        // never get .v2-root, so the variables fall back to their dark values
+        // and v1's appearance is unchanged.
+        "navy-deep":   "var(--v2-bg, #0A0A0F)",
+        "navy-card":   "var(--v2-card, #1A1A2E)",
+        "navy-card-2": "var(--v2-card-2, #21213A)",
+        "navy-line":   "var(--v2-line, #2A2A42)",
         "navy-light": "#252542",
-        // v2 muted tones (dark-theme aware; shadcn `muted` semantic preserved)
-        "v2-muted": "#9A9AB0",
-        "v2-muted-2": "#6B6B80",
-        offwhite: "#F5F2EC",
+        "v2-muted":   "var(--v2-text-muted, #9A9AB0)",
+        "v2-muted-2": "var(--v2-text-muted-2, #6B6B80)",
+        offwhite:     "var(--v2-text, #F5F2EC)",
         danger: "#FF4D6D",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
