@@ -75,6 +75,7 @@ const EnableV2 = lazy(() => import("@/pages/v2/EnableV2"));
 const V2Stub = lazy(() => import("@/pages/v2/V2Stub"));
 const V2Home = lazy(() => import("@/pages/v2/HomePage"));
 const V2Discover = lazy(() => import("@/pages/v2/DiscoverPage"));
+const V2CoachProfile = lazy(() => import("@/pages/v2/CoachProfilePage"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -148,10 +149,10 @@ function App() {
                     <Route path="/v2" element={<Navigate to="/v2/home" replace />} />
                     <Route path="/v2/home" element={<RouteWrapper routeName="v2-home"><V2Guard><V2Home /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/discover" element={<RouteWrapper routeName="v2-discover"><V2Guard><V2Discover /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/coach/:id" element={<RouteWrapper routeName="v2-coach-about"><V2Guard><V2Stub title="Coach · About" phase={5} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/coach/:id/community" element={<RouteWrapper routeName="v2-coach-community"><V2Guard><V2Stub title="Coach · Community" phase={5} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/coach/:id" element={<RouteWrapper routeName="v2-coach-about"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/coach/:id/community" element={<RouteWrapper routeName="v2-coach-community"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/content" element={<RouteWrapper routeName="v2-coach-content"><V2Guard><V2Stub title="Content Library" phase={12} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/coach/:id/shop" element={<RouteWrapper routeName="v2-coach-shop"><V2Guard><V2Stub title="Coach · Shop" phase={5} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/coach/:id/shop" element={<RouteWrapper routeName="v2-coach-shop"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/join" element={<RouteWrapper routeName="v2-tiers"><V2Guard><V2Stub title="Join Circle" phase={6} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/go-pro" element={<RouteWrapper routeName="v2-go-pro"><V2Guard><V2Stub title="Go Pro" phase={6} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/bob" element={<RouteWrapper routeName="v2-bob"><V2Guard><V2Stub title="Bob" phase={7} /></V2Guard></RouteWrapper>} />
