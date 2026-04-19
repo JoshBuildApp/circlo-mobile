@@ -82,6 +82,9 @@ const V2Bob = lazy(() => import("@/pages/v2/BobPage"));
 const V2BobDrawer = lazy(() => import("@/pages/v2/BobDrawerPage"));
 const V2BobSettings = lazy(() => import("@/pages/v2/BobSettingsPage"));
 const V2BobInbox = lazy(() => import("@/pages/v2/BobInboxPage"));
+const V2Messages = lazy(() => import("@/pages/v2/MessagesInboxPage"));
+const V2Chat = lazy(() => import("@/pages/v2/ChatPage"));
+const V2NewMessage = lazy(() => import("@/pages/v2/NewMessagePage"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -165,9 +168,9 @@ function App() {
                     <Route path="/v2/bob/threads" element={<RouteWrapper routeName="v2-bob-threads"><V2Guard><V2BobDrawer /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/bob/settings" element={<RouteWrapper routeName="v2-bob-settings"><V2Guard><V2BobSettings /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/bob/inbox" element={<RouteWrapper routeName="v2-bob-inbox"><V2Guard><V2BobInbox /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/messages" element={<RouteWrapper routeName="v2-messages"><V2Guard><V2Stub title="Messages" phase={8} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/messages/new" element={<RouteWrapper routeName="v2-new-message"><V2Guard><V2Stub title="New message" phase={8} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/messages/:threadId" element={<RouteWrapper routeName="v2-chat"><V2Guard><V2Stub title="Chat" phase={8} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/messages" element={<RouteWrapper routeName="v2-messages"><V2Guard><V2Messages /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/messages/new" element={<RouteWrapper routeName="v2-new-message"><V2Guard><V2NewMessage /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/messages/:threadId" element={<RouteWrapper routeName="v2-chat"><V2Guard><V2Chat /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/calendar" element={<RouteWrapper routeName="v2-calendar"><V2Guard><V2Stub title="Calendar" phase={13} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/calendar/add-workout" element={<RouteWrapper routeName="v2-add-workout"><V2Guard><V2Stub title="Add workout" phase={13} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/calendar/:date" element={<RouteWrapper routeName="v2-day-detail"><V2Guard><V2Stub title="Day detail" phase={13} /></V2Guard></RouteWrapper>} />
