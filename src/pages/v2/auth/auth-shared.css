@@ -410,6 +410,61 @@
 .circlo-strength-bar--mid    { background: var(--circlo-orange); }
 .circlo-strength-bar--strong { background: var(--circlo-teal); }
 
+/* =========================================================================
+ * OTP input — 6 digit boxes, filled state goes teal.
+ * ========================================================================= */
+
+.circlo-email-display {
+  background: var(--circlo-navy-card);
+  border: 1px solid var(--circlo-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--circlo-text);
+  text-align: center;
+  margin-bottom: 24px;
+  word-break: break-all;
+}
+
+.circlo-otp-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 8px 0 24px;
+}
+
+.circlo-otp-digit {
+  width: 48px;
+  height: 56px;
+  background: var(--circlo-navy-card);
+  border: 1.5px solid var(--circlo-border);
+  border-radius: 12px;
+  text-align: center;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--circlo-text);
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.circlo-otp-digit:focus {
+  border-color: var(--circlo-teal);
+  background: var(--circlo-navy-elev);
+}
+.circlo-otp-digit.circlo-otp-digit--filled {
+  border-color: var(--circlo-teal);
+}
+
+.circlo-resend-row {
+  text-align: center;
+  font-size: 13px;
+  color: var(--circlo-text-dim);
+  margin-top: 16px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .circlo-screen-enter {
     animation: none !important;

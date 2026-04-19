@@ -120,6 +120,7 @@ const V2AuthSignupOutlet = lazy(() => import("@/pages/v2/auth/SignupOutlet").the
 const V2AuthRole = lazy(() => import("@/pages/v2/auth/signup/Role"));
 const V2AuthSports = lazy(() => import("@/pages/v2/auth/signup/Sports"));
 const V2AuthCredentials = lazy(() => import("@/pages/v2/auth/signup/Credentials"));
+const V2AuthVerify = lazy(() => import("@/pages/v2/auth/signup/Verify"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -203,6 +204,7 @@ function App() {
                         <Route path="role" element={<RouteWrapper routeName="v2-auth-signup-role"><V2AuthRole /></RouteWrapper>} />
                         <Route path="sports" element={<RouteWrapper routeName="v2-auth-signup-sports"><V2AuthSports /></RouteWrapper>} />
                         <Route path="credentials" element={<RouteWrapper routeName="v2-auth-signup-credentials"><V2AuthCredentials /></RouteWrapper>} />
+                        <Route path="verify" element={<RouteWrapper routeName="v2-auth-signup-verify"><V2AuthVerify /></RouteWrapper>} />
                       </Route>
                     </Route>
                     <Route path="/v2/splash" element={<RouteWrapper routeName="v2-splash"><V2Guard><V2Splash /></V2Guard></RouteWrapper>} />
