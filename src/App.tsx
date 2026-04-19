@@ -16,6 +16,7 @@ import { GuestGateProvider } from "@/contexts/GuestGateContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { captureUTMParams } from "@/hooks/use-utm";
+import { isV2Enabled } from "@/lib/v2/featureFlag";
 
 const queryClient = new QueryClient();
 
@@ -150,6 +151,9 @@ const ShellWrapper = ({ children, routeName }: { children: React.ReactNode; rout
 );
 
 function RootRoute() {
+  // Builds with VITE_V2_FORCE=true (or with the localStorage flag set) land
+  // straight on v2 — used for Xcode preview builds and dev.
+  if (isV2Enabled()) return <Navigate to="/v2/home" replace />;
   const { loading, user } = useAuth();
   // While Supabase is rehydrating the saved session, show the branded splash.
   if (loading) return <CircloSplash />;
