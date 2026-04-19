@@ -29,7 +29,7 @@ export default function BookingSuccessPage() {
     <PhoneFrame className="min-h-[100dvh] pb-12 relative">
       <StatusBar />
       <button
-        onClick={() => navigate("/v2/home")}
+        onClick={() => navigate("/v2/book")}
         aria-label="Close"
         className="absolute top-5 right-5 z-50 w-9 h-9 rounded-full bg-navy-card flex items-center justify-center"
       >
