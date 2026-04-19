@@ -76,6 +76,8 @@ const V2Stub = lazy(() => import("@/pages/v2/V2Stub"));
 const V2Home = lazy(() => import("@/pages/v2/HomePage"));
 const V2Discover = lazy(() => import("@/pages/v2/DiscoverPage"));
 const V2CoachProfile = lazy(() => import("@/pages/v2/CoachProfilePage"));
+const V2Tiers = lazy(() => import("@/pages/v2/TiersPage"));
+const V2GoPro = lazy(() => import("@/pages/v2/GoProPage"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -153,8 +155,8 @@ function App() {
                     <Route path="/v2/coach/:id/community" element={<RouteWrapper routeName="v2-coach-community"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/content" element={<RouteWrapper routeName="v2-coach-content"><V2Guard><V2Stub title="Content Library" phase={12} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/coach/:id/shop" element={<RouteWrapper routeName="v2-coach-shop"><V2Guard><V2CoachProfile /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/coach/:id/join" element={<RouteWrapper routeName="v2-tiers"><V2Guard><V2Stub title="Join Circle" phase={6} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/go-pro" element={<RouteWrapper routeName="v2-go-pro"><V2Guard><V2Stub title="Go Pro" phase={6} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/coach/:id/join" element={<RouteWrapper routeName="v2-tiers"><V2Guard><V2Tiers /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/go-pro" element={<RouteWrapper routeName="v2-go-pro"><V2Guard><V2GoPro /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/bob" element={<RouteWrapper routeName="v2-bob"><V2Guard><V2Stub title="Bob" phase={7} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/bob/threads" element={<RouteWrapper routeName="v2-bob-threads"><V2Guard><V2Stub title="Bob · Threads" phase={7} /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/bob/settings" element={<RouteWrapper routeName="v2-bob-settings"><V2Guard><V2Stub title="Bob · Settings" phase={7} /></V2Guard></RouteWrapper>} />
