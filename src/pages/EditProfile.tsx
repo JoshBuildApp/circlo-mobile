@@ -243,7 +243,7 @@ const EditProfile = () => {
     setSaving(true);
 
     // Update profile table
-    const profileUpdate: Record<string, string> = {
+    const profileUpdate: { username: string; bio: string; avatar_url?: string | null } = {
       username: username.trim(),
       bio: bio.trim(),
     };
