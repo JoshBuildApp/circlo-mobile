@@ -10,15 +10,9 @@ export const V2_ENABLED_KEY = "circlo:v2_enabled";
 
 export function isV2Enabled(): boolean {
   if (typeof window === "undefined") return false;
-  // Dev builds (npm run dev, Xcode debug builds) are always v2 by default
-  // so devs see the new UI without flipping a flag every time.
-  if (import.meta.env.DEV) return true;
-  if (import.meta.env.VITE_V2_FORCE === "true") return true;
-  try {
-    return window.localStorage.getItem(V2_ENABLED_KEY) === "true";
-  } catch {
-    return false;
-  }
+  // PREVIEW BUILD — v2 is on for everyone. Revert this block to gate by
+  // localStorage / env once we're done previewing.
+  return true;
 }
 
 export function setV2Enabled(enabled: boolean): void {
