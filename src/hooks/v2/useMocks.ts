@@ -11,6 +11,15 @@ import {
   fetchCoaches,
   fetchCoach,
   fetchMyCoachProfile,
+  fetchMySessions,
+  fetchBookingRequestsForCoach,
+  setBookingStatus,
+  fetchCirclePosts,
+  fetchVideos,
+  fetchVideo,
+  fetchCoachReviews,
+  fetchCoachReviewSummary,
+  type CoachReview,
 } from "@/hooks/v2/useSupabaseQueries";
 import {
   mockCoaches,
@@ -114,39 +123,57 @@ export function useMyCoachProfile() {
 }
 
 export function useMySessions(filter: "upcoming" | "past" | "cancelled" = "upcoming") {
+  const { user } = useAuth();
   return useQuery<Session[]>({
-    queryKey: ["v2", "sessions", filter],
-    queryFn: () => {
-      const now = Date.now();
-      const all = mockSessions;
-      if (filter === "upcoming") return delay(all.filter((s) => new Date(s.startsAt).getTime() >= now));
-      if (filter === "past") return delay(all.filter((s) => new Date(s.startsAt).getTime() < now && s.status !== "cancelled"));
-      return delay(all.filter((s) => s.status === "cancelled"));
+    queryKey: ["v2", "sessions", filter, user?.id ?? "guest"],
+    queryFn: async () => {
+      if (!user) {
+        const now = Date.now();
+        const all = mockSessions;
+        if (filter === "upcoming") return delay(all.filter((s) => new Date(s.startsAt).getTime() >= now));
+        if (filter === "past")
+          return delay(all.filter((s) => new Date(s.startsAt).getTime() < now && s.status !== "cancelled"));
+        return delay(all.filter((s) => s.status === "cancelled"));
+      }
+      const real = await fetchMySessions(user.id, filter);
+      return real;
     },
   });
 }
 
 export function useBookingRequests(filter: "new" | "responded" | "declined" = "new") {
+  const { user } = useAuth();
   return useQuery<BookingRequest[]>({
-    queryKey: ["v2", "booking-requests", filter],
-    queryFn: () => {
-      if (filter === "new") return delay(mockBookingRequests.filter((r) => r.status === "pending"));
-      if (filter === "declined") return delay(mockBookingRequests.filter((r) => r.status === "declined"));
-      return delay(mockBookingRequests.filter((r) => r.status === "accepted"));
+    queryKey: ["v2", "booking-requests", filter, user?.id ?? "guest"],
+    queryFn: async () => {
+      if (!user) {
+        if (filter === "new") return delay(mockBookingRequests.filter((r) => r.status === "pending"));
+        if (filter === "declined") return delay(mockBookingRequests.filter((r) => r.status === "declined"));
+        return delay(mockBookingRequests.filter((r) => r.status === "accepted"));
+      }
+      return fetchBookingRequestsForCoach(user.id, filter);
     },
   });
 }
 
 export function useBookingRequestAction() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   return useMutation({
     mutationFn: async ({ id, action }: { id: string; action: "accept" | "decline" }) => {
-      const req = mockBookingRequests.find((r) => r.id === id);
-      if (!req) throw new Error("Request not found");
-      req.status = action === "accept" ? "accepted" : "declined";
-      return delay(req);
+      if (!user) {
+        const req = mockBookingRequests.find((r) => r.id === id);
+        if (!req) throw new Error("Request not found");
+        req.status = action === "accept" ? "accepted" : "declined";
+        return delay(req);
+      }
+      await setBookingStatus(id, action);
+      return { id, action };
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["v2", "booking-requests"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["v2", "booking-requests"] });
+      qc.invalidateQueries({ queryKey: ["v2", "sessions"] });
+    },
   });
 }
 
@@ -165,9 +192,14 @@ export function useBobThreads() {
 }
 
 export function useCirclePosts(coachId?: string) {
+  const { user } = useAuth();
   return useQuery<CirclePost[]>({
-    queryKey: ["v2", "circle-posts", coachId ?? "all"],
-    queryFn: () => delay(mockCirclePosts),
+    queryKey: ["v2", "circle-posts", coachId ?? "all", user ? "live" : "mock"],
+    queryFn: async () => {
+      if (!user) return delay(mockCirclePosts);
+      const real = await fetchCirclePosts(coachId);
+      return real.length > 0 ? real : mockCirclePosts;
+    },
   });
 }
 
@@ -195,17 +227,53 @@ export function useChat(threadId: string | undefined) {
 }
 
 export function useVideos(coachId: string | undefined) {
+  const { user } = useAuth();
   return useQuery<Video[]>({
-    queryKey: ["v2", "videos", coachId],
-    queryFn: () => delay(mockVideos.filter((v) => !coachId || v.coachId === coachId)),
+    queryKey: ["v2", "videos", coachId, user ? "live" : "mock"],
+    queryFn: async () => {
+      if (!user) return delay(mockVideos.filter((v) => !coachId || v.coachId === coachId));
+      const real = await fetchVideos(coachId);
+      return real.length > 0 ? real : mockVideos.filter((v) => !coachId || v.coachId === coachId);
+    },
   });
 }
 
 export function useVideo(id: string | undefined) {
+  const { user } = useAuth();
   return useQuery<Video | null>({
-    queryKey: ["v2", "video", id],
-    queryFn: () => delay(mockVideos.find((v) => v.id === id) ?? null),
+    queryKey: ["v2", "video", id, user ? "live" : "mock"],
+    queryFn: async () => {
+      if (!id) return null;
+      if (!user) return delay(mockVideos.find((v) => v.id === id) ?? null);
+      const real = await fetchVideo(id);
+      return real ?? mockVideos.find((v) => v.id === id) ?? null;
+    },
     enabled: Boolean(id),
+  });
+}
+
+export function useCoachReviews(coachId: string | undefined) {
+  const { user } = useAuth();
+  return useQuery<CoachReview[]>({
+    queryKey: ["v2", "coach-reviews", coachId, user ? "live" : "mock"],
+    queryFn: async () => {
+      if (!coachId) return [];
+      if (!user) return [];
+      return fetchCoachReviews(coachId);
+    },
+    enabled: Boolean(coachId),
+  });
+}
+
+export function useCoachReviewSummary(coachId: string | undefined) {
+  const { user } = useAuth();
+  return useQuery<{ avg: number; count: number }>({
+    queryKey: ["v2", "coach-review-summary", coachId, user ? "live" : "mock"],
+    queryFn: async () => {
+      if (!coachId || !user) return { avg: 0, count: 0 };
+      return fetchCoachReviewSummary(coachId);
+    },
+    enabled: Boolean(coachId),
   });
 }
 

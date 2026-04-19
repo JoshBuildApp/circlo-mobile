@@ -14,12 +14,17 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import type {
+  BookingRequest,
+  CirclePost,
   Coach,
   CoachBadge,
   CoachProfile,
   PlayerProfile,
+  Session,
+  SessionStatus,
   SportKey,
   UserRole,
+  Video,
 } from "@/types/v2";
 
 /* ---------- shared mappers ---------- */
@@ -198,6 +203,316 @@ export async function fetchCoach(id: string): Promise<Coach | null> {
     if (p) profile = p as DbProfileRow;
   }
   return rowToCoach(row, profile);
+}
+
+/* ---------- bookings & requests ---------- */
+
+interface DbBookingRow {
+  id: string;
+  user_id: string | null;
+  coach_id: string | null;
+  coach_name: string | null;
+  date: string | null;        // "YYYY-MM-DD"
+  time: string | null;        // "HH:MM"
+  time_label: string | null;
+  status: string | null;
+  price: number | null;
+  total_participants: number | null;
+  is_group: boolean | null;
+  training_type: string | null;
+  booking_code: string | null;
+  created_at: string | null;
+}
+
+function combineDateTime(date: string | null, time: string | null): string {
+  if (!date) return new Date().toISOString();
+  const t = time && /^\d{2}:\d{2}/.test(time) ? time : "00:00";
+  return new Date(`${date}T${t}:00`).toISOString();
+}
+
+function statusFor(s: string | null): SessionStatus {
+  switch ((s ?? "").toLowerCase()) {
+    case "confirmed":
+    case "accepted":
+    case "approved":
+      return "confirmed";
+    case "completed":
+    case "done":
+      return "completed";
+    case "cancelled":
+    case "canceled":
+    case "declined":
+      return "cancelled";
+    default:
+      return "pending";
+  }
+}
+
+function rowToSession(b: DbBookingRow): Session {
+  const startsAt = combineDateTime(b.date, b.time);
+  const durationMin = b.is_group ? 90 : 60;
+  const ends = new Date(new Date(startsAt).getTime() + durationMin * 60_000).toISOString();
+  return {
+    id: b.id,
+    coachId: b.coach_id ?? "",
+    coachName: b.coach_name ?? "Coach",
+    format: b.is_group ? "group" : "one-on-one",
+    durationMin,
+    startsAt,
+    endsAt: ends,
+    location: undefined,
+    locationSubline: undefined,
+    status: statusFor(b.status),
+    priceILS: b.price ?? 0,
+    totalILS: b.price ?? 0,
+    capacity: b.is_group ? b.total_participants ?? 4 : undefined,
+    ref: b.booking_code ?? undefined,
+  };
+}
+
+function rowToBookingRequest(b: DbBookingRow, studentName?: string): BookingRequest {
+  return {
+    id: b.id,
+    studentId: b.user_id ?? "",
+    studentName: studentName ?? "Student",
+    format: b.is_group ? "group" : b.training_type === "video-review" ? "video-review" : "one-on-one",
+    durationMin: b.is_group ? 90 : 60,
+    startsAt: combineDateTime(b.date, b.time),
+    priceILS: b.price ?? 0,
+    createdAt: b.created_at ?? new Date().toISOString(),
+    status: statusFor(b.status) === "confirmed" ? "accepted" : statusFor(b.status) === "cancelled" ? "declined" : "pending",
+  };
+}
+
+export async function fetchMySessions(userId: string, filter: "upcoming" | "past" | "cancelled"): Promise<Session[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  let q = supabase
+    .from("bookings")
+    .select("id, user_id, coach_id, coach_name, date, time, time_label, status, price, total_participants, is_group, training_type, booking_code, created_at")
+    .eq("user_id", userId);
+  if (filter === "upcoming") q = q.gte("date", today).neq("status", "cancelled");
+  else if (filter === "past") q = q.lt("date", today).neq("status", "cancelled");
+  else q = q.eq("status", "cancelled");
+  const { data, error } = await q.order("date", { ascending: filter === "upcoming" }).limit(40);
+  if (error) {
+    console.error("[v2] bookings fetch failed:", error.message);
+    return [];
+  }
+  return (data ?? []).map((r) => rowToSession(r as DbBookingRow));
+}
+
+export async function fetchBookingRequestsForCoach(
+  coachUserId: string,
+  filter: "new" | "responded" | "declined"
+): Promise<BookingRequest[]> {
+  // First find this coach's text id from coach_profiles.
+  const { data: coachRow } = await supabase
+    .from("coach_profiles")
+    .select("id")
+    .eq("user_id", coachUserId)
+    .maybeSingle();
+  const coachId = coachRow?.id;
+  if (!coachId) return [];
+
+  let q = supabase
+    .from("bookings")
+    .select("id, user_id, coach_id, coach_name, date, time, time_label, status, price, total_participants, is_group, training_type, booking_code, created_at")
+    .eq("coach_id", coachId);
+  if (filter === "new") q = q.eq("status", "pending");
+  else if (filter === "declined") q = q.eq("status", "cancelled");
+  else q = q.in("status", ["confirmed", "completed"]);
+  const { data, error } = await q.order("created_at", { ascending: false }).limit(40);
+  if (error) {
+    console.error("[v2] booking requests fetch failed:", error.message);
+    return [];
+  }
+  const rows = (data ?? []) as DbBookingRow[];
+  // Look up student usernames in one round trip.
+  const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean) as string[]));
+  const nameMap = new Map<string, string>();
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, username")
+      .in("user_id", userIds);
+    (profiles ?? []).forEach((p: { user_id: string; username: string | null }) =>
+      nameMap.set(p.user_id, p.username ?? "Student")
+    );
+  }
+  return rows.map((r) => rowToBookingRequest(r, r.user_id ? nameMap.get(r.user_id) : undefined));
+}
+
+export async function setBookingStatus(bookingId: string, action: "accept" | "decline"): Promise<void> {
+  const status = action === "accept" ? "confirmed" : "cancelled";
+  const { error } = await supabase.from("bookings").update({ status }).eq("id", bookingId);
+  if (error) {
+    console.error("[v2] booking status update failed:", error.message);
+    throw error;
+  }
+}
+
+/* ---------- coach posts ---------- */
+
+interface DbPostRow {
+  id: string;
+  coach_id: string | null;
+  user_id: string | null;
+  text: string | null;
+  created_at: string | null;
+}
+
+export async function fetchCirclePosts(coachId?: string): Promise<CirclePost[]> {
+  let q = supabase
+    .from("coach_posts")
+    .select("id, coach_id, user_id, text, created_at")
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (coachId) q = q.eq("coach_id", coachId);
+  const { data, error } = await q;
+  if (error) {
+    console.error("[v2] coach_posts fetch failed:", error.message);
+    return [];
+  }
+  const rows = (data ?? []) as DbPostRow[];
+  if (rows.length === 0) return [];
+
+  // Resolve author display names from profiles.
+  const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean) as string[]));
+  const nameMap = new Map<string, string>();
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, username")
+      .in("user_id", userIds);
+    (profiles ?? []).forEach((p: { user_id: string; username: string | null }) =>
+      nameMap.set(p.user_id, p.username ?? "Member")
+    );
+  }
+  return rows.map((r) => ({
+    id: r.id,
+    author: r.user_id ? nameMap.get(r.user_id) ?? "Member" : "Member",
+    authorGradient: pickGradient(r.user_id ?? r.id),
+    isCoach: true, // coach_posts implies coach authorship
+    body: r.text ?? "",
+    likes: 0,
+    comments: 0,
+    createdAt: r.created_at ?? new Date().toISOString(),
+  }));
+}
+
+/* ---------- videos ---------- */
+
+interface DbVideoRow {
+  id: string;
+  coach_id: string | null;
+  title: string | null;
+  thumbnail_url: string | null;
+  views: number | null;
+  duration: number | null;
+  created_at: string | null;
+  is_exclusive: boolean | null;
+  category: string | null;
+}
+
+function tierFor(row: DbVideoRow): Video["tier"] {
+  if (row.is_exclusive) return "vip";
+  if (row.category?.toLowerCase().includes("circle") || row.category?.toLowerCase().includes("member")) return "circle";
+  return "free";
+}
+
+export async function fetchVideos(coachId?: string): Promise<Video[]> {
+  let q = supabase
+    .from("coach_videos")
+    .select("id, coach_id, title, thumbnail_url, views, duration, created_at, is_exclusive, category")
+    .order("created_at", { ascending: false })
+    .limit(40);
+  if (coachId) q = q.eq("coach_id", coachId);
+  const { data, error } = await q;
+  if (error) {
+    console.error("[v2] coach_videos fetch failed:", error.message);
+    return [];
+  }
+  return (data ?? []).map((r): Video => {
+    const row = r as DbVideoRow;
+    return {
+      id: row.id,
+      coachId: row.coach_id ?? "",
+      title: row.title ?? "Untitled",
+      durationSec: row.duration ?? 0,
+      viewCount: row.views ?? 0,
+      createdAt: row.created_at ?? new Date().toISOString(),
+      tier: tierFor(row),
+    };
+  });
+}
+
+export async function fetchVideo(id: string): Promise<Video | null> {
+  const { data, error } = await supabase
+    .from("coach_videos")
+    .select("id, coach_id, title, thumbnail_url, views, duration, created_at, is_exclusive, category")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) {
+    if (error) console.error("[v2] video fetch failed:", error.message);
+    return null;
+  }
+  const row = data as DbVideoRow;
+  return {
+    id: row.id,
+    coachId: row.coach_id ?? "",
+    title: row.title ?? "Untitled",
+    durationSec: row.duration ?? 0,
+    viewCount: row.views ?? 0,
+    createdAt: row.created_at ?? new Date().toISOString(),
+    tier: tierFor(row),
+  };
+}
+
+/* ---------- reviews ---------- */
+
+export interface CoachReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  authorName: string;
+  createdAt: string;
+}
+
+export async function fetchCoachReviews(coachId: string, limit = 5): Promise<CoachReview[]> {
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("id, rating, comment, user_name, created_at")
+    .eq("coach_id", coachId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.error("[v2] reviews fetch failed:", error.message);
+    return [];
+  }
+  return (data ?? []).map(
+    (r: { id: string; rating: number; comment: string | null; user_name: string | null; created_at: string }) => ({
+      id: r.id,
+      rating: r.rating ?? 0,
+      comment: r.comment,
+      authorName: r.user_name ?? "Member",
+      createdAt: r.created_at,
+    })
+  );
+}
+
+export async function fetchCoachReviewSummary(coachId: string): Promise<{ avg: number; count: number }> {
+  const { count } = await supabase
+    .from("reviews")
+    .select("id", { count: "exact", head: true })
+    .eq("coach_id", coachId);
+  const { data } = await supabase
+    .from("reviews")
+    .select("rating")
+    .eq("coach_id", coachId)
+    .limit(500);
+  const ratings = (data ?? []).map((r: { rating: number }) => r.rating ?? 0).filter((n: number) => n > 0);
+  const avg = ratings.length ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 0;
+  return { avg: Math.round(avg * 10) / 10, count: count ?? ratings.length };
 }
 
 export async function fetchMyCoachProfile(userId: string): Promise<CoachProfile | null> {
