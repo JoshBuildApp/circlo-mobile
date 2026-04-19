@@ -2,6 +2,8 @@ import { ChevronLeft, Share2 } from "lucide-react";
 import { Avatar, RoundButton, Chip } from "@/components/v2/shared";
 import type { Coach } from "@/types/v2";
 import { cn } from "@/lib/utils";
+import { useShare } from "@/native/useNative";
+import { toast } from "sonner";
 
 interface CoachProfileHeroProps {
   coach: Coach;
@@ -11,6 +13,25 @@ interface CoachProfileHeroProps {
 }
 
 export function CoachProfileHero({ coach, activeTab, onTab, onBack }: CoachProfileHeroProps) {
+  const share = useShare();
+  const handleShare = async () => {
+    const url = `https://circloclub.com/coach/${coach.id}`;
+    try {
+      await share({
+        title: `${coach.name} on Circlo`,
+        text: coach.tagline,
+        url,
+      });
+    } catch {
+      // Fallback: copy URL
+      try {
+        await navigator.clipboard?.writeText(url);
+        toast.success("Link copied to clipboard.");
+      } catch {
+        toast("Share unavailable. URL: " + url);
+      }
+    }
+  };
   return (
     <div
       className="px-5 pt-5 relative"
@@ -20,7 +41,7 @@ export function CoachProfileHero({ coach, activeTab, onTab, onBack }: CoachProfi
         <RoundButton ariaLabel="Back" onClick={onBack}>
           <ChevronLeft size={16} />
         </RoundButton>
-        <RoundButton ariaLabel="Share">
+        <RoundButton ariaLabel="Share" onClick={handleShare}>
           <Share2 size={16} />
         </RoundButton>
       </div>

@@ -107,6 +107,8 @@ const V2Splash = lazy(() => import("@/pages/v2/SplashV2"));
 const V2Welcome = lazy(() => import("@/pages/v2/WelcomeV2"));
 const V2Login = lazy(() => import("@/pages/v2/LoginV2"));
 const V2Signup = lazy(() => import("@/pages/v2/SignupV2"));
+const V2ForgotPassword = lazy(() => import("@/pages/v2/ForgotPasswordV2"));
+const V2EditProfile = lazy(() => import("@/pages/v2/EditProfileV2"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -184,6 +186,8 @@ function App() {
                     <Route path="/v2/welcome" element={<RouteWrapper routeName="v2-welcome"><V2Guard><V2Welcome /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/login" element={<RouteWrapper routeName="v2-login"><V2Guard><V2Login /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/signup" element={<RouteWrapper routeName="v2-signup"><V2Guard><V2Signup /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/forgot-password" element={<RouteWrapper routeName="v2-forgot-password"><V2Guard><V2ForgotPassword /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/profile/edit" element={<RouteWrapper routeName="v2-edit-profile"><V2Guard><V2EditProfile /></V2Guard></RouteWrapper>} />
                     <Route path="/v2" element={<Navigate to="/v2/splash" replace />} />
                     <Route path="/v2/home" element={<RouteWrapper routeName="v2-home"><V2Guard><V2Home /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/discover" element={<RouteWrapper routeName="v2-discover"><V2Guard><V2Discover /></V2Guard></RouteWrapper>} />

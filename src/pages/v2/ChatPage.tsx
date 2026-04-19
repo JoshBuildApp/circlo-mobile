@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Phone, Video, Plus, Smile, Mic, Send, Calendar, Check, CheckCheck } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { PhoneFrame, StatusBar, RoundButton, Avatar } from "@/components/v2/shared";
 import { useChat, useMessageThreads } from "@/hooks/v2/useMocks";
+import { useAuth } from "@/contexts/AuthContext";
+import { sendChatMessage } from "@/hooks/v2/useSupabaseQueries";
 import { formatPrice } from "@/lib/v2/currency";
 import type { Message } from "@/types/v2";
 import { cn } from "@/lib/utils";
@@ -67,10 +71,45 @@ function MessageBubble({ m, gradient }: { m: Message; gradient: "teal-gold" | "o
 export default function ChatPage() {
   const navigate = useNavigate();
   const { threadId } = useParams<{ threadId: string }>();
+  const { user } = useAuth();
+  const qc = useQueryClient();
   const { data: messages = [], isLoading } = useChat(threadId);
   const { data: threads = [] } = useMessageThreads();
   const thread = threads.find((t) => t.id === threadId);
   const [val, setVal] = useState("");
+  const [sending, setSending] = useState(false);
+
+  // Resolve who we're sending to. Threads from useMessageThreads carry peerId.
+  // If we're in a "th-{coachId}" pattern from a deep link, strip the prefix.
+  const peerId = thread?.peerId ?? threadId?.replace(/^th-/, "") ?? "";
+
+  const handleSend = async () => {
+    if (!val.trim()) return;
+    if (!user) {
+      toast.error("Sign in to send messages.");
+      return;
+    }
+    if (!peerId) {
+      toast.error("This conversation isn't ready yet — try opening from the inbox.");
+      return;
+    }
+    setSending(true);
+    try {
+      await sendChatMessage({
+        fromUserId: user.id,
+        toPeerId: peerId,
+        body: val.trim(),
+        threadId: thread?.id,
+      });
+      setVal("");
+      qc.invalidateQueries({ queryKey: ["v2", "chat", threadId] });
+      qc.invalidateQueries({ queryKey: ["v2", "threads"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't send.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   const grad =
     thread?.peerGradient === "orange-peach"
@@ -117,7 +156,13 @@ export default function ChatPage() {
           <input
             value={val}
             onChange={(e) => setVal(e.target.value)}
-            placeholder={`Message ${thread?.peerName?.split(" ")[0] ?? ""}…`}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void handleSend();
+              }
+            }}
+            placeholder={`Message ${thread?.peerName?.split(" ")[0] ?? "…"}`}
             className="flex-1 bg-transparent border-none outline-none text-offwhite text-sm py-0.5"
           />
           <button aria-label="Emoji"><Smile size={18} className="text-v2-muted" /></button>
@@ -125,9 +170,11 @@ export default function ChatPage() {
         </div>
         <button
           aria-label="Send"
-          className={cn("w-9 h-9 rounded-full flex items-center justify-center shrink-0", val ? "bg-teal text-navy-deep" : "bg-navy-card text-v2-muted")}
+          onClick={() => void handleSend()}
+          disabled={!val.trim() || sending}
+          className={cn("w-9 h-9 rounded-full flex items-center justify-center shrink-0 disabled:opacity-60", val.trim() ? "bg-teal text-navy-deep" : "bg-navy-card text-v2-muted")}
         >
-          <Send size={16} fill={val ? "currentColor" : "none"} />
+          <Send size={16} fill={val.trim() ? "currentColor" : "none"} />
         </button>
       </div>
     </PhoneFrame>

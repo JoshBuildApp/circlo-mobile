@@ -1,8 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ChevronLeft, Calendar as CalIcon, Plus } from "lucide-react";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { PhoneFrame, StatusBar, TabBar, RoundButton, Avatar, Chip } from "@/components/v2/shared";
 import { useMySessions } from "@/hooks/v2/useMocks";
+import { cancelBooking } from "@/hooks/v2/useSupabaseQueries";
 import { cn } from "@/lib/utils";
 import type { Session } from "@/types/v2";
 
@@ -21,7 +24,7 @@ function dateBlock(d: Date) {
   };
 }
 
-function SessionCard({ s, onChat }: { s: Session; onChat: () => void }) {
+function SessionCard({ s, onChat, onCancel }: { s: Session; onChat: () => void; onCancel: () => void }) {
   const blk = dateBlock(new Date(s.startsAt));
   const blkEnd = dateBlock(new Date(s.endsAt));
   const accent = s.status === "confirmed" ? "border-l-teal" : s.status === "pending" ? "border-l-orange" : "border-l-v2-muted";
@@ -56,8 +59,23 @@ function SessionCard({ s, onChat }: { s: Session; onChat: () => void }) {
       </div>
       <div className="grid grid-cols-3 gap-1.5">
         <button onClick={onChat} className="py-2.5 rounded-md bg-navy-card-2 text-offwhite text-[12px] font-semibold">Message</button>
-        <button className="py-2.5 rounded-md bg-navy-card-2 text-offwhite text-[12px] font-semibold">Directions</button>
-        <button className="py-2.5 rounded-md bg-navy-card-2 text-v2-muted text-[12px] font-semibold">Cancel</button>
+        <button
+          onClick={() => {
+            const q = encodeURIComponent(s.location ?? "");
+            window.open(`https://maps.apple.com/?q=${q}`, "_blank");
+          }}
+          className="py-2.5 rounded-md bg-navy-card-2 text-offwhite text-[12px] font-semibold"
+          disabled={!s.location}
+        >
+          Directions
+        </button>
+        <button
+          onClick={onCancel}
+          disabled={s.status === "cancelled" || s.status === "completed"}
+          className="py-2.5 rounded-md bg-navy-card-2 text-v2-muted text-[12px] font-semibold disabled:opacity-40"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
@@ -65,8 +83,21 @@ function SessionCard({ s, onChat }: { s: Session; onChat: () => void }) {
 
 export default function MyBookingsPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("upcoming");
   const { data: sessions = [] } = useMySessions(tab);
+
+  const handleCancel = async (s: Session) => {
+    if (!window.confirm(`Cancel your ${s.format} with ${s.coachName}?`)) return;
+    try {
+      await cancelBooking(s.id);
+      toast.success("Booking cancelled.");
+      qc.invalidateQueries({ queryKey: ["v2", "sessions"] });
+      qc.invalidateQueries({ queryKey: ["v2", "booking-requests"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Cancel failed.");
+    }
+  };
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-28">
@@ -107,7 +138,12 @@ export default function MyBookingsPage() {
           </div>
         )}
         {sessions.map((s) => (
-          <SessionCard key={s.id} s={s} onChat={() => navigate(`/v2/messages/th-${s.coachId}`)} />
+          <SessionCard
+            key={s.id}
+            s={s}
+            onChat={() => navigate(`/v2/messages/th-${s.coachId}`)}
+            onCancel={() => handleCancel(s)}
+          />
         ))}
       </div>
 

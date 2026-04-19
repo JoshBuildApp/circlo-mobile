@@ -1,7 +1,12 @@
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { PulseDot, StatCard, Chip } from "@/components/v2/shared";
 import { formatPrice } from "@/lib/v2/currency";
 import type { Coach } from "@/types/v2";
 import { useCoachReviews, useCoachReviewSummary } from "@/hooks/v2/useMocks";
+import { useAuth } from "@/contexts/AuthContext";
+import { followCoach, unfollowCoach } from "@/hooks/v2/useSupabaseQueries";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AboutTabProps {
   coach: Coach;
@@ -10,10 +15,55 @@ interface AboutTabProps {
 }
 
 export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
+  const { user } = useAuth();
   const { data: summary } = useCoachReviewSummary(coach.id);
   const { data: reviews = [] } = useCoachReviews(coach.id);
   const ratingValue = summary?.avg && summary.avg > 0 ? summary.avg : coach.rating;
   const reviewCount = summary?.count && summary.count > 0 ? summary.count : coach.reviewCount;
+  const [following, setFollowing] = useState<boolean>(false);
+  const [followBusy, setFollowBusy] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase
+        .from("user_follows")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("coach_id", coach.id)
+        .maybeSingle();
+      if (!cancelled) setFollowing(Boolean(data));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, coach.id]);
+
+  const handleFollow = async () => {
+    if (!user) {
+      toast.error("Sign in to follow coaches.");
+      onFollow(); // delegate to navigation (e.g., to tiers / signup)
+      return;
+    }
+    if (followBusy) return;
+    setFollowBusy(true);
+    try {
+      if (following) {
+        await unfollowCoach(user.id, coach.id);
+        setFollowing(false);
+        toast.success(`Unfollowed ${coach.firstName}`);
+      } else {
+        await followCoach(user.id, coach.id);
+        setFollowing(true);
+        toast.success(`Following ${coach.firstName}`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't update follow.");
+    } finally {
+      setFollowBusy(false);
+    }
+  };
   return (
     <div className="pb-32">
       <div className="px-5 pt-3 pb-3">
@@ -30,10 +80,13 @@ export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
 
       <div className="grid grid-cols-2 gap-2.5 px-5 mb-3.5">
         <button
-          onClick={onFollow}
-          className="border border-teal text-teal py-3 rounded-[12px] font-bold text-[14px]"
+          onClick={handleFollow}
+          disabled={followBusy}
+          className={`py-3 rounded-[12px] font-bold text-[14px] disabled:opacity-60 ${
+            following ? "bg-teal text-navy-deep" : "border border-teal text-teal"
+          }`}
         >
-          + Follow
+          {following ? "✓ Following" : "+ Follow"}
         </button>
         <button
           onClick={onMessage}

@@ -659,6 +659,110 @@ export async function fetchMessageThreads(userId: string): Promise<MessageThread
     });
 }
 
+export async function sendChatMessage(opts: {
+  fromUserId: string;
+  toPeerId: string;
+  body: string;
+  threadId?: string;
+}): Promise<void> {
+  const insert = {
+    sender_id: opts.fromUserId,
+    receiver_id: opts.toPeerId,
+    content: opts.body,
+    is_read: false,
+    conversation_id: opts.threadId && /^[0-9a-f-]{30,}$/i.test(opts.threadId) ? opts.threadId : null,
+    message_type: "text",
+  };
+  const { error } = await supabase.from("messages").insert(insert);
+  if (error) {
+    console.error("[v2] sendChatMessage failed:", error.message);
+    throw error;
+  }
+}
+
+export async function cancelBooking(bookingId: string): Promise<void> {
+  const { error } = await supabase
+    .from("bookings")
+    .update({ status: "cancelled" })
+    .eq("id", bookingId);
+  if (error) {
+    console.error("[v2] cancelBooking failed:", error.message);
+    throw error;
+  }
+}
+
+export async function followCoach(userId: string, coachId: string): Promise<void> {
+  const { error } = await supabase
+    .from("user_follows")
+    .insert({ user_id: userId, coach_id: coachId });
+  if (error && !error.message.includes("duplicate")) {
+    console.error("[v2] followCoach failed:", error.message);
+    throw error;
+  }
+}
+
+export async function unfollowCoach(userId: string, coachId: string): Promise<void> {
+  const { error } = await supabase
+    .from("user_follows")
+    .delete()
+    .eq("user_id", userId)
+    .eq("coach_id", coachId);
+  if (error) {
+    console.error("[v2] unfollowCoach failed:", error.message);
+    throw error;
+  }
+}
+
+export async function isFollowingCoach(userId: string, coachId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("user_follows")
+    .select("id", { head: true, count: "exact" })
+    .eq("user_id", userId)
+    .eq("coach_id", coachId);
+  return Boolean(data);
+}
+
+/** Real availability for a coach: returns the time strings ("HH:MM") that
+ *  the coach has marked as available on a given weekday (0–6, Sun–Sat).
+ *  Empty array means "no slots configured" — caller should treat as either
+ *  "fully booked" or "show all hours" depending on context. */
+export async function fetchCoachSlots(coachId: string, weekday: number): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("availability")
+    .select("start_time, end_time, is_active")
+    .eq("coach_id", coachId)
+    .eq("day_of_week", weekday);
+  if (error) {
+    console.error("[v2] availability fetch failed:", error.message);
+    return [];
+  }
+  const slots: string[] = [];
+  (data ?? []).forEach((row: { start_time: string; end_time: string; is_active: boolean | null }) => {
+    if (row.is_active === false) return;
+    // Generate hourly slots between start and end.
+    const start = parseInt(row.start_time.slice(0, 2), 10);
+    const end = parseInt(row.end_time.slice(0, 2), 10);
+    for (let h = start; h < end; h++) {
+      slots.push(`${h.toString().padStart(2, "0")}:00`);
+    }
+  });
+  return Array.from(new Set(slots)).sort();
+}
+
+export async function fetchTakenSlots(coachId: string, date: string): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("time")
+    .eq("coach_id", coachId)
+    .eq("date", date)
+    .neq("status", "cancelled");
+  if (error) {
+    console.error("[v2] taken slots fetch failed:", error.message);
+    return new Set();
+  }
+  return new Set((data ?? []).map((r: { time: string | null }) => (r.time ?? "").slice(0, 5)));
+}
+
 export async function fetchChatMessages(threadId: string, userId: string): Promise<Message[]> {
   // threadId may be a conversation_id (uuid) or a fallback peer id.
   // Try conversation_id first, fall back to peer-pair lookup.

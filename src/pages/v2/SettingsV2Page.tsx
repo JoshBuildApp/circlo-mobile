@@ -5,6 +5,8 @@ import { useMyPlayerProfile } from "@/hooks/v2/useMocks";
 import { useV2Theme } from "@/contexts/v2/ThemeContext";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface SettingRow {
   icon: typeof User;
@@ -60,10 +62,26 @@ export default function SettingsV2Page() {
   const navigate = useNavigate();
   const { data: me } = useMyPlayerProfile();
   const { theme, setTheme } = useV2Theme();
+  const { signOut } = useAuth();
   const dark = theme === "dark";
   const setDark = (next: boolean) => setTheme(next ? "dark" : "light");
   const [profileVisible, setProfileVisible] = useState(true);
   const [shareLocation, setShareLocation] = useState(true);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    if (!window.confirm("Sign out of Circlo?")) return;
+    setSigningOut(true);
+    try {
+      await signOut();
+      toast.success("Signed out.");
+      navigate("/v2/welcome", { replace: true });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Sign out failed.");
+      setSigningOut(false);
+    }
+  };
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-12">
@@ -82,7 +100,12 @@ export default function SettingsV2Page() {
           <div className="text-[16px] font-bold">{me?.fullName ?? "Member"}</div>
           <div className="text-[12px] text-v2-muted mt-0.5">{me?.email ?? ""} · {me?.city ?? ""}</div>
         </div>
-        <button className="px-3.5 py-2 rounded-full bg-navy-card text-offwhite font-semibold text-[12px]">Edit</button>
+        <button
+          onClick={() => navigate("/v2/profile/edit")}
+          className="px-3.5 py-2 rounded-full bg-navy-card text-offwhite font-semibold text-[12px]"
+        >
+          Edit
+        </button>
       </div>
 
       <div className="px-5 pb-3 text-[10px] text-v2-muted font-bold tracking-widest uppercase">ACCOUNT</div>
@@ -131,8 +154,12 @@ export default function SettingsV2Page() {
       </div>
 
       <div className="px-5 mb-5">
-        <button className="w-full py-3.5 rounded-[14px] bg-navy-card text-danger border border-danger/30 font-bold text-[14px]">
-          Sign out
+        <button
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className="w-full py-3.5 rounded-[14px] bg-navy-card text-danger border border-danger/30 font-bold text-[14px] disabled:opacity-60"
+        >
+          {signingOut ? "Signing out…" : "Sign out"}
         </button>
       </div>
 

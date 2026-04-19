@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { User, Users, Video, Check, MapPin, Home, Lock, Edit3, ChevronRight, Calendar, Plus } from "lucide-react";
 import { PhoneFrame, StatusBar, Avatar, Chip } from "@/components/v2/shared";
 import { StepShell } from "@/components/v2/booking/StepShell";
 import { useCoach, useCreateBooking } from "@/hooks/v2/useMocks";
+import { fetchCoachSlots, fetchTakenSlots } from "@/hooks/v2/useSupabaseQueries";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/v2/currency";
 import { cn } from "@/lib/utils";
@@ -29,8 +30,7 @@ const FORMATS: FormatOption[] = [
   { key: "video-review", label: "Video review · async", desc: "Upload video, get feedback in 48h.", duration: 0, price: 180, icon: Video, iconClass: "bg-navy-card-2 text-offwhite" },
 ];
 
-const SLOT_TIMES = ["08:00", "09:30", "11:00", "14:00", "16:00", "18:00", "19:30", "21:00"];
-const TAKEN = new Set(["09:30", "14:00", "21:00"]);
+const FALLBACK_SLOTS = ["08:00", "09:00", "11:00", "14:00", "16:00", "18:00", "19:00", "21:00"];
 
 export default function BookingFlowPage() {
   const navigate = useNavigate();
@@ -47,6 +47,32 @@ export default function BookingFlowPage() {
 
   const { data: coach } = useCoach(coachId);
   const createBookingMutation = useCreateBooking();
+  const [availableSlots, setAvailableSlots] = useState<string[]>(FALLBACK_SLOTS);
+  const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
+  const [monthCursor, setMonthCursor] = useState(date);
+
+  // Refresh available + taken slots whenever coach or date changes.
+  useEffect(() => {
+    if (!coachId) return;
+    let cancelled = false;
+    const dateStr = date.toISOString().slice(0, 10);
+    const weekday = date.getDay();
+    void (async () => {
+      const [available, taken] = await Promise.all([
+        fetchCoachSlots(coachId, weekday),
+        fetchTakenSlots(coachId, dateStr),
+      ]);
+      if (cancelled) return;
+      setAvailableSlots(available.length > 0 ? available : FALLBACK_SLOTS);
+      setTakenSlots(taken);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [coachId, date]);
+
+  // Keep month-cursor lined up with selected date when user navigates back.
+  useEffect(() => setMonthCursor(date), [date]);
 
   const totalsILS = useMemo(() => {
     const base = format.price;
@@ -173,16 +199,36 @@ export default function BookingFlowPage() {
           }
         >
           <div className="flex justify-between items-center px-5 pb-3">
-            <h3 className="text-[16px] font-bold">{date.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h3>
+            <h3 className="text-[16px] font-bold">{monthCursor.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h3>
             <div className="flex gap-1.5">
-              <button className="w-8 h-8 rounded-md bg-navy-card text-offwhite">‹</button>
-              <button className="w-8 h-8 rounded-md bg-navy-card text-offwhite">›</button>
+              <button
+                onClick={() => {
+                  const d = new Date(monthCursor);
+                  d.setDate(d.getDate() - 7);
+                  setMonthCursor(d);
+                }}
+                className="w-8 h-8 rounded-md bg-navy-card text-offwhite"
+                aria-label="Previous week"
+              >
+                ‹
+              </button>
+              <button
+                onClick={() => {
+                  const d = new Date(monthCursor);
+                  d.setDate(d.getDate() + 7);
+                  setMonthCursor(d);
+                }}
+                className="w-8 h-8 rounded-md bg-navy-card text-offwhite"
+                aria-label="Next week"
+              >
+                ›
+              </button>
             </div>
           </div>
 
           <div className="grid grid-cols-4 gap-2 px-5 pb-4">
             {Array.from({ length: 4 }).map((_, i) => {
-              const d = new Date(date);
+              const d = new Date(monthCursor);
               d.setDate(d.getDate() - 1 + i);
               const selected = d.toDateString() === date.toDateString();
               return (
@@ -206,7 +252,7 @@ export default function BookingFlowPage() {
           <div className="flex justify-between items-center px-5 pb-2">
             <h4 className="text-[14px] font-bold">{date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}</h4>
             <div className="text-[11px] text-v2-muted">
-              {SLOT_TIMES.length - TAKEN.size} slots available
+              {Math.max(0, availableSlots.length - takenSlots.size)} slots available
             </div>
           </div>
 
@@ -226,14 +272,14 @@ export default function BookingFlowPage() {
           </div>
 
           <div className="grid grid-cols-3 gap-2 px-5">
-            {SLOT_TIMES.filter((t) => {
+            {availableSlots.filter((t) => {
               const h = parseInt(t);
               if (period === "morning") return h < 12;
               if (period === "afternoon") return h >= 12 && h < 17;
               if (period === "evening") return h >= 17;
               return true;
             }).map((t) => {
-              const taken = TAKEN.has(t);
+              const taken = takenSlots.has(t);
               const sel = slot === t && !taken;
               return (
                 <button

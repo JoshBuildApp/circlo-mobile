@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Share2, Video, Bell, Star, Clock } from "lucide-react";
+import { toast } from "sonner";
 import { PhoneFrame, StatusBar, RoundButton, Avatar, Chip } from "@/components/v2/shared";
 import { useLiveSession } from "@/hooks/v2/useMocks";
 
@@ -7,6 +9,8 @@ export default function LiveEndedPage() {
   const navigate = useNavigate();
   const { sessionId } = useParams<{ sessionId: string }>();
   const { data: live } = useLiveSession(sessionId);
+  const [rating, setRating] = useState<number>(0);
+  const [notified, setNotified] = useState(false);
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-12">
@@ -48,8 +52,15 @@ export default function LiveEndedPage() {
               <div className="text-[11px] text-v2-muted mt-0.5">We'll notify you when it's ready</div>
             </div>
           </div>
-          <button className="w-full py-2.5 rounded-md bg-teal text-navy-deep font-bold text-[13px] flex items-center justify-center gap-1.5">
-            <Bell size={14} /> Notify me
+          <button
+            onClick={() => {
+              setNotified(true);
+              toast.success("We'll let you know when the replay is ready.");
+            }}
+            disabled={notified}
+            className="w-full py-2.5 rounded-md bg-teal text-navy-deep font-bold text-[13px] flex items-center justify-center gap-1.5 disabled:opacity-60"
+          >
+            <Bell size={14} /> {notified ? "We'll notify you ✓" : "Notify me"}
           </button>
         </div>
       </div>
@@ -99,7 +110,21 @@ export default function LiveEndedPage() {
             <div className="text-[13px] font-bold">Rate this session</div>
             <div className="text-[11px] text-v2-muted mt-0.5">Help your coach improve future content</div>
           </div>
-          <div className="flex gap-1 text-base text-v2-muted">★★★★★</div>
+          <div className="flex gap-1 text-base">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                onClick={() => {
+                  setRating(n);
+                  toast.success(`Thanks for the ${n}-star rating!`);
+                }}
+                className={n <= rating ? "text-orange" : "text-v2-muted"}
+                aria-label={`Rate ${n} stars`}
+              >
+                ★
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
