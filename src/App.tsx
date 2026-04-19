@@ -97,6 +97,11 @@ const V2Library = lazy(() => import("@/pages/v2/ContentLibraryPage"));
 const V2VideoPlayer = lazy(() => import("@/pages/v2/VideoPlayerPage"));
 const V2Live = lazy(() => import("@/pages/v2/LiveViewerPage"));
 const V2LiveEnded = lazy(() => import("@/pages/v2/LiveEndedPage"));
+const V2Calendar = lazy(() => import("@/pages/v2/CalendarPage"));
+const V2DayDetail = lazy(() => import("@/pages/v2/DayDetailPage"));
+const V2AddWorkout = lazy(() => import("@/pages/v2/AddWorkoutPage"));
+const V2PlanDetail = lazy(() => import("@/pages/v2/TrainingPlanDetailPage"));
+const V2PlanSubscribe = lazy(() => import("@/pages/v2/PlanSubscribeFlowPage"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -183,9 +188,9 @@ function App() {
                     <Route path="/v2/messages" element={<RouteWrapper routeName="v2-messages"><V2Guard><V2Messages /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/messages/new" element={<RouteWrapper routeName="v2-new-message"><V2Guard><V2NewMessage /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/messages/:threadId" element={<RouteWrapper routeName="v2-chat"><V2Guard><V2Chat /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/calendar" element={<RouteWrapper routeName="v2-calendar"><V2Guard><V2Stub title="Calendar" phase={13} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/calendar/add-workout" element={<RouteWrapper routeName="v2-add-workout"><V2Guard><V2Stub title="Add workout" phase={13} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/calendar/:date" element={<RouteWrapper routeName="v2-day-detail"><V2Guard><V2Stub title="Day detail" phase={13} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/calendar" element={<RouteWrapper routeName="v2-calendar"><V2Guard><V2Calendar /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/calendar/add-workout" element={<RouteWrapper routeName="v2-add-workout"><V2Guard><V2AddWorkout /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/calendar/:date" element={<RouteWrapper routeName="v2-day-detail"><V2Guard><V2DayDetail /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/book/:coachId" element={<RouteWrapper routeName="v2-book"><V2Guard><V2Booking /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/book/:bookingId/success" element={<RouteWrapper routeName="v2-book-success"><V2Guard><V2BookingSuccess /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/profile" element={<RouteWrapper routeName="v2-profile"><V2Guard><V2UserProfile /></V2Guard></RouteWrapper>} />
@@ -198,8 +203,8 @@ function App() {
                     <Route path="/v2/video/:videoId" element={<RouteWrapper routeName="v2-video"><V2Guard><V2VideoPlayer /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/live/:sessionId" element={<RouteWrapper routeName="v2-live"><V2Guard><V2Live /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/live/:sessionId/ended" element={<RouteWrapper routeName="v2-live-ended"><V2Guard><V2LiveEnded /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/plans/:planId" element={<RouteWrapper routeName="v2-plan"><V2Guard><V2Stub title="Training plan" phase={13} /></V2Guard></RouteWrapper>} />
-                    <Route path="/v2/plans/:planId/subscribe" element={<RouteWrapper routeName="v2-plan-subscribe"><V2Guard><V2Stub title="Plan subscribe" phase={13} /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/plans/:planId" element={<RouteWrapper routeName="v2-plan"><V2Guard><V2PlanDetail /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/plans/:planId/subscribe" element={<RouteWrapper routeName="v2-plan-subscribe"><V2Guard><V2PlanSubscribe /></V2Guard></RouteWrapper>} />
 
                     {/* Auth pages — no AppShell */}
                     <Route path="/login" element={<RouteWrapper routeName="login"><Login /></RouteWrapper>} />
