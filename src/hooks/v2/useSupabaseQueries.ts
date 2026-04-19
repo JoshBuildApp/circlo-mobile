@@ -409,40 +409,35 @@ function generateBookingCode(): string {
 }
 
 export async function createBooking(input: CreateBookingInput): Promise<Session> {
-  const code = generateBookingCode();
-  const insert = {
-    user_id: input.userId,
-    coach_id: input.coachId,
-    coach_name: input.coachName,
-    date: input.date,
-    time: input.time,
-    time_label: input.time,
-    status: "pending" as const,
-    price: input.priceILS,
-    platform_fee: input.feeILS,
-    is_group: input.format === "group",
-    training_type: input.format,
-    booking_code: code,
-  };
-  const { data, error } = await supabase
-    .from("bookings")
-    .insert(insert)
-    .select(
-      "id, user_id, coach_id, coach_name, date, time, time_label, status, price, total_participants, is_group, training_type, booking_code, created_at"
-    )
-    .single();
+  // Hits the SECURITY DEFINER `book_session` RPC. Server resolves the real
+  // price from coach_pricing, computes platform_fee, forces status='pending',
+  // and rejects double-bookings via the unique slot index. The client-side
+  // `userId` arg is ignored on the server (auth.uid() is the source of truth).
+  const { data, error } = await supabase.rpc("book_session", {
+    p_coach_id: input.coachId,
+    p_date: input.date,
+    p_time: input.time,
+    p_format: input.format,
+    p_duration_min: input.durationMin,
+    p_notes: input.note ?? null,
+    p_location: input.location ?? null,
+  });
   if (error || !data) {
-    console.error("[v2] createBooking failed:", error?.code ?? "unknown");
-    throw error ?? new Error("Booking insert returned no row");
+    console.error("[v2] book_session RPC failed:", error?.code ?? "unknown");
+    throw error ?? new Error("Booking RPC returned no row");
   }
   return rowToSession(data as DbBookingRow);
 }
 
 export async function setBookingStatus(bookingId: string, action: "accept" | "decline"): Promise<void> {
-  const status = action === "accept" ? "confirmed" : "cancelled";
-  const { error } = await supabase.from("bookings").update({ status }).eq("id", bookingId);
+  // Coach-side response goes through respond_to_booking which checks the
+  // caller actually owns the coach_profiles row referenced by the booking.
+  const { error } = await supabase.rpc("respond_to_booking", {
+    p_booking_id: bookingId,
+    p_action: action,
+  });
   if (error) {
-    console.error("[v2] booking status update failed:", error?.code ?? "unknown");
+    console.error("[v2] respond_to_booking RPC failed:", error?.code ?? "unknown");
     throw error;
   }
 }
@@ -696,28 +691,27 @@ export async function sendChatMessage(opts: {
   body: string;
   threadId?: string;
 }): Promise<void> {
-  const insert = {
-    sender_id: opts.fromUserId,
-    receiver_id: opts.toPeerId,
-    content: opts.body,
-    is_read: false,
-    conversation_id: opts.threadId && /^[0-9a-f-]{30,}$/i.test(opts.threadId) ? opts.threadId : null,
-    message_type: "text",
-  };
-  const { error } = await supabase.from("messages").insert(insert);
+  // Hits send_message RPC which enforces: sender = auth.uid(), no self-sends,
+  // 1-4000 char content, and 60-msg/min rate limit per user.
+  const conversationId =
+    opts.threadId && /^[0-9a-f-]{30,}$/i.test(opts.threadId) ? opts.threadId : null;
+  const { error } = await supabase.rpc("send_message", {
+    p_receiver_id: opts.toPeerId,
+    p_content: opts.body,
+    p_conversation_id: conversationId,
+  });
   if (error) {
-    console.error("[v2] sendChatMessage failed:", error?.code ?? "unknown");
+    console.error("[v2] send_message RPC failed:", error?.code ?? "unknown");
     throw error;
   }
 }
 
 export async function cancelBooking(bookingId: string): Promise<void> {
-  const { error } = await supabase
-    .from("bookings")
-    .update({ status: "cancelled" })
-    .eq("id", bookingId);
+  // Goes through cancel_booking RPC: validates ownership, status, and only
+  // ever flips status to 'cancelled'. Players can't tamper with anything else.
+  const { error } = await supabase.rpc("cancel_booking", { p_booking_id: bookingId });
   if (error) {
-    console.error("[v2] cancelBooking failed:", error?.code ?? "unknown");
+    console.error("[v2] cancel_booking RPC failed:", error?.code ?? "unknown");
     throw error;
   }
 }
