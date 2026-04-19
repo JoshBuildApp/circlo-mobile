@@ -6,6 +6,7 @@
  * users see nothing — the helpers below return false/"demo" for them, which
  * lets `useMocks.ts` keep its current auth-aware behavior unchanged.
  */
+import { useSyncExternalStore } from "react";
 import type { User } from "@supabase/supabase-js";
 
 /** Emails that get the dev panel. Add with care — this grants role switching
@@ -39,12 +40,32 @@ export function getDataMode(): DataMode {
   }
 }
 
+// Subscribers for useSyncExternalStore — lets React consumers re-render when
+// the data mode flips, without a full page reload.
+const listeners = new Set<() => void>();
+function notify() { listeners.forEach((l) => l()); }
+
 export function setDataMode(mode: DataMode): void {
   try {
     window.localStorage.setItem(DATA_MODE_KEY, mode);
   } catch {
     /* storage unavailable */
   }
+  notify();
+}
+
+/** Reactive data-mode hook. Components that read it (or use it as a react-
+ *  query key) re-render immediately when the DevPanel flips the toggle,
+ *  so cached results don't stick around. */
+export function useDataMode(): DataMode {
+  return useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      return () => { listeners.delete(cb); };
+    },
+    getDataMode,
+    () => "demo",
+  );
 }
 
 /** Normal production behavior: no dev-mode override. Used by useMocks to

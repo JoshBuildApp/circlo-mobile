@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Wrench, X, Database, Layers, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/v2/RoleContext";
 import {
   isDeveloperAccount,
-  getDataMode,
+  useDataMode,
   setDataMode,
   type DataMode,
 } from "@/lib/v2/devMode";
@@ -27,17 +28,24 @@ export function DevPanel() {
   const { user } = useAuth();
   const { role, setRole } = useRole();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const dataMode = useDataMode(); // reactive — buttons reflect the live flag
 
   if (!isDeveloperAccount(user)) return null;
 
-  const dataMode = getDataMode();
-
   const changeDataMode = (next: DataMode) => {
     if (next === dataMode) return;
-    setDataMode(next);
-    // Clear react-query cache so hooks re-fetch from the new source immediately.
+    setDataMode(next); // notifies subscribers — useDataMode re-renders
+    // Invalidate v2 cache so query consumers re-run their queryFn. useCoaches
+    // also has the mode in its queryKey so it gets a fresh cache entry.
     qc.invalidateQueries({ queryKey: ["v2"] });
+  };
+
+  const changeRole = (next: "player" | "coach") => {
+    setRole(next);
+    setOpen(false);
+    navigate(next === "coach" ? "/v2/coach-me" : "/v2/home");
   };
 
   const togglePreview = (key: string) => {
@@ -94,11 +102,11 @@ export function DevPanel() {
                 <Layers size={12} /> Active role
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <RoleButton active={role === "player"} label="Player" onClick={() => setRole("player")} />
-                <RoleButton active={role === "coach"} label="Coach" onClick={() => setRole("coach")} />
+                <RoleButton active={role === "player"} label="Player" onClick={() => changeRole("player")} />
+                <RoleButton active={role === "coach"} label="Coach" onClick={() => changeRole("coach")} />
               </div>
               <p className="text-[11px] text-v2-muted mt-2">
-                Changes which profile view + bottom nav mode you see.
+                Jumps to Home (player) or Coach dashboard (coach).
               </p>
             </section>
 

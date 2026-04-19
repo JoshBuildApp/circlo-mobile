@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { shouldUseMocks, shouldFallbackToMocks, getDataMode, devOverrideActive } from "@/lib/v2/devMode";
+import { shouldUseMocks, shouldFallbackToMocks, useDataMode, devOverrideActive } from "@/lib/v2/devMode";
 import {
   fetchMyPlayerProfile,
   fetchCoaches,
@@ -78,10 +78,11 @@ function delay<T>(value: T, ms = MOCK_DELAY_MS): Promise<T> {
 
 export function useCoaches(filters: CoachSearchFilters = {}) {
   const { user } = useAuth();
+  const dataMode = useDataMode(); // reactive — flips re-render when dev toggles
   // Cache key includes the filter shape so distinct searches don't collide.
   // Dev data mode is part of the key so flipping the toggle re-fetches.
   const filterKey = JSON.stringify(filters);
-  const sourceKey = devOverrideActive(user) ? getDataMode() : user ? "live" : "mock";
+  const sourceKey = devOverrideActive(user) ? dataMode : user ? "live" : "mock";
   return useQuery<Coach[]>({
     queryKey: ["v2", "coaches", filterKey, sourceKey],
     queryFn: async () => {
