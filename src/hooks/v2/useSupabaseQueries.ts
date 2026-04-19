@@ -123,7 +123,7 @@ export async function fetchMyPlayerProfile(userId: string): Promise<PlayerProfil
     .eq("user_id", userId)
     .maybeSingle();
   if (pErr) {
-    console.error("[v2] profiles fetch failed:", pErr.message);
+    console.error("[v2] profiles fetch failed:", pErr?.code ?? "unknown");
     return null;
   }
   if (!profile) return null;
@@ -195,7 +195,7 @@ export async function fetchCoaches(filters: CoachSearchFilters = {}): Promise<Co
     .order("followers", { ascending: false })
     .limit(40);
   if (error) {
-    console.error("[v2] coach_profiles fetch failed:", error.message);
+    console.error("[v2] coach_profiles fetch failed:", error?.code ?? "unknown");
     return [];
   }
   const rows = (data ?? []) as DbCoachRow[];
@@ -223,7 +223,7 @@ export async function fetchCoach(id: string): Promise<Coach | null> {
     .eq("id", id)
     .maybeSingle();
   if (error || !data) {
-    if (error) console.error("[v2] coach fetch failed:", error.message);
+    if (error) console.error("[v2] coach fetch failed:", error?.code ?? "unknown");
     return null;
   }
   const row = data as DbCoachRow;
@@ -329,7 +329,7 @@ export async function fetchMySessions(userId: string, filter: "upcoming" | "past
   else q = q.eq("status", "cancelled");
   const { data, error } = await q.order("date", { ascending: filter === "upcoming" }).limit(40);
   if (error) {
-    console.error("[v2] bookings fetch failed:", error.message);
+    console.error("[v2] bookings fetch failed:", error?.code ?? "unknown");
     return [];
   }
   return (data ?? []).map((r) => rowToSession(r as DbBookingRow));
@@ -357,7 +357,7 @@ export async function fetchBookingRequestsForCoach(
   else q = q.in("status", ["confirmed", "completed"]);
   const { data, error } = await q.order("created_at", { ascending: false }).limit(40);
   if (error) {
-    console.error("[v2] booking requests fetch failed:", error.message);
+    console.error("[v2] booking requests fetch failed:", error?.code ?? "unknown");
     return [];
   }
   const rows = (data ?? []) as DbBookingRow[];
@@ -383,7 +383,7 @@ export async function fetchSession(bookingId: string): Promise<Session | null> {
     .eq("id", bookingId)
     .maybeSingle();
   if (error || !data) {
-    if (error) console.error("[v2] fetchSession failed:", error.message);
+    if (error) console.error("[v2] fetchSession failed:", error?.code ?? "unknown");
     return null;
   }
   return rowToSession(data as DbBookingRow);
@@ -432,7 +432,7 @@ export async function createBooking(input: CreateBookingInput): Promise<Session>
     )
     .single();
   if (error || !data) {
-    console.error("[v2] createBooking failed:", error?.message);
+    console.error("[v2] createBooking failed:", error?.code ?? "unknown");
     throw error ?? new Error("Booking insert returned no row");
   }
   return rowToSession(data as DbBookingRow);
@@ -442,7 +442,7 @@ export async function setBookingStatus(bookingId: string, action: "accept" | "de
   const status = action === "accept" ? "confirmed" : "cancelled";
   const { error } = await supabase.from("bookings").update({ status }).eq("id", bookingId);
   if (error) {
-    console.error("[v2] booking status update failed:", error.message);
+    console.error("[v2] booking status update failed:", error?.code ?? "unknown");
     throw error;
   }
 }
@@ -466,7 +466,7 @@ export async function fetchCirclePosts(coachId?: string): Promise<CirclePost[]> 
   if (coachId) q = q.eq("coach_id", coachId);
   const { data, error } = await q;
   if (error) {
-    console.error("[v2] coach_posts fetch failed:", error.message);
+    console.error("[v2] coach_posts fetch failed:", error?.code ?? "unknown");
     return [];
   }
   const rows = (data ?? []) as DbPostRow[];
@@ -525,7 +525,7 @@ export async function fetchVideos(coachId?: string): Promise<Video[]> {
   if (coachId) q = q.eq("coach_id", coachId);
   const { data, error } = await q;
   if (error) {
-    console.error("[v2] coach_videos fetch failed:", error.message);
+    console.error("[v2] coach_videos fetch failed:", error?.code ?? "unknown");
     return [];
   }
   return (data ?? []).map((r): Video => {
@@ -549,7 +549,7 @@ export async function fetchVideo(id: string): Promise<Video | null> {
     .eq("id", id)
     .maybeSingle();
   if (error || !data) {
-    if (error) console.error("[v2] video fetch failed:", error.message);
+    if (error) console.error("[v2] video fetch failed:", error?.code ?? "unknown");
     return null;
   }
   const row = data as DbVideoRow;
@@ -582,7 +582,7 @@ export async function fetchCoachReviews(coachId: string, limit = 5): Promise<Coa
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) {
-    console.error("[v2] reviews fetch failed:", error.message);
+    console.error("[v2] reviews fetch failed:", error?.code ?? "unknown");
     return [];
   }
   return (data ?? []).map(
@@ -632,7 +632,7 @@ export async function fetchMessageThreads(userId: string): Promise<MessageThread
     .order("created_at", { ascending: false })
     .limit(200);
   if (error) {
-    console.error("[v2] messages fetch failed:", error.message);
+    console.error("[v2] messages fetch failed:", error?.code ?? "unknown");
     return [];
   }
   const rows = (data ?? []) as DbMessageRow[];
@@ -706,7 +706,7 @@ export async function sendChatMessage(opts: {
   };
   const { error } = await supabase.from("messages").insert(insert);
   if (error) {
-    console.error("[v2] sendChatMessage failed:", error.message);
+    console.error("[v2] sendChatMessage failed:", error?.code ?? "unknown");
     throw error;
   }
 }
@@ -717,7 +717,7 @@ export async function cancelBooking(bookingId: string): Promise<void> {
     .update({ status: "cancelled" })
     .eq("id", bookingId);
   if (error) {
-    console.error("[v2] cancelBooking failed:", error.message);
+    console.error("[v2] cancelBooking failed:", error?.code ?? "unknown");
     throw error;
   }
 }
@@ -727,7 +727,7 @@ export async function followCoach(userId: string, coachId: string): Promise<void
     .from("user_follows")
     .insert({ user_id: userId, coach_id: coachId });
   if (error && !error.message.includes("duplicate")) {
-    console.error("[v2] followCoach failed:", error.message);
+    console.error("[v2] followCoach failed:", error?.code ?? "unknown");
     throw error;
   }
 }
@@ -739,7 +739,7 @@ export async function unfollowCoach(userId: string, coachId: string): Promise<vo
     .eq("user_id", userId)
     .eq("coach_id", coachId);
   if (error) {
-    console.error("[v2] unfollowCoach failed:", error.message);
+    console.error("[v2] unfollowCoach failed:", error?.code ?? "unknown");
     throw error;
   }
 }
@@ -764,7 +764,7 @@ export async function fetchCoachSlots(coachId: string, weekday: number): Promise
     .eq("coach_id", coachId)
     .eq("day_of_week", weekday);
   if (error) {
-    console.error("[v2] availability fetch failed:", error.message);
+    console.error("[v2] availability fetch failed:", error?.code ?? "unknown");
     return [];
   }
   const slots: string[] = [];
@@ -788,7 +788,7 @@ export async function fetchTakenSlots(coachId: string, date: string): Promise<Se
     .eq("date", date)
     .neq("status", "cancelled");
   if (error) {
-    console.error("[v2] taken slots fetch failed:", error.message);
+    console.error("[v2] taken slots fetch failed:", error?.code ?? "unknown");
     return new Set();
   }
   return new Set((data ?? []).map((r: { time: string | null }) => (r.time ?? "").slice(0, 5)));
@@ -810,7 +810,7 @@ export async function fetchChatMessages(threadId: string, userId: string): Promi
   }
   const { data, error } = await query;
   if (error) {
-    console.error("[v2] chat fetch failed:", error.message);
+    console.error("[v2] chat fetch failed:", error?.code ?? "unknown");
     return [];
   }
   const rows = (data ?? []) as DbMessageRow[];
@@ -908,7 +908,7 @@ export async function fetchTrainingPlan(id: string): Promise<TrainingPlan | null
     .eq("id", id)
     .maybeSingle();
   if (error || !data) {
-    if (error) console.error("[v2] fetchTrainingPlan failed:", error.message);
+    if (error) console.error("[v2] fetchTrainingPlan failed:", error?.code ?? "unknown");
     return null;
   }
   return mapPlanRow(data as DbTrainingPlanRow);
@@ -923,7 +923,7 @@ export async function fetchCoachPlans(coachId?: string): Promise<TrainingPlan[]>
   if (coachId) q = q.eq("coach_id", coachId);
   const { data, error } = await q;
   if (error) {
-    console.error("[v2] fetchCoachPlans failed:", error.message);
+    console.error("[v2] fetchCoachPlans failed:", error?.code ?? "unknown");
     return [];
   }
   return Promise.all((data ?? []).map((p) => mapPlanRow(p as DbTrainingPlanRow)));
@@ -952,7 +952,7 @@ export async function subscribeToPlanReal(opts: {
     .select("id")
     .single();
   if (subErr || !subRow) {
-    console.error("[v2] subscribeToPlanReal failed:", subErr?.message);
+    console.error("[v2] subscribeToPlanReal failed:", subErr?.code ?? "unknown");
     throw subErr ?? new Error("subscribe failed");
   }
 
@@ -973,7 +973,7 @@ export async function subscribeToPlanReal(opts: {
   });
   if (inserts.length > 0) {
     const { error: pwErr } = await supabase.from("personal_workouts").insert(inserts);
-    if (pwErr) console.error("[v2] plan workouts insert failed:", pwErr.message);
+    if (pwErr) console.error("[v2] plan workouts insert failed:", pwErr?.code ?? "unknown");
   }
 }
 
@@ -1013,7 +1013,7 @@ export async function addPersonalWorkout(opts: {
     .select("id")
     .single();
   if (error || !data) {
-    console.error("[v2] addPersonalWorkout failed:", error?.message);
+    console.error("[v2] addPersonalWorkout failed:", error?.code ?? "unknown");
     throw error ?? new Error("insert failed");
   }
   return data.id;
@@ -1086,7 +1086,7 @@ export async function fetchMyCoachProfile(userId: string): Promise<CoachProfile 
     .eq("user_id", userId)
     .maybeSingle();
   if (error || !data) {
-    if (error) console.error("[v2] my coach profile fetch failed:", error.message);
+    if (error) console.error("[v2] my coach profile fetch failed:", error?.code ?? "unknown");
     return null;
   }
   const base = rowToCoach(data as DbCoachRow);

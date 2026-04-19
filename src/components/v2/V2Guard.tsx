@@ -22,12 +22,10 @@ const PUBLIC_V2_ROUTES = new Set([
  * 2. Flag off → redirect to /v2/enable.
  * 3. Auth resolved + no user + on a private route → redirect to /v2/welcome.
  *
- * GUEST_BROWSE: when true, anyone can browse /v2/* without an account
- * (mock data fills the gaps). Useful for preview/Stitch demos. MUST be
- * false for any TestFlight or production build — leave it false unless
- * you're staging a guest tour.
+ * Auth is enforced for every page outside PUBLIC_V2_ROUTES.
+ * (The legacy GUEST_BROWSE escape hatch was removed in the v2 security
+ * audit; if you need a public preview, use Storybook or screenshots.)
  */
-const GUEST_BROWSE = false;
 
 export function V2Guard({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -45,12 +43,7 @@ export function V2Guard({ children }: { children: ReactNode }) {
     return <Navigate to="/v2/enable" replace state={{ from: location.pathname }} />;
   }
 
-  if (
-    !GUEST_BROWSE &&
-    !loading &&
-    !user &&
-    !PUBLIC_V2_ROUTES.has(location.pathname)
-  ) {
+  if (!loading && !user && !PUBLIC_V2_ROUTES.has(location.pathname)) {
     return <Navigate to="/v2/welcome" replace state={{ from: location.pathname }} />;
   }
 

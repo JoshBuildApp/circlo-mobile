@@ -40,7 +40,7 @@ export async function uploadAvatar(userId: string, file: File): Promise<UploadAv
     contentType: file.type,
   });
   if (uploadErr) {
-    console.error("[v2] avatar upload failed:", uploadErr.message);
+    console.error("[v2] avatar upload failed:", uploadErr?.code ?? "unknown");
     throw uploadErr;
   }
 
@@ -53,7 +53,7 @@ export async function uploadAvatar(userId: string, file: File): Promise<UploadAv
     .update({ avatar_url: publicUrl })
     .eq("user_id", userId);
   if (updateErr) {
-    console.error("[v2] profile avatar_url update failed:", updateErr.message);
+    console.error("[v2] profile avatar_url update failed:", updateErr?.code ?? "unknown");
     // Don't throw — the file is uploaded; the column update is best-effort.
   }
 

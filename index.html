@@ -2,6 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Content Security Policy: blocks inline scripts (XSS), restricts
+         network calls to Supabase + Stripe. inline styles + 'unsafe-inline'
+         scripts allowed because Vite/React inject them; tighten with nonces
+         in a future pass. Capacitor mobile WebView ignores meta CSP — that's
+         enforced in capacitor.config + native manifests instead. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com;
+               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+               font-src 'self' https://fonts.gstatic.com data:;
+               img-src 'self' https: data: blob:;
+               media-src 'self' https: blob:;
+               connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://api.stripe.com https://o*.ingest.sentry.io;
+               frame-src https://js.stripe.com https://hooks.stripe.com;
+               object-src 'none';
+               base-uri 'self';
+               form-action 'self';"
+    />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no"
