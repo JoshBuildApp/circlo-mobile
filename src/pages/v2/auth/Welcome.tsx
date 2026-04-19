@@ -130,7 +130,7 @@ export default function Welcome() {
           Log in
         </Link>
 
-        <div className="circlo-divider">
+        <div className="circlo-divider circlo-divider-splash">
           <span>or continue with</span>
         </div>
 
@@ -151,10 +151,16 @@ export default function Welcome() {
           </button>
         </div>
 
-        <div className="circlo-terms">
+        <div className="circlo-terms-line">
           By continuing you agree to our{" "}
-          <button type="button">Terms</button> and{" "}
-          <button type="button">Privacy</button>.
+          <button type="button" className="circlo-link">
+            Terms
+          </button>{" "}
+          and{" "}
+          <button type="button" className="circlo-link">
+            Privacy
+          </button>
+          .
         </div>
       </div>
     </div>

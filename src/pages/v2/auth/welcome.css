@@ -1,7 +1,8 @@
 /* =========================================================================
  * Welcome screen — splash backdrop, floating sport icons, staggered entry.
  * Mirrors .splash-screen / .splash-bg / .float-* blocks from
- * prototype/auth-flow.html.
+ * prototype/auth-flow.html. Shared button/divider/terms primitives live in
+ * auth-shared.css.
  * ========================================================================= */
 
 .circlo-welcome-root {
@@ -108,7 +109,7 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.32em;
-  color: #00D4AA;
+  color: var(--circlo-teal, #00D4AA);
   text-transform: uppercase;
   animation: circlo-word-entry 0.6s ease-out 0.5s backwards;
 }
@@ -135,123 +136,6 @@
 @keyframes circlo-actions-entry {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-/* =========================================================================
- * Shared button primitives — matching the prototype exactly so the rest of
- * the auth flow can use them from Phase 5 onwards.
- * ========================================================================= */
-
-.circlo-btn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 14px;
-  border: none;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.circlo-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-.circlo-btn-primary {
-  background: #00D4AA;
-  color: #0A0A0F;
-}
-.circlo-btn-primary:hover:not(:disabled) {
-  background: #00B894;
-  transform: translateY(-1px);
-}
-
-.circlo-btn-glass {
-  background: rgba(255, 255, 255, 0.08);
-  color: #F5F5F7;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-.circlo-btn-glass:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.circlo-btn-apple {
-  background: #000;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-.circlo-btn-apple:hover:not(:disabled) { background: #111; }
-
-.circlo-btn-google {
-  background: #fff;
-  color: #000;
-}
-.circlo-btn-google:hover:not(:disabled) { background: #f0f0f0; }
-
-.circlo-btn-icon-only {
-  padding: 14px;
-  gap: 0;
-}
-.circlo-btn-icon-only svg {
-  width: 22px;
-  height: 22px;
-}
-
-.circlo-btn-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.circlo-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 8px 0;
-}
-.circlo-divider::before,
-.circlo-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.12);
-}
-.circlo-divider span {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.circlo-terms {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-  text-align: center;
-  line-height: 1.5;
-  margin-top: 4px;
-}
-.circlo-terms a,
-.circlo-terms button {
-  color: rgba(255, 255, 255, 0.7);
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-  text-decoration: underline;
 }
 
 @media (prefers-reduced-motion: reduce) {

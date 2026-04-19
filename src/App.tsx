@@ -115,6 +115,7 @@ const V2CoachOnboarding = lazy(() => import("@/pages/v2/CoachOnboardingV2"));
 /* v2 auth flow — new shared-element onboarding under /v2/auth/* */
 const V2AuthLayout = lazy(() => import("@/pages/v2/auth/AuthLayout"));
 const V2AuthWelcome = lazy(() => import("@/pages/v2/auth/Welcome"));
+const V2AuthLogin = lazy(() => import("@/pages/v2/auth/Login"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -192,6 +193,7 @@ function App() {
                     <Route path="/v2/auth" element={<RouteWrapper routeName="v2-auth-layout"><V2Guard><V2AuthLayout /></V2Guard></RouteWrapper>}>
                       <Route index element={<Navigate to="welcome" replace />} />
                       <Route path="welcome" element={<RouteWrapper routeName="v2-auth-welcome"><V2AuthWelcome /></RouteWrapper>} />
+                      <Route path="login" element={<RouteWrapper routeName="v2-auth-login"><V2AuthLogin /></RouteWrapper>} />
                     </Route>
                     <Route path="/v2/splash" element={<RouteWrapper routeName="v2-splash"><V2Guard><V2Splash /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/welcome" element={<RouteWrapper routeName="v2-welcome"><V2Guard><V2Welcome /></V2Guard></RouteWrapper>} />

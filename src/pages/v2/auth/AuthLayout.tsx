@@ -6,6 +6,7 @@ import {
   fireLandingEffects,
   type LandingEffectHandle,
 } from "./components/LandingEffects";
+import "./auth-shared.css";
 
 /**
  * Shared shell for every /v2/auth/* screen.

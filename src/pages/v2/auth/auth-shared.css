@@ -1,0 +1,417 @@
+/* =========================================================================
+ * Circlo auth flow — shared primitives.
+ *
+ * Loaded once by AuthLayout so every screen under /v2/auth/* inherits the
+ * base button + form + header styles. Mirrors the :root tokens + base
+ * classes from prototype/auth-flow.html.
+ * ========================================================================= */
+
+.circlo-auth-surface {
+  /* Token aliases scoped to the auth surface. Keeps the rest of v2 untouched. */
+  --circlo-teal: #00D4AA;
+  --circlo-teal-dim: #00B894;
+  --circlo-orange: #FF6B2C;
+  --circlo-navy-deep: #0A0A0F;
+  --circlo-navy-card: #1A1A2E;
+  --circlo-navy-elev: #242438;
+  --circlo-border: rgba(255, 255, 255, 0.08);
+  --circlo-border-strong: rgba(255, 255, 255, 0.14);
+  --circlo-text: #F5F5F7;
+  --circlo-text-dim: #9B9BA8;
+  --circlo-text-faint: #5C5C6E;
+  --circlo-error: #FF4D6D;
+  --circlo-ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --circlo-ease-swift: cubic-bezier(0.65, 0, 0.35, 1);
+  --circlo-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--circlo-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The form-screen container: padding matching the prototype's .screen block
+ * plus flex-col so bottom CTAs can use margin-top: auto. */
+.circlo-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px calc(32px + env(safe-area-inset-bottom, 0px));
+  position: relative;
+  z-index: 1;
+}
+
+/* Staggered screen-entry animation applied to the title+form block so it
+ * slides in under the landed ring. */
+.circlo-screen-enter {
+  animation: circlo-screen-enter 0.6s var(--circlo-ease-smooth) 0.15s backwards;
+}
+@keyframes circlo-screen-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================================
+ * Page header — back button + optional progress bar + step count.
+ * ========================================================================= */
+
+.circlo-page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  margin-bottom: 20px;
+  min-height: 48px;
+}
+
+.circlo-back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--circlo-navy-card);
+  border: 1px solid var(--circlo-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--circlo-text);
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.circlo-back-btn:hover {
+  background: var(--circlo-navy-elev);
+  border-color: var(--circlo-teal);
+}
+
+.circlo-progress-track {
+  flex: 1;
+  height: 4px;
+  background: var(--circlo-navy-card);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.circlo-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--circlo-teal), var(--circlo-teal-dim));
+  border-radius: 2px;
+  transition: width 0.4s var(--circlo-ease-smooth);
+}
+.circlo-step-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--circlo-text-dim);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.circlo-page-header-spacer {
+  flex: 1;
+}
+
+/* =========================================================================
+ * Typography
+ * ========================================================================= */
+
+.circlo-screen-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 8px;
+  color: var(--circlo-text);
+}
+.circlo-screen-subtitle {
+  font-size: 15px;
+  color: var(--circlo-text-dim);
+  line-height: 1.5;
+  margin: 0 0 24px;
+}
+
+/* =========================================================================
+ * Form field primitives
+ * ========================================================================= */
+
+.circlo-field {
+  margin-bottom: 16px;
+}
+.circlo-field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--circlo-text-dim);
+  margin-bottom: 8px;
+}
+.circlo-input-wrap {
+  position: relative;
+}
+.circlo-input {
+  width: 100%;
+  padding: 16px 16px 16px 48px;
+  background: var(--circlo-navy-card);
+  border: 1.5px solid var(--circlo-border);
+  border-radius: 14px;
+  color: var(--circlo-text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.circlo-input::placeholder {
+  color: var(--circlo-text-faint);
+}
+.circlo-input:focus {
+  border-color: var(--circlo-teal);
+  background: var(--circlo-navy-elev);
+}
+.circlo-input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--circlo-text-faint);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+.circlo-input-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px;
+  background: none;
+  border: none;
+  color: var(--circlo-text-dim);
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.circlo-field-hint {
+  font-size: 12px;
+  color: var(--circlo-text-faint);
+  margin-top: 6px;
+  padding-left: 4px;
+}
+
+/* Link row — sits below a field, right-aligned (e.g. "Forgot password?") */
+.circlo-link-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+  margin-bottom: 20px;
+}
+
+.circlo-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--circlo-teal);
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.circlo-link:hover {
+  text-decoration: underline;
+}
+
+.circlo-footer-link {
+  text-align: center;
+  font-size: 14px;
+  color: var(--circlo-text-dim);
+  margin-top: 24px;
+}
+.circlo-footer-link .circlo-link {
+  color: var(--circlo-teal);
+  margin-left: 4px;
+}
+
+.circlo-terms-line {
+  font-size: 12px;
+  color: var(--circlo-text-faint);
+  text-align: center;
+  line-height: 1.6;
+  margin-top: 20px;
+  padding: 0 8px;
+}
+.circlo-terms-line .circlo-link {
+  font-size: 12px;
+  display: inline;
+}
+
+/* =========================================================================
+ * Buttons (shared across every auth screen)
+ * ========================================================================= */
+
+.circlo-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.circlo-btn:disabled,
+.circlo-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.circlo-btn-primary {
+  background: var(--circlo-teal);
+  color: var(--circlo-navy-deep);
+}
+.circlo-btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--circlo-teal-dim);
+  transform: translateY(-1px);
+}
+
+.circlo-btn-secondary {
+  background: var(--circlo-navy-card);
+  color: var(--circlo-text);
+  border: 1px solid var(--circlo-border-strong);
+}
+.circlo-btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--circlo-navy-elev);
+}
+
+.circlo-btn-glass {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--circlo-text);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.circlo-btn-glass:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.circlo-btn-apple {
+  background: #000;
+  color: #fff;
+  border: 1px solid var(--circlo-border-strong);
+}
+.circlo-btn-apple:hover:not(:disabled):not([aria-disabled="true"]) { background: #111; }
+
+.circlo-btn-google {
+  background: #fff;
+  color: #000;
+}
+.circlo-btn-google:hover:not(:disabled):not([aria-disabled="true"]) { background: #f0f0f0; }
+
+.circlo-btn-icon-only {
+  padding: 14px;
+  gap: 0;
+}
+.circlo-btn-icon-only svg {
+  width: 22px;
+  height: 22px;
+}
+
+.circlo-btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+.circlo-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Divider with centered text ("or continue with" / "or"). */
+.circlo-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+}
+.circlo-divider::before,
+.circlo-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--circlo-border);
+}
+.circlo-divider span {
+  font-size: 12px;
+  color: var(--circlo-text-faint);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Welcome splash uses a slightly lighter divider — opt-in variant. */
+.circlo-divider-splash {
+  margin: 8px 0;
+}
+.circlo-divider-splash::before,
+.circlo-divider-splash::after {
+  background: rgba(255, 255, 255, 0.12);
+}
+.circlo-divider-splash span {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Bottom-pinned CTA block inside .circlo-screen. */
+.circlo-bottom-cta {
+  margin-top: auto;
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* =========================================================================
+ * Spacers — each screen reserves vertical space for the absolutely-positioned
+ * CirloRing. Heights copied from the prototype's .spacer-* rules.
+ * ========================================================================= */
+
+.circlo-spacer-welcome  { height: 300px; }
+.circlo-spacer-role     { height: 60px;  }
+.circlo-spacer-verify   { height: 80px;  }
+.circlo-spacer-success  { height: 230px; }
+
+/* =========================================================================
+ * Password strength meter — 4 bars, colour shifts with score.
+ * ========================================================================= */
+
+.circlo-strength-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+.circlo-strength-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--circlo-border);
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+.circlo-strength-bar--weak   { background: var(--circlo-error); }
+.circlo-strength-bar--mid    { background: var(--circlo-orange); }
+.circlo-strength-bar--strong { background: var(--circlo-teal); }
+
+@media (prefers-reduced-motion: reduce) {
+  .circlo-screen-enter {
+    animation: none !important;
+  }
+}
