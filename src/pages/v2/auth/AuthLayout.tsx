@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { PhoneFrame } from "@/components/v2/shared";
 import { CirloRing, CirloRingVariant } from "./components/CirloRing";
@@ -59,6 +59,13 @@ export default function AuthLayout() {
   const effectHandleRef = useRef<LandingEffectHandle | null>(null);
   const prevVariantRef = useRef<CirloRingVariant | null>(null);
   const isFirstMountRef = useRef(true);
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // The C-collapse animation on /success is gated on ringOpening. It flips
+  // true 700ms after the ring finishes its layout animation — the same beat
+  // the prototype uses, giving the landing effects time to bloom before the
+  // stroke starts retracting.
+  const [ringOpening, setRingOpening] = useState(false);
 
   // Fires after the ring's framer-motion layout animation settles. On the
   // first mount we skip effects (nothing to "land" into). On every later
@@ -67,6 +74,9 @@ export default function AuthLayout() {
     if (isFirstMountRef.current) {
       isFirstMountRef.current = false;
       prevVariantRef.current = variant;
+      if (variant === "success") {
+        queueSuccessOpen();
+      }
       return;
     }
     if (prevVariantRef.current === variant) return;
@@ -78,7 +88,27 @@ export default function AuthLayout() {
       ringRef.current,
     );
     prevVariantRef.current = variant;
+
+    if (variant === "success") {
+      queueSuccessOpen();
+    }
   };
+
+  const queueSuccessOpen = () => {
+    if (openTimerRef.current) clearTimeout(openTimerRef.current);
+    openTimerRef.current = setTimeout(() => setRingOpening(true), 700);
+  };
+
+  // Navigating away from /success should restore the ring to its closed form.
+  useEffect(() => {
+    if (variant !== "success") {
+      if (openTimerRef.current) {
+        clearTimeout(openTimerRef.current);
+        openTimerRef.current = null;
+      }
+      setRingOpening(false);
+    }
+  }, [variant]);
 
   // Guarantee we don't leave orphan DOM nodes or stray timers if the layout
   // unmounts mid-transition (e.g. user taps a deep link out of the flow).
@@ -86,6 +116,7 @@ export default function AuthLayout() {
     () => () => {
       effectHandleRef.current?.cancel();
       effectHandleRef.current = null;
+      if (openTimerRef.current) clearTimeout(openTimerRef.current);
     },
     [],
   );
@@ -106,7 +137,7 @@ export default function AuthLayout() {
             ref={ringRef}
             variant={variant}
             layout
-            opening={variant === "success"}
+            opening={ringOpening}
             onLayoutAnimationComplete={handleLayoutAnimationComplete}
           />
           <Outlet />

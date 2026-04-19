@@ -142,7 +142,9 @@ export const CirloRing = forwardRef<HTMLDivElement, CirloRingProps>(
   ) {
     const config = VARIANTS[variant];
     const prefersReduced = useReducedMotion();
-    const shouldBreathe = breathing && !prefersReduced;
+    // Pause breathing during the Success C-collapse so the stroke animation
+    // plays cleanly without fighting the scale/rotate loop.
+    const shouldBreathe = breathing && !prefersReduced && !_opening;
 
     // Unique per-instance gradient IDs so multiple rings don't collide.
     const rawId = useId();
@@ -155,7 +157,13 @@ export const CirloRing = forwardRef<HTMLDivElement, CirloRingProps>(
         ref={ref}
         aria-label={ariaLabel}
         role="img"
-        className={className ? `circlo-ring ${className}` : "circlo-ring"}
+        className={[
+          "circlo-ring",
+          _opening ? "circlo-ring--opening" : null,
+          className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
         data-variant={variant}
         layout={layout}
         layoutId={layoutId}
@@ -212,6 +220,7 @@ export const CirloRing = forwardRef<HTMLDivElement, CirloRingProps>(
 
           {/* Long arc — ~270° teal sweep. */}
           <path
+            className="circlo-ring-arc-teal"
             d="M 150 42 A 70 70 0 1 0 145 157"
             stroke={`url(#${tealGradId})`}
             strokeWidth={18}
@@ -220,6 +229,7 @@ export const CirloRing = forwardRef<HTMLDivElement, CirloRingProps>(
           />
           {/* Short orange arc closing the ring at the top-right. */}
           <path
+            className="circlo-ring-arc-orange"
             d="M 150 42 A 70 70 0 0 1 145 157"
             stroke={`url(#${orangeGradId})`}
             strokeWidth={18}
