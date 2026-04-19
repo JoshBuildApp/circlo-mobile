@@ -128,7 +128,7 @@ export function CirloRing({
     <div
       aria-label={ariaLabel}
       role="img"
-      className={className}
+      className={className ? `circlo-ring ${className}` : "circlo-ring"}
       style={{
         position: "absolute",
         width: config.size,

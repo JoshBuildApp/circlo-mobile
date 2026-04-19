@@ -1,0 +1,225 @@
+/* =========================================================================
+ * Circlo ring landing effects
+ *
+ * Fires when the shared-element ring arrives at a new screen (Phase 3+).
+ * Mirrors the timings + easings from prototype/auth-flow.html exactly.
+ *
+ * Classes here are attached imperatively by fireLandingEffects() in
+ * LandingEffects.tsx — animations run once, then the effect elements
+ * remove themselves.
+ * ========================================================================= */
+
+/* -------------------------------------------------------------------------
+ * 1. Ring squash-and-stretch on impact.
+ *    Targets the inner <svg> of a CirloRing wrapper so the drop-shadow
+ *    filter on the wrapper stays anchored while the mark deforms.
+ * ------------------------------------------------------------------------- */
+.circlo-ring.circlo-ring--landing-impact svg {
+  animation: circlo-ring-impact 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+@keyframes circlo-ring-impact {
+  0%   { transform: scale(1.15) rotate(0deg); }
+  15%  { transform: scale(1.35, 0.75) rotate(5deg); }
+  30%  { transform: scale(0.85, 1.2) rotate(-3deg); }
+  50%  { transform: scale(1.1, 0.95) rotate(2deg); }
+  70%  { transform: scale(0.97, 1.03) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* -------------------------------------------------------------------------
+ * 2. Phone body ripple + shake.
+ *    The container must be position: relative + overflow anything.
+ *    `.circlo-landing` draws a teal inner box-shadow that pulses.
+ *    `.circlo-landing-shake` jitters the whole container 1–2px.
+ * ------------------------------------------------------------------------- */
+.circlo-landing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: circlo-landing-ripple 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+  z-index: 9;
+}
+@keyframes circlo-landing-ripple {
+  0%   { box-shadow: inset 0 0 0 0 rgba(0, 212, 170, 0); }
+  40%  { box-shadow: inset 0 0 40px 8px rgba(0, 212, 170, 0.25); }
+  100% { box-shadow: inset 0 0 0 0 rgba(0, 212, 170, 0); }
+}
+
+.circlo-landing-shake {
+  animation: circlo-phone-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes circlo-phone-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-1px, 2px); }
+  20% { transform: translate(1px, -1px); }
+  30% { transform: translate(-1px, 1px); }
+  40% { transform: translate(1px, 0); }
+  55% { transform: translate(0, -1px); }
+  70% { transform: translate(0, 1px); }
+}
+
+/* -------------------------------------------------------------------------
+ * 3. Shockwave rings — two expanding circles (teal primary, orange chaser).
+ * ------------------------------------------------------------------------- */
+.circlo-shockwave,
+.circlo-shockwave-2 {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  z-index: 8;
+}
+.circlo-shockwave {
+  border: 2px solid #00D4AA;
+}
+.circlo-shockwave-2 {
+  border: 2px solid #FF6B2C;
+}
+.circlo-shockwave.circlo-fire {
+  animation: circlo-shockwave-out 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.circlo-shockwave-2.circlo-fire {
+  animation: circlo-shockwave-out-2 1.05s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
+}
+@keyframes circlo-shockwave-out {
+  0% {
+    opacity: 0.9;
+    width: 20px; height: 20px;
+    border-width: 3px;
+    border-color: rgba(0, 212, 170, 1);
+  }
+  100% {
+    opacity: 0;
+    width: 220px; height: 220px;
+    border-width: 1px;
+    border-color: rgba(0, 212, 170, 0);
+  }
+}
+@keyframes circlo-shockwave-out-2 {
+  0% {
+    opacity: 0;
+    width: 20px; height: 20px;
+  }
+  15% {
+    opacity: 0.7;
+    border-color: rgba(255, 107, 44, 0.9);
+  }
+  100% {
+    opacity: 0;
+    width: 280px; height: 280px;
+    border-color: rgba(255, 107, 44, 0);
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * 4. Flash bloom — radial gradient pulse behind the ring.
+ * ------------------------------------------------------------------------- */
+.circlo-flash {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 212, 170, 0.85) 0%,
+    rgba(255, 107, 44, 0.5) 25%,
+    rgba(255, 107, 44, 0.2) 50%,
+    transparent 75%
+  );
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 7;
+  filter: blur(12px);
+}
+.circlo-flash.circlo-fire {
+  animation: circlo-flash-bloom 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes circlo-flash-bloom {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  20%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
+}
+
+/* -------------------------------------------------------------------------
+ * 5. Light pillar — thin vertical beam from top of the phone down to the
+ *    landing point. Caller sets `left`, `top: 0`, and `height`.
+ * ------------------------------------------------------------------------- */
+.circlo-pillar {
+  position: absolute;
+  width: 4px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 212, 170, 0.6) 30%,
+    rgba(0, 212, 170, 0.9) 50%,
+    rgba(255, 107, 44, 0.5) 80%,
+    transparent
+  );
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: center bottom;
+  transform: translateX(-50%) scaleY(0);
+  z-index: 6;
+  filter: blur(2px);
+}
+.circlo-pillar.circlo-fire {
+  animation: circlo-pillar-strike 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes circlo-pillar-strike {
+  0%   { opacity: 0; transform: translateX(-50%) scaleY(0); }
+  30%  { opacity: 1; transform: translateX(-50%) scaleY(1); }
+  100% { opacity: 0; transform: translateX(-50%) scaleY(1); }
+}
+
+/* -------------------------------------------------------------------------
+ * 6. Spark particles — 12 circles radiating outward with gravity.
+ *    Per-spark destination injected via --circlo-spark-x / --circlo-spark-y.
+ * ------------------------------------------------------------------------- */
+.circlo-spark {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9;
+  will-change: transform, opacity;
+  box-shadow: 0 0 8px currentColor;
+}
+.circlo-spark.circlo-fire {
+  animation: circlo-spark-fly 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes circlo-spark-fly {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(0, 0) scale(1);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%)
+      translate(var(--circlo-spark-x), calc(var(--circlo-spark-y) + 60px))
+      scale(0.3);
+  }
+}
+
+/* -------------------------------------------------------------------------
+ * Honor user motion prefs — skip all landing flourish animations.
+ * ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .circlo-ring.circlo-ring--landing-impact svg,
+  .circlo-landing::before,
+  .circlo-landing-shake,
+  .circlo-shockwave.circlo-fire,
+  .circlo-shockwave-2.circlo-fire,
+  .circlo-flash.circlo-fire,
+  .circlo-pillar.circlo-fire,
+  .circlo-spark.circlo-fire {
+    animation: none !important;
+  }
+}
