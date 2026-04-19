@@ -570,9 +570,12 @@ export interface CoachReview {
 }
 
 export async function fetchCoachReviews(coachId: string, limit = 5): Promise<CoachReview[]> {
+  // Reads the v_reviews_public view — same shape as reviews, but drops
+  // user_id and enriches with display name/avatar. Locked-down base table
+  // only allows reviewer + coach SELECT.
   const { data, error } = await supabase
-    .from("reviews")
-    .select("id, rating, comment, user_name, created_at")
+    .from("v_reviews_public")
+    .select("id, rating, comment, reviewer_name, created_at")
     .eq("coach_id", coachId)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -581,11 +584,11 @@ export async function fetchCoachReviews(coachId: string, limit = 5): Promise<Coa
     return [];
   }
   return (data ?? []).map(
-    (r: { id: string; rating: number; comment: string | null; user_name: string | null; created_at: string }) => ({
+    (r: { id: string; rating: number; comment: string | null; reviewer_name: string | null; created_at: string }) => ({
       id: r.id,
       rating: r.rating ?? 0,
       comment: r.comment,
-      authorName: r.user_name ?? "Member",
+      authorName: r.reviewer_name ?? "Member",
       createdAt: r.created_at,
     })
   );
@@ -593,11 +596,11 @@ export async function fetchCoachReviews(coachId: string, limit = 5): Promise<Coa
 
 export async function fetchCoachReviewSummary(coachId: string): Promise<{ avg: number; count: number }> {
   const { count } = await supabase
-    .from("reviews")
+    .from("v_reviews_public")
     .select("id", { count: "exact", head: true })
     .eq("coach_id", coachId);
   const { data } = await supabase
-    .from("reviews")
+    .from("v_reviews_public")
     .select("rating")
     .eq("coach_id", coachId)
     .limit(500);

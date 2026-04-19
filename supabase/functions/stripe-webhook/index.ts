@@ -11,6 +11,14 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
 
+// Sanitized error log — never dumps the full error object. Sentry / Supabase
+// logs get only a tag + the Postgrest code or error name. Full payloads can
+// include booking details, user IDs, Stripe tokens — all PII-adjacent.
+function logErr(tag: string, err: unknown) {
+  const e = err as { code?: string; name?: string } | null
+  console.error(`[stripe-webhook] ${tag}:`, e?.code ?? e?.name ?? 'unknown')
+}
+
 const STRIPE_WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET')
 
 serve(async (req) => {
@@ -79,7 +87,7 @@ serve(async (req) => {
 
     return new Response('OK', { status: 200 })
   } catch (error) {
-    console.error('Webhook processing error:', error)
+    logErr('webhook processing', error)
     return new Response('Internal server error', { status: 500 })
   }
 })
@@ -101,7 +109,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
         .eq('id', metadata.booking_id)
 
       if (error) {
-        console.error('Error updating booking:', error)
+        logErr('update booking', error)
         throw error
       }
 
@@ -113,7 +121,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
       await handleSubscriptionPayment(paymentIntent)
     }
   } catch (error) {
-    console.error('Error handling payment succeeded:', error)
+    logErr('payment succeeded handler', error)
     throw error
   }
 }
@@ -135,14 +143,14 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
         .eq('id', metadata.booking_id)
 
       if (error) {
-        console.error('Error updating booking:', error)
+        logErr('update booking', error)
         throw error
       }
 
       console.log(`Booking ${metadata.booking_id} marked as payment failed`)
     }
   } catch (error) {
-    console.error('Error handling payment failed:', error)
+    logErr('payment failed handler', error)
     throw error
   }
 }
@@ -175,13 +183,13 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       })
 
     if (error) {
-      console.error('Error creating subscription:', error)
+      logErr('create subscription', error)
       throw error
     }
 
     console.log(`Subscription created for user ${customer.metadata.user_id}`)
   } catch (error) {
-    console.error('Error handling subscription created:', error)
+    logErr('subscription created handler', error)
     throw error
   }
 }
@@ -201,13 +209,13 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       .eq('stripe_subscription_id', subscription.id)
 
     if (error) {
-      console.error('Error updating subscription:', error)
+      logErr('update subscription', error)
       throw error
     }
 
     console.log(`Subscription ${subscription.id} updated`)
   } catch (error) {
-    console.error('Error handling subscription updated:', error)
+    logErr('subscription updated handler', error)
     throw error
   }
 }
@@ -225,13 +233,13 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       .eq('stripe_subscription_id', subscription.id)
 
     if (error) {
-      console.error('Error canceling subscription:', error)
+      logErr('cancel subscription', error)
       throw error
     }
 
     console.log(`Subscription ${subscription.id} canceled`)
   } catch (error) {
-    console.error('Error handling subscription deleted:', error)
+    logErr('subscription deleted handler', error)
     throw error
   }
 }
@@ -253,14 +261,14 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
         })
 
       if (error) {
-        console.error('Error recording subscription payment:', error)
+        logErr('record subscription payment', error)
         throw error
       }
 
       console.log(`Invoice payment succeeded: ${invoice.id}`)
     }
   } catch (error) {
-    console.error('Error handling invoice payment succeeded:', error)
+    logErr('invoice payment succeeded handler', error)
     throw error
   }
 }
@@ -281,14 +289,14 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
         })
 
       if (error) {
-        console.error('Error recording failed payment:', error)
+        logErr('record failed payment', error)
         throw error
       }
 
       console.log(`Invoice payment failed: ${invoice.id}`)
     }
   } catch (error) {
-    console.error('Error handling invoice payment failed:', error)
+    logErr('invoice payment failed handler', error)
     throw error
   }
 }
@@ -309,14 +317,14 @@ async function handleSubscriptionPayment(paymentIntent: Stripe.PaymentIntent) {
         .eq('id', metadata.user_id)
 
       if (error) {
-        console.error('Error updating user subscription:', error)
+        logErr('update user subscription', error)
         throw error
       }
 
       console.log(`User ${metadata.user_id} subscription activated`)
     }
   } catch (error) {
-    console.error('Error handling subscription payment:', error)
+    logErr('subscription payment handler', error)
     throw error
   }
 }

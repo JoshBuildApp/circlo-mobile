@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Inbox, Settings as SettingsIcon, Plus, MessageSquare, Upload, CalendarMinus, Eye, Repeat, ChevronRight } from "lucide-react";
+import { Inbox, Settings as SettingsIcon, Plus, MessageSquare, Upload, CalendarMinus, Eye, Repeat, Edit3 } from "lucide-react";
 import {
   PhoneFrame,
   StatusBar,
@@ -36,23 +36,11 @@ export default function CoachSelfPage() {
   return (
     <PhoneFrame className="min-h-[100dvh] pb-28">
       <StatusBar />
-      <header className="px-5 pt-3 flex justify-between items-center gap-2">
-        <button
-          onClick={() => {
-            switchRole("player");
-            navigate("/v2/home");
-          }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange text-white text-[12px] font-bold shrink-0"
-          style={{ boxShadow: "0 4px 12px rgba(255,107,44,0.25)" }}
-        >
-          <Repeat size={12} strokeWidth={2.5} /> Player
-        </button>
-        <button
-          onClick={() => navigate(`/v2/coach/${coach?.id ?? "maya"}`)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-navy-card text-offwhite text-[12px] font-semibold border border-navy-line"
-        >
-          <Eye size={12} /> Preview public
-        </button>
+      {/* Title row — clean page label + two-icon cluster.
+          The Player-role toggle moved to a less-prominent spot at the
+          bottom of the page, so the header isn't competing with itself. */}
+      <header className="px-5 pt-4 flex justify-between items-center">
+        <h1 className="text-[22px] font-extrabold tracking-tight">Coach dashboard</h1>
         <div className="flex gap-2 items-center">
           <RoundButton ariaLabel="Requests" variant="solid-navy" size="sm" onClick={() => navigate("/v2/coach-me/requests")} className="relative">
             <Inbox size={16} />
@@ -68,17 +56,34 @@ export default function CoachSelfPage() {
         </div>
       </header>
 
-      <div className="px-5 pt-5 pb-4 flex gap-3.5 items-center">
+      {/* Identity block — name, tagline, rating. */}
+      <div className="px-5 pt-4 pb-3 flex gap-3.5 items-center">
         <Avatar size={64} gradient={coach?.avatarGradient ?? "teal-gold"} verified />
-        <div className="flex-1">
-          <div className="text-[18px] font-extrabold tracking-tight">{coach?.name ?? "Coach"}</div>
-          <div className="text-[12px] text-v2-muted mt-0.5">{coach?.tagline}</div>
-          <div className="flex gap-1.5 mt-2 items-center">
+        <div className="flex-1 min-w-0">
+          <div className="text-[18px] font-extrabold tracking-tight truncate">{coach?.name ?? "Coach"}</div>
+          {coach?.tagline && <div className="text-[12px] text-v2-muted mt-0.5 truncate">{coach.tagline}</div>}
+          <div className="flex gap-1.5 mt-1.5 items-center">
             <Chip variant="orange" className="text-[10px]">COACH</Chip>
             <span className="text-[12px] text-offwhite font-semibold tnum">{coach?.rating ?? 0} ★</span>
             <span className="text-[11px] text-v2-muted tnum">{coach?.reviewCount ?? 0} reviews</span>
           </div>
         </div>
+      </div>
+
+      {/* Two prominent CTAs — the actions a coach reaches for most often. */}
+      <div className="px-5 pb-4 grid grid-cols-2 gap-2">
+        <button
+          onClick={() => navigate(`/v2/coach/${coach?.id ?? "maya"}`)}
+          className="flex items-center justify-center gap-2 py-3 rounded-[14px] bg-navy-card border border-navy-line text-offwhite font-semibold text-[13px]"
+        >
+          <Eye size={14} strokeWidth={2.5} /> Public view
+        </button>
+        <button
+          onClick={() => navigate("/v2/profile/edit")}
+          className="flex items-center justify-center gap-2 py-3 rounded-[14px] bg-teal text-navy-deep font-bold text-[13px]"
+        >
+          <Edit3 size={14} strokeWidth={2.5} /> Edit profile
+        </button>
       </div>
 
       <div className="px-5 pb-3.5">
@@ -210,25 +215,6 @@ export default function CoachSelfPage() {
         ))}
       </div>
 
-      <SectionHeader title="Top students" action="See all" />
-      <div className="px-5 mb-4">
-        <div className="p-3.5 rounded-[16px] bg-navy-card flex justify-around gap-2.5">
-          {[
-            { name: "Guy", grad: "teal-mint", streak: 12 },
-            { name: "Yael", grad: "orange-peach", streak: 8 },
-            { name: "Ron", grad: "teal-mint", streak: 6 },
-            { name: "Amir", grad: "gold-teal", streak: 5 },
-            { name: "Dan", grad: "orange-peach", streak: 4 },
-          ].map((s) => (
-            <div key={s.name} className="flex flex-col items-center gap-1">
-              <Avatar size={40} gradient={s.grad as "teal-mint" | "orange-peach" | "gold-teal"} />
-              <div className="text-[11px] font-bold">{s.name}</div>
-              <div className="text-[10px] text-orange font-bold tnum">🔥 {s.streak}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <SectionHeader title="Next payout" />
       <div className="px-5 mb-4">
         <div className="p-4 rounded-[16px] bg-navy-card flex items-center gap-3.5">
@@ -268,8 +254,19 @@ export default function CoachSelfPage() {
         </div>
       </div>
 
-      <div className="px-5 pt-5 pb-2 text-center text-[11px] text-v2-muted-2">
-        Coach mode · v0.8.2
+      {/* Role switcher moved here so the top of the screen stays focused on
+          the dashboard. Tapping it flips the active role and lands the user
+          on the player home. */}
+      <div className="px-5 pt-4 pb-2 flex justify-center">
+        <button
+          onClick={() => {
+            switchRole("player");
+            navigate("/v2/home");
+          }}
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-navy-card text-v2-muted text-[12px] font-semibold border border-navy-line"
+        >
+          <Repeat size={12} strokeWidth={2.5} /> Switch to player view
+        </button>
       </div>
 
       <TabBar mode="coach" active="dashboard" />
