@@ -6,6 +6,7 @@ import {
   fireLandingEffects,
   type LandingEffectHandle,
 } from "./components/LandingEffects";
+import { SignupProvider } from "./SignupContext";
 import "./auth-shared.css";
 
 /**
@@ -90,25 +91,27 @@ export default function AuthLayout() {
   );
 
   return (
-    <PhoneFrame className="min-h-[100dvh]" noEntry>
-      <div
-        ref={containerRef}
-        className="circlo-auth-surface relative flex flex-1 flex-col overflow-hidden"
-        data-variant={variant}
-        style={{
-          minHeight: "100dvh",
-          backgroundColor: "var(--v2-bg, #0A0A0F)",
-        }}
-      >
-        <CirloRing
-          ref={ringRef}
-          variant={variant}
-          layout
-          opening={variant === "success"}
-          onLayoutAnimationComplete={handleLayoutAnimationComplete}
-        />
-        <Outlet />
-      </div>
-    </PhoneFrame>
+    <SignupProvider>
+      <PhoneFrame className="min-h-[100dvh]" noEntry>
+        <div
+          ref={containerRef}
+          className="circlo-auth-surface relative flex flex-1 flex-col overflow-hidden"
+          data-variant={variant}
+          style={{
+            minHeight: "100dvh",
+            backgroundColor: "var(--v2-bg, #0A0A0F)",
+          }}
+        >
+          <CirloRing
+            ref={ringRef}
+            variant={variant}
+            layout
+            opening={variant === "success"}
+            onLayoutAnimationComplete={handleLayoutAnimationComplete}
+          />
+          <Outlet />
+        </div>
+      </PhoneFrame>
+    </SignupProvider>
   );
 }
