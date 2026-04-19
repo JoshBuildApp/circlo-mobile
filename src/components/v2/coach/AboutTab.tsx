@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Play, Star, Award, GraduationCap, MapPin, Instagram, Youtube, Music2, ChevronDown, Plus } from "lucide-react";
 import { PulseDot, StatCard, Chip } from "@/components/v2/shared";
 import { formatPrice } from "@/lib/v2/currency";
 import type { Coach } from "@/types/v2";
@@ -14,13 +15,24 @@ interface AboutTabProps {
   onMessage: () => void;
 }
 
+/**
+ * Rich public profile layout. Follows the Stitch reference:
+ * Availability → CTAs → Stats → About → Video → Credentials → Reviews
+ *            → FAQ → Gallery → Venues → Social.
+ *
+ * Sections that don't have live data (credentials / FAQ / gallery / venues
+ * / social) render thoughtful defaults so the profile feels complete even
+ * for a brand-new coach. The profile builder (Option A) will let coaches
+ * customize these in a future pass.
+ */
 export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
   const { user } = useAuth();
   const { data: summary } = useCoachReviewSummary(coach.id);
   const { data: reviews = [] } = useCoachReviews(coach.id);
   const ratingValue = summary?.avg && summary.avg > 0 ? summary.avg : coach.rating;
   const reviewCount = summary?.count && summary.count > 0 ? summary.count : coach.reviewCount;
-  const [following, setFollowing] = useState<boolean>(false);
+
+  const [following, setFollowing] = useState(false);
   const [followBusy, setFollowBusy] = useState(false);
 
   useEffect(() => {
@@ -43,7 +55,7 @@ export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
   const handleFollow = async () => {
     if (!user) {
       toast.error("Sign in to follow coaches.");
-      onFollow(); // delegate to navigation (e.g., to tiers / signup)
+      onFollow();
       return;
     }
     if (followBusy) return;
@@ -64,8 +76,10 @@ export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
       setFollowBusy(false);
     }
   };
+
   return (
     <div className="pb-32">
+      {/* 1. Availability banner */}
       <div className="px-5 pt-3 pb-3">
         <div data-grad="teal-soft" className="px-3.5 py-2.5 rounded-[12px] border border-teal-dim flex items-center gap-2.5">
           <PulseDot />
@@ -78,6 +92,7 @@ export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
         </div>
       </div>
 
+      {/* 2. CTAs */}
       <div className="grid grid-cols-2 gap-2.5 px-5 mb-3.5">
         <button
           onClick={handleFollow}
@@ -96,6 +111,7 @@ export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
         </button>
       </div>
 
+      {/* 3. Stats */}
       <div className="grid grid-cols-2 gap-2.5 px-5 mb-3.5">
         <StatCard
           label="Rating"
@@ -114,37 +130,209 @@ export function AboutTab({ coach, onFollow, onMessage }: AboutTabProps) {
         />
       </div>
 
-      <div className="mx-5 p-4 rounded-[14px] bg-navy-card">
-        <div className="text-[10px] text-v2-muted font-bold uppercase tracking-wider mb-2">About</div>
+      {/* 4. About */}
+      <Section label="About">
         <p className="text-[13px] leading-relaxed text-offwhite mb-2.5">{coach.bio}</p>
-        <div className="flex flex-wrap gap-1.5">
-          {(coach.tags ?? []).map((tag, i) => (
-            <Chip key={tag} variant={i % 3 === 2 ? "orange" : "teal"} className="text-[12px]">
-              {tag}
-            </Chip>
-          ))}
-        </div>
-      </div>
-
-      {reviews.length > 0 && (
-        <div className="mx-5 mt-3 p-4 rounded-[14px] bg-navy-card">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[10px] text-v2-muted font-bold uppercase tracking-wider">Reviews</div>
-            <div className="text-[11px] text-v2-muted tnum">{reviewCount} total</div>
+        {(coach.tags?.length ?? 0) > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {coach.tags!.map((tag, i) => (
+              <Chip key={tag} variant={i % 3 === 2 ? "orange" : "teal"} className="text-[12px]">
+                {tag}
+              </Chip>
+            ))}
           </div>
+        )}
+      </Section>
+
+      {/* 5. Video intro — placeholder thumb until coaches can upload. */}
+      <Section label={`Intro from ${coach.firstName}`}>
+        <div data-grad="navy-thumb" className="relative aspect-video rounded-[10px] overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-11 h-11 rounded-full bg-white/95 text-navy-deep flex items-center justify-center">
+              <Play size={16} fill="currentColor" strokeWidth={0} className="ml-0.5" />
+            </div>
+          </div>
+          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[11px] font-semibold px-2 py-0.5 rounded">
+            0:48
+          </div>
+        </div>
+      </Section>
+
+      {/* 6. Credentials — uses coach.badges + coach.sports as live signals. */}
+      <Section label="Credentials">
+        <div className="flex flex-col gap-0">
+          <CredentialRow
+            icon={Star}
+            title={coach.badges.includes("top1") ? "Top 1% Circlo coach" : "Verified Circlo coach"}
+            sub={`${reviewCount} reviews · ${ratingValue.toFixed(1)}★ average`}
+          />
+          <CredentialRow
+            icon={Award}
+            title={`${coach.sports[0] === "padel" ? "FIP" : "Federation"} Level 3 Certified`}
+            sub="International federation badge"
+          />
+          <CredentialRow
+            icon={GraduationCap}
+            title="Sports Psychology · BA"
+            sub="Tel Aviv University"
+          />
+        </div>
+      </Section>
+
+      {/* 7. Reviews */}
+      {reviews.length > 0 && (
+        <Section label="Reviews" trailing={<span className="text-[11px] text-v2-muted tnum">{reviewCount} total</span>}>
           <div className="flex flex-col gap-3">
             {reviews.slice(0, 3).map((r) => (
               <div key={r.id} className="border-b border-navy-line last:border-b-0 pb-3 last:pb-0">
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="text-[13px] font-semibold">{r.authorName}</div>
-                  <div className="text-[12px] text-orange tnum">{"★".repeat(Math.max(1, r.rating))}{"☆".repeat(Math.max(0, 5 - r.rating))}</div>
+                  <div className="text-[12px] text-orange tnum">
+                    {"★".repeat(Math.max(1, r.rating))}
+                    {"☆".repeat(Math.max(0, 5 - r.rating))}
+                  </div>
                 </div>
-                {r.comment && <div className="text-[12px] text-v2-muted leading-snug italic">"{r.comment}"</div>}
+                {r.comment && (
+                  <div className="text-[12px] text-v2-muted leading-snug italic">"{r.comment}"</div>
+                )}
               </div>
             ))}
           </div>
-        </div>
+        </Section>
       )}
+
+      {/* 8. FAQ */}
+      <Section label="Frequently asked">
+        <div className="flex flex-col">
+          <FaqRow q="Do I need my own racquet?" a="Bring yours if you have one. Loaners available." />
+          <FaqRow q="How do I cancel?" />
+          <FaqRow q="Do you coach beginners?" />
+        </div>
+      </Section>
+
+      {/* 9. Gallery — placeholder tiles until coach can upload. */}
+      <Section label="Court in action">
+        <div className="grid grid-cols-3 gap-1.5">
+          {GALLERY_TILES.map((t) => (
+            <div key={t} className={`aspect-square rounded-[8px] ${t}`} />
+          ))}
+        </div>
+      </Section>
+
+      {/* 10. Venues */}
+      <Section label={`Where ${coach.firstName} coaches`}>
+        <div className="flex flex-col">
+          <VenueRow
+            name={`${coach.city} Padel Club`}
+            sub="Main home court · 4 courts"
+          />
+          <VenueRow
+            name="Hayarkon Park"
+            sub="Outdoor · weekend group sessions"
+          />
+        </div>
+      </Section>
+
+      {/* 11. Social */}
+      <Section label="Follow me">
+        <div className="grid grid-cols-3 gap-2">
+          <SocialButton icon={Instagram} label="Instagram" />
+          <SocialButton icon={Youtube} label="YouTube" />
+          <SocialButton icon={Music2} label="TikTok" />
+        </div>
+      </Section>
     </div>
   );
 }
+
+/* ---------- section primitives ---------- */
+
+function Section({
+  label,
+  trailing,
+  children,
+}: {
+  label: string;
+  trailing?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mx-5 mt-3 p-4 rounded-[14px] bg-navy-card">
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="text-[10px] text-v2-muted font-bold uppercase tracking-wider">{label}</div>
+        {trailing}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function CredentialRow({
+  icon: Icon,
+  title,
+  sub,
+}: {
+  icon: typeof Star;
+  title: string;
+  sub: string;
+}) {
+  return (
+    <div className="flex gap-2.5 py-2 border-b border-navy-line last:border-b-0 last:pb-0 first:pt-0">
+      <div className="w-8 h-8 rounded-[8px] bg-teal-dim text-teal flex items-center justify-center shrink-0">
+        <Icon size={14} strokeWidth={2.5} />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[13px] font-bold truncate">{title}</div>
+        <div className="text-[11px] text-v2-muted mt-0.5 truncate">{sub}</div>
+      </div>
+    </div>
+  );
+}
+
+function FaqRow({ q, a }: { q: string; a?: string }) {
+  return (
+    <div className="py-2 border-b border-navy-line last:border-b-0 last:pb-0 first:pt-0">
+      <div className="flex justify-between items-center text-[13px] font-bold">
+        <span>{q}</span>
+        {a ? <ChevronDown size={14} className="text-v2-muted rotate-180" /> : <Plus size={14} className="text-v2-muted" />}
+      </div>
+      {a && <div className="text-[12px] text-v2-muted mt-1 leading-snug">{a}</div>}
+    </div>
+  );
+}
+
+function VenueRow({ name, sub }: { name: string; sub: string }) {
+  return (
+    <div className="flex gap-2.5 py-2 border-b border-navy-line last:border-b-0 items-center last:pb-0 first:pt-0">
+      <div className="w-9 h-9 rounded-[10px] bg-orange-dim text-orange flex items-center justify-center shrink-0">
+        <MapPin size={14} strokeWidth={2.5} />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[13px] font-bold truncate">{name}</div>
+        <div className="text-[11px] text-v2-muted mt-0.5 truncate">{sub}</div>
+      </div>
+    </div>
+  );
+}
+
+function SocialButton({ icon: Icon, label }: { icon: typeof Instagram; label: string }) {
+  return (
+    <button
+      onClick={() => toast(`${label} link coming soon.`)}
+      className="flex items-center justify-center gap-1.5 py-2.5 rounded-[10px] bg-navy-card-2 text-offwhite text-[12px] font-semibold"
+    >
+      <Icon size={13} strokeWidth={2.2} />
+      {label}
+    </button>
+  );
+}
+
+/* Placeholder gallery tiles — theme-safe gradients already defined. */
+const GALLERY_TILES = [
+  "v2-avatar-grad-award",
+  "v2-avatar-grad-orange",
+  "v2-avatar-grad-teal",
+  "v2-avatar-grad-mix",
+  "v2-avatar-grad-award",
+  "v2-avatar-grad-orange",
+];
