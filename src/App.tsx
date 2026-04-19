@@ -87,6 +87,7 @@ const V2Messages = lazy(() => import("@/pages/v2/MessagesInboxPage"));
 const V2Chat = lazy(() => import("@/pages/v2/ChatPage"));
 const V2NewMessage = lazy(() => import("@/pages/v2/NewMessagePage"));
 const V2Booking = lazy(() => import("@/pages/v2/BookingFlowPage"));
+const V2BookLanding = lazy(() => import("@/pages/v2/BookLandingPage"));
 const V2BookingSuccess = lazy(() => import("@/pages/v2/BookingSuccessPage"));
 const V2UserProfile = lazy(() => import("@/pages/v2/UserProfileV2"));
 const V2MyBookings = lazy(() => import("@/pages/v2/MyBookingsPage"));
@@ -237,6 +238,7 @@ function App() {
                     <Route path="/v2/calendar" element={<RouteWrapper routeName="v2-calendar"><V2Guard><V2Calendar /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/calendar/add-workout" element={<RouteWrapper routeName="v2-add-workout"><V2Guard><V2AddWorkout /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/calendar/:date" element={<RouteWrapper routeName="v2-day-detail"><V2Guard><V2DayDetail /></V2Guard></RouteWrapper>} />
+                    <Route path="/v2/book" element={<RouteWrapper routeName="v2-book-landing"><V2Guard><V2BookLanding /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/book/:coachId" element={<RouteWrapper routeName="v2-book"><V2Guard><V2Booking /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/book/:bookingId/success" element={<RouteWrapper routeName="v2-book-success"><V2Guard><V2BookingSuccess /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/profile" element={<RouteWrapper routeName="v2-profile"><V2Guard><V2UserProfile /></V2Guard></RouteWrapper>} />
