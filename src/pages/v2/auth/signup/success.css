@@ -1,0 +1,170 @@
+/* =========================================================================
+ * Success screen — C-collapse stroke animation + confetti + staggered title.
+ * Mirrors .mark-success.opening, .success-wrap, .confetti in
+ * prototype/auth-flow.html.
+ * ========================================================================= */
+
+/* -------------------------------------------------------------------------
+ * C-collapse: the success ring's teal arc shortens just enough to open a
+ * gap at the top (stroke-dasharray 340, offset 0 → 40) while the orange
+ * cap fully retracts (dasharray 120, offset 0 → 120). With the orange dot
+ * hidden (CirloRing variant=success), the result is a clean animated C.
+ * ------------------------------------------------------------------------- */
+.circlo-ring--opening .circlo-ring-arc-teal {
+  stroke-dasharray: 340;
+  stroke-dashoffset: 0;
+  animation: circlo-c-collapse-teal 1.4s var(--circlo-ease-swift, cubic-bezier(0.65, 0, 0.35, 1)) forwards;
+}
+.circlo-ring--opening .circlo-ring-arc-orange {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 0;
+  animation: circlo-c-collapse-orange 1.0s var(--circlo-ease-swift, cubic-bezier(0.65, 0, 0.35, 1)) forwards;
+}
+@keyframes circlo-c-collapse-teal {
+  0%   { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 40; }
+}
+@keyframes circlo-c-collapse-orange {
+  0%   { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 120; }
+}
+
+/* Ambient burst behind the C — radial bloom that pulses once. */
+.circlo-success-burst {
+  position: absolute;
+  inset: -25%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 212, 170, 0.5),
+    rgba(255, 107, 44, 0.28) 35%,
+    transparent 70%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+.circlo-ring--opening .circlo-success-burst {
+  animation: circlo-success-burst 1.6s ease-out;
+}
+@keyframes circlo-success-burst {
+  0%   { opacity: 0; transform: scale(0.5); }
+  30%  { opacity: 1; transform: scale(1.5); }
+  100% { opacity: 0; transform: scale(2.2); }
+}
+
+/* -------------------------------------------------------------------------
+ * Confetti pieces — positioned absolutely, animated falling with rotation.
+ * --circlo-confetti-tx sets horizontal drift, randomized per piece.
+ * ------------------------------------------------------------------------- */
+
+.circlo-confetti {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  top: -20px;
+  pointer-events: none;
+  animation: circlo-confetti-fall 2s ease-out infinite;
+}
+@keyframes circlo-confetti-fall {
+  0%   { transform: translate(0, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(var(--circlo-confetti-tx, 0px), 400px) rotate(720deg); opacity: 0; }
+}
+
+/* -------------------------------------------------------------------------
+ * Success content block — titled "You're in the circle, …" with a staggered
+ * entry that waits for the C-collapse to begin before sliding in.
+ * ------------------------------------------------------------------------- */
+
+.circlo-success-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: 0;
+}
+
+.circlo-success-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 24px 0 10px;
+  color: var(--circlo-text);
+}
+
+.circlo-success-subtitle {
+  font-size: 15px;
+  color: var(--circlo-text-dim);
+  line-height: 1.5;
+  max-width: 280px;
+  margin: 0 auto 32px;
+}
+
+/* -------------------------------------------------------------------------
+ * Living C — once the C has formed, each of the six gradient stops drifts
+ * through the brand palette on a 3.5s loop. Orange-family stops cycle
+ * FF6B2C → FF8A4C → FFD700; teal-family stops cycle 00D4AA → 00E5B8 →
+ * 00B894 → 1AEAC0. Staggered 150ms delays make the colour band flow around
+ * the arc. Combined with the SVG-side SMIL animations on the gradient's
+ * x1/y1/x2/y2 endpoints (inside CirloRing), the C breathes with drifting
+ * colour bands rather than a static gradient.
+ * ------------------------------------------------------------------------- */
+
+.circlo-ring--opening .circlo-gstop-1 {
+  animation: circlo-stop-flow-orange 3.5s ease-in-out 1.60s infinite;
+}
+.circlo-ring--opening .circlo-gstop-2 {
+  animation: circlo-stop-flow-orange 3.5s ease-in-out 1.75s infinite;
+}
+.circlo-ring--opening .circlo-gstop-3 {
+  animation: circlo-stop-flow-teal 3.5s ease-in-out 1.90s infinite;
+}
+.circlo-ring--opening .circlo-gstop-4 {
+  animation: circlo-stop-flow-teal 3.5s ease-in-out 2.05s infinite;
+}
+.circlo-ring--opening .circlo-gstop-5 {
+  animation: circlo-stop-flow-orange 3.5s ease-in-out 2.20s infinite;
+}
+.circlo-ring--opening .circlo-gstop-6 {
+  animation: circlo-stop-flow-orange 3.5s ease-in-out 2.35s infinite;
+}
+
+@keyframes circlo-stop-flow-orange {
+  0%   { stop-color: #FF6B2C; }
+  25%  { stop-color: #FF8A4C; }
+  50%  { stop-color: #FFD700; }
+  75%  { stop-color: #FF8A4C; }
+  100% { stop-color: #FF6B2C; }
+}
+@keyframes circlo-stop-flow-teal {
+  0%   { stop-color: #00D4AA; }
+  25%  { stop-color: #00E5B8; }
+  50%  { stop-color: #00B894; }
+  75%  { stop-color: #1AEAC0; }
+  100% { stop-color: #00D4AA; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circlo-ring--opening .circlo-ring-arc-teal,
+  .circlo-ring--opening .circlo-ring-arc-orange,
+  .circlo-ring--opening .circlo-success-burst,
+  .circlo-ring--opening .circlo-gstop-1,
+  .circlo-ring--opening .circlo-gstop-2,
+  .circlo-ring--opening .circlo-gstop-3,
+  .circlo-ring--opening .circlo-gstop-4,
+  .circlo-ring--opening .circlo-gstop-5,
+  .circlo-ring--opening .circlo-gstop-6,
+  .circlo-confetti {
+    animation: none !important;
+  }
+  /* Static C shape even with motion off: apply the final dash state. */
+  .circlo-ring--opening .circlo-ring-arc-teal {
+    stroke-dashoffset: 40;
+  }
+  .circlo-ring--opening .circlo-ring-arc-orange {
+    stroke-dashoffset: 120;
+  }
+  .circlo-confetti { display: none; }
+}

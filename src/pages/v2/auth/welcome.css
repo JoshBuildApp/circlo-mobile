@@ -1,0 +1,149 @@
+/* =========================================================================
+ * Welcome screen — splash backdrop, floating sport icons, staggered entry.
+ * Mirrors .splash-screen / .splash-bg / .float-* blocks from
+ * prototype/auth-flow.html. Shared button/divider/terms primitives live in
+ * auth-shared.css.
+ * ========================================================================= */
+
+.circlo-welcome-root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(
+    ellipse at 50% 55%,
+    #0f1a2e 0%,
+    #0a0f1e 45%,
+    #060813 100%
+  );
+}
+
+.circlo-welcome-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 220px 180px at 42% 26%,
+      rgba(0, 212, 170, 0.28),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 180px 160px at 62% 32%,
+      rgba(255, 107, 44, 0.24),
+      transparent 65%
+    );
+  animation: circlo-splash-pulse 4s ease-in-out infinite;
+}
+
+@keyframes circlo-splash-pulse {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1; }
+}
+
+/* Floating sport icons — all share the bob animation, each offsets so the
+ * three bodies drift out of sync. --circlo-float-rot lets individual icons
+ * keep a rotated rest pose. */
+.circlo-float {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+  animation: circlo-float-bob 6s ease-in-out infinite;
+}
+
+@keyframes circlo-float-bob {
+  0%, 100% { transform: translateY(0) rotate(var(--circlo-float-rot, 0deg)); }
+  50%      { transform: translateY(-8px) rotate(var(--circlo-float-rot, 0deg)); }
+}
+
+.circlo-float-padel {
+  top: 6%;
+  left: -6%;
+  width: 110px;
+  height: 130px;
+  --circlo-float-rot: -22deg;
+  transform: rotate(-22deg);
+}
+
+.circlo-float-basketball {
+  top: 7%;
+  right: -4%;
+  width: 90px;
+  height: 90px;
+  animation-delay: 1s;
+}
+
+.circlo-float-glove {
+  bottom: 22%;
+  left: -8%;
+  width: 95px;
+  height: 105px;
+  --circlo-float-rot: -15deg;
+  transform: rotate(-15deg);
+  animation-delay: 2s;
+}
+
+/* Text block — absolutely centered below the hero ring (ring sits at top:140
+ * with size 120, so it ends around 260; the text block starts at 280). */
+.circlo-welcome-text {
+  position: absolute;
+  top: 280px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.circlo-wordmark {
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #F8F8FB;
+  line-height: 1;
+  animation: circlo-word-entry 0.6s ease-out 0.3s backwards;
+}
+
+.circlo-tagline {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  color: var(--circlo-teal, #00D4AA);
+  text-transform: uppercase;
+  animation: circlo-word-entry 0.6s ease-out 0.5s backwards;
+}
+
+@keyframes circlo-word-entry {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Action stack pinned to the bottom with its own staggered entry. */
+.circlo-welcome-actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20px 24px calc(32px + env(safe-area-inset-bottom, 0px));
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: circlo-actions-entry 0.7s ease-out 0.7s backwards;
+}
+
+@keyframes circlo-actions-entry {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circlo-welcome-glow,
+  .circlo-float,
+  .circlo-wordmark,
+  .circlo-tagline,
+  .circlo-welcome-actions {
+    animation: none !important;
+  }
+}

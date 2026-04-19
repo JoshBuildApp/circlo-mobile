@@ -1,0 +1,102 @@
+/* =========================================================================
+ * Role selector cards — stacked full-width buttons with a leading icon tile,
+ * copy block, and trailing checkmark. Selection tints the border + bg +
+ * fills the check circle. Mirrors .role-card / .role-icon / .role-check
+ * from prototype/auth-flow.html.
+ * ========================================================================= */
+
+.circlo-role-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.circlo-role-card {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: var(--circlo-navy-card);
+  border: 1.5px solid var(--circlo-border);
+  border-radius: 18px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  align-items: center;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  color: var(--circlo-text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.circlo-role-card:hover {
+  background: var(--circlo-navy-elev);
+  border-color: var(--circlo-border-strong);
+}
+
+.circlo-role-card[aria-pressed="true"] {
+  border-color: var(--circlo-teal);
+  background: rgba(0, 212, 170, 0.06);
+}
+
+.circlo-role-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--circlo-navy-elev);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--circlo-text);
+  transition: background 0.2s, color 0.2s;
+}
+.circlo-role-card[aria-pressed="true"] .circlo-role-icon {
+  background: var(--circlo-teal);
+  color: var(--circlo-navy-deep);
+}
+
+.circlo-role-text {
+  flex: 1;
+  min-width: 0;
+}
+.circlo-role-text h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+  color: var(--circlo-text);
+}
+.circlo-role-text p {
+  font-size: 13px;
+  color: var(--circlo-text-dim);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.circlo-role-check {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--circlo-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--circlo-navy-deep);
+  transition: background 0.2s, border-color 0.2s;
+}
+.circlo-role-card[aria-pressed="true"] .circlo-role-check {
+  background: var(--circlo-teal);
+  border-color: var(--circlo-teal);
+}
+
+/* Hide the check glyph unless selected — matches prototype's display:none. */
+.circlo-role-check svg {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.circlo-role-card[aria-pressed="true"] .circlo-role-check svg {
+  opacity: 1;
+}

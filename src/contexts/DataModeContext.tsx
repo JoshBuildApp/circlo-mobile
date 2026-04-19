@@ -18,6 +18,9 @@ export const useDataMode = () => useContext(DataModeContext);
 
 export const DataModeProvider = ({ children }: { children: ReactNode }) => {
   const [dataMode, setDataModeState] = useState<DataMode>(() => {
+    // Forced preview builds (Capacitor/Xcode) always use real Supabase data
+    // so previews don't accidentally render mocks.
+    if (import.meta.env.VITE_V2_FORCE === "true") return "real";
     try {
       const stored = localStorage.getItem("circlo_data_mode");
       return stored === "demo" ? "demo" : "real";

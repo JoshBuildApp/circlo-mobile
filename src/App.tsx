@@ -112,6 +112,16 @@ const V2EditProfile = lazy(() => import("@/pages/v2/EditProfileV2"));
 const V2VerifyEmail = lazy(() => import("@/pages/v2/VerifyEmailV2"));
 const V2PlayerOnboarding = lazy(() => import("@/pages/v2/PlayerOnboardingV2"));
 const V2CoachOnboarding = lazy(() => import("@/pages/v2/CoachOnboardingV2"));
+/* v2 auth flow — new shared-element onboarding under /v2/auth/* */
+const V2AuthLayout = lazy(() => import("@/pages/v2/auth/AuthLayout"));
+const V2AuthWelcome = lazy(() => import("@/pages/v2/auth/Welcome"));
+const V2AuthLogin = lazy(() => import("@/pages/v2/auth/Login"));
+const V2AuthSignupOutlet = lazy(() => import("@/pages/v2/auth/SignupOutlet").then((m) => ({ default: m.SignupOutlet })));
+const V2AuthRole = lazy(() => import("@/pages/v2/auth/signup/Role"));
+const V2AuthSports = lazy(() => import("@/pages/v2/auth/signup/Sports"));
+const V2AuthCredentials = lazy(() => import("@/pages/v2/auth/signup/Credentials"));
+const V2AuthVerify = lazy(() => import("@/pages/v2/auth/signup/Verify"));
+const V2AuthSuccess = lazy(() => import("@/pages/v2/auth/signup/Success"));
 const DevRoleSwitcher = lazy(() => import("@/components/DevRoleSwitcher"));
 const OfflineBanner = lazy(() => import("@/components/OfflineBanner"));
 
@@ -185,6 +195,20 @@ function App() {
                   <Routes>
                     {/* v2 routes — feature-flagged, no AppShell (pages render own chrome) */}
                     <Route path="/v2/enable" element={<RouteWrapper routeName="v2-enable"><EnableV2 /></RouteWrapper>} />
+                    {/* v2 auth flow — shared-element ring onboarding under /v2/auth/* */}
+                    <Route path="/v2/auth" element={<RouteWrapper routeName="v2-auth-layout"><V2Guard><V2AuthLayout /></V2Guard></RouteWrapper>}>
+                      <Route index element={<Navigate to="welcome" replace />} />
+                      <Route path="welcome" element={<RouteWrapper routeName="v2-auth-welcome"><V2AuthWelcome /></RouteWrapper>} />
+                      <Route path="login" element={<RouteWrapper routeName="v2-auth-login"><V2AuthLogin /></RouteWrapper>} />
+                      <Route path="signup" element={<V2AuthSignupOutlet />}>
+                        <Route index element={<Navigate to="role" replace />} />
+                        <Route path="role" element={<RouteWrapper routeName="v2-auth-signup-role"><V2AuthRole /></RouteWrapper>} />
+                        <Route path="sports" element={<RouteWrapper routeName="v2-auth-signup-sports"><V2AuthSports /></RouteWrapper>} />
+                        <Route path="credentials" element={<RouteWrapper routeName="v2-auth-signup-credentials"><V2AuthCredentials /></RouteWrapper>} />
+                        <Route path="verify" element={<RouteWrapper routeName="v2-auth-signup-verify"><V2AuthVerify /></RouteWrapper>} />
+                        <Route path="success" element={<RouteWrapper routeName="v2-auth-signup-success"><V2AuthSuccess /></RouteWrapper>} />
+                      </Route>
+                    </Route>
                     <Route path="/v2/splash" element={<RouteWrapper routeName="v2-splash"><V2Guard><V2Splash /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/welcome" element={<RouteWrapper routeName="v2-welcome"><V2Guard><V2Welcome /></V2Guard></RouteWrapper>} />
                     <Route path="/v2/login" element={<RouteWrapper routeName="v2-login"><V2Guard><V2Login /></V2Guard></RouteWrapper>} />

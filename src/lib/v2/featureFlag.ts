@@ -13,11 +13,11 @@ export function isV2Enabled(): boolean {
   // Build-time override: use `VITE_V2_FORCE=true npm run build` (or the
   // `npm run preview:ios` shortcut) for Xcode preview builds.
   if (import.meta.env.VITE_V2_FORCE === "true") return true;
-  // Otherwise gate per-user via localStorage. /v2/enable flips this.
+  // Default to v2 unless explicitly disabled via /v2/enable.
   try {
-    return window.localStorage.getItem(V2_ENABLED_KEY) === "true";
+    return window.localStorage.getItem(V2_ENABLED_KEY) !== "false";
   } catch {
-    return false;
+    return true;
   }
 }
 
