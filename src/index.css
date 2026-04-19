@@ -719,6 +719,21 @@
      nav sits clearly above the home indicator, even on devices with no
      inset reported. */
   .v2-safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); }
+
+  /* Book tab — raised FAB-style center button. Hover lift, tap compression,
+     reduced-motion fallback. Styling is mostly inline (see TabBar.tsx) to
+     keep the gradient + box-shadow palette tokenised; these rules just add
+     the motion. */
+  .circlo-book-fab:hover { transform: translateY(-2px) scale(1.03); }
+  .circlo-book-fab:active { transform: scale(0.96); }
+  @media (prefers-reduced-motion: reduce) {
+    .circlo-book-fab,
+    .circlo-book-fab:hover,
+    .circlo-book-fab:active {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
 }
 
 @keyframes v2-pulse-dot {

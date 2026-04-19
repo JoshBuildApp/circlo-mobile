@@ -161,7 +161,7 @@ export default function MyBookingsPage() {
         </button>
       </div>
 
-      <TabBar mode="player" active="calendar" />
+      <TabBar mode="player" active="book" />
     </PhoneFrame>
   );
 }

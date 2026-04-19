@@ -281,7 +281,7 @@ export default function CalendarPage() {
         <Plus size={24} strokeWidth={2.5} />
       </button>
 
-      <TabBar mode={isCoach ? "coach" : "player"} active={isCoach ? "dashboard" : "calendar"} />
+      <TabBar mode={isCoach ? "coach" : "player"} active={isCoach ? "dashboard" : "book"} />
     </PhoneFrame>
   );
 }
