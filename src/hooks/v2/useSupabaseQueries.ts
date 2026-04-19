@@ -15,18 +15,22 @@
 import { supabase } from "@/integrations/supabase/client";
 import type {
   BookingRequest,
+  CalendarEvent,
   CirclePost,
   Coach,
   CoachBadge,
   CoachProfile,
   Message,
   MessageThread,
+  PlanWorkout,
   PlayerProfile,
   Session,
   SessionStatus,
   SportKey,
+  TrainingPlan,
   UserRole,
   Video,
+  WorkoutType,
 } from "@/types/v2";
 
 /* ---------- shared mappers ---------- */
@@ -794,6 +798,256 @@ export async function fetchChatMessages(threadId: string, userId: string): Promi
     read: r.is_read ?? false,
     delivered: true,
   }));
+}
+
+/* ---------- training plans ---------- */
+
+interface DbTrainingPlanRow {
+  id: string;
+  coach_id: string;
+  title: string;
+  description: string | null;
+  duration_days: number;
+  total_workouts: number;
+  difficulty: "beginner" | "intermediate" | "advanced";
+  price_ils: number;
+  price_label: "one-time" | "monthly";
+  rating: number | null;
+  review_count: number | null;
+  is_best_seller: boolean | null;
+}
+
+interface DbPlanWorkoutRow {
+  id: string;
+  plan_id: string;
+  day_number: number;
+  week_number: number;
+  title: string;
+  description: string | null;
+  workout_type: WorkoutType;
+  duration_min: number;
+  drill_count: number | null;
+  video_id: string | null;
+}
+
+function mapPlanWorkout(r: DbPlanWorkoutRow): PlanWorkout {
+  return {
+    id: r.id,
+    planId: r.plan_id,
+    dayNumber: r.day_number,
+    weekNumber: r.week_number,
+    title: r.title,
+    type: r.workout_type,
+    durationMin: r.duration_min,
+    description: r.description ?? "",
+    videoId: r.video_id ?? undefined,
+    drillCount: r.drill_count ?? undefined,
+  };
+}
+
+async function mapPlanRow(p: DbTrainingPlanRow): Promise<TrainingPlan> {
+  const { data: workouts } = await supabase
+    .from("plan_workouts")
+    .select("id, plan_id, day_number, week_number, title, description, workout_type, duration_min, drill_count, video_id")
+    .eq("plan_id", p.id)
+    .order("day_number", { ascending: true });
+  const { data: coach } = await supabase
+    .from("coach_profiles")
+    .select("coach_name")
+    .eq("id", p.coach_id)
+    .maybeSingle();
+  return {
+    id: p.id,
+    coachId: p.coach_id,
+    coachName: coach?.coach_name ?? "Coach",
+    title: p.title,
+    description: p.description ?? "",
+    durationDays: p.duration_days,
+    totalWorkouts: p.total_workouts,
+    difficulty: p.difficulty,
+    priceILS: p.price_ils,
+    priceLabel: p.price_label,
+    rating: p.rating ?? 0,
+    reviewCount: p.review_count ?? 0,
+    isBestSeller: Boolean(p.is_best_seller),
+    workouts: (workouts ?? []).map((w) => mapPlanWorkout(w as DbPlanWorkoutRow)),
+  };
+}
+
+export async function fetchTrainingPlan(id: string): Promise<TrainingPlan | null> {
+  const { data, error } = await supabase
+    .from("training_plans")
+    .select("id, coach_id, title, description, duration_days, total_workouts, difficulty, price_ils, price_label, rating, review_count, is_best_seller")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) {
+    if (error) console.error("[v2] fetchTrainingPlan failed:", error.message);
+    return null;
+  }
+  return mapPlanRow(data as DbTrainingPlanRow);
+}
+
+export async function fetchCoachPlans(coachId?: string): Promise<TrainingPlan[]> {
+  let q = supabase
+    .from("training_plans")
+    .select("id, coach_id, title, description, duration_days, total_workouts, difficulty, price_ils, price_label, rating, review_count, is_best_seller")
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+  if (coachId) q = q.eq("coach_id", coachId);
+  const { data, error } = await q;
+  if (error) {
+    console.error("[v2] fetchCoachPlans failed:", error.message);
+    return [];
+  }
+  return Promise.all((data ?? []).map((p) => mapPlanRow(p as DbTrainingPlanRow)));
+}
+
+export async function subscribeToPlanReal(opts: {
+  userId: string;
+  planId: string;
+  startDate: Date;
+}): Promise<void> {
+  const plan = await fetchTrainingPlan(opts.planId);
+  if (!plan) throw new Error("Plan not found");
+
+  const { data: subRow, error: subErr } = await supabase
+    .from("plan_subscriptions")
+    .upsert(
+      {
+        user_id: opts.userId,
+        plan_id: opts.planId,
+        started_at: opts.startDate.toISOString(),
+        current_day_number: 1,
+        status: "active",
+      },
+      { onConflict: "user_id,plan_id" }
+    )
+    .select("id")
+    .single();
+  if (subErr || !subRow) {
+    console.error("[v2] subscribeToPlanReal failed:", subErr?.message);
+    throw subErr ?? new Error("subscribe failed");
+  }
+
+  // Generate one personal_workout per plan workout, scheduled relative to startDate.
+  const inserts = plan.workouts.map((w) => {
+    const start = new Date(opts.startDate);
+    start.setDate(start.getDate() + w.dayNumber - 1);
+    start.setHours(17, 0, 0, 0);
+    return {
+      user_id: opts.userId,
+      title: `${plan.title} · Day ${w.dayNumber}`,
+      workout_type: w.type,
+      starts_at: start.toISOString(),
+      duration_min: w.durationMin,
+      plan_subscription_id: subRow.id,
+      plan_workout_id: w.id,
+    };
+  });
+  if (inserts.length > 0) {
+    const { error: pwErr } = await supabase.from("personal_workouts").insert(inserts);
+    if (pwErr) console.error("[v2] plan workouts insert failed:", pwErr.message);
+  }
+}
+
+/* ---------- personal_workouts (calendar events) ---------- */
+
+interface DbPersonalWorkoutRow {
+  id: string;
+  user_id: string;
+  title: string;
+  workout_type: WorkoutType;
+  starts_at: string;
+  duration_min: number;
+  notes: string | null;
+  plan_subscription_id: string | null;
+  plan_workout_id: string | null;
+  completed_at: string | null;
+}
+
+export async function addPersonalWorkout(opts: {
+  userId: string;
+  title: string;
+  type: WorkoutType;
+  startsAt: Date;
+  durationMin: number;
+  notes?: string;
+}): Promise<string> {
+  const { data, error } = await supabase
+    .from("personal_workouts")
+    .insert({
+      user_id: opts.userId,
+      title: opts.title,
+      workout_type: opts.type,
+      starts_at: opts.startsAt.toISOString(),
+      duration_min: opts.durationMin,
+      notes: opts.notes ?? null,
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    console.error("[v2] addPersonalWorkout failed:", error?.message);
+    throw error ?? new Error("insert failed");
+  }
+  return data.id;
+}
+
+export async function fetchCalendarEventsReal(
+  userId: string,
+  startDate?: Date,
+  endDate?: Date
+): Promise<CalendarEvent[]> {
+  // Bookings the user owns.
+  const start = startDate?.toISOString().slice(0, 10);
+  const end = endDate?.toISOString().slice(0, 10);
+
+  let bq = supabase
+    .from("bookings")
+    .select("id, coach_id, coach_name, date, time, status, is_group, training_type")
+    .eq("user_id", userId)
+    .neq("status", "cancelled");
+  if (start) bq = bq.gte("date", start);
+  if (end) bq = bq.lte("date", end);
+  const { data: bookings } = await bq;
+
+  let pwq = supabase
+    .from("personal_workouts")
+    .select("id, user_id, title, workout_type, starts_at, duration_min, notes, plan_subscription_id, plan_workout_id, completed_at")
+    .eq("user_id", userId);
+  if (startDate) pwq = pwq.gte("starts_at", startDate.toISOString());
+  if (endDate) pwq = pwq.lte("starts_at", endDate.toISOString());
+  const { data: workouts } = await pwq;
+
+  const events: CalendarEvent[] = [];
+
+  (bookings ?? []).forEach((b: DbBookingRow) => {
+    if (!b.date || !b.time) return;
+    events.push({
+      id: b.id,
+      type: "session",
+      title: b.coach_name ?? "Session",
+      startsAt: combineDateTime(b.date, b.time),
+      durationMin: b.is_group ? 90 : 60,
+      coachId: b.coach_id ?? undefined,
+      coachName: b.coach_name ?? undefined,
+    });
+  });
+
+  (workouts ?? []).forEach((w: DbPersonalWorkoutRow) => {
+    events.push({
+      id: w.id,
+      type: w.plan_subscription_id ? "plan-item" : "workout",
+      title: w.title,
+      startsAt: w.starts_at,
+      durationMin: w.duration_min,
+      notes: w.notes ?? undefined,
+      planId: w.plan_workout_id ? "plan" : undefined,
+      workoutType: w.workout_type,
+      completedAt: w.completed_at ?? undefined,
+    });
+  });
+
+  return events.sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 }
 
 export async function fetchMyCoachProfile(userId: string): Promise<CoachProfile | null> {

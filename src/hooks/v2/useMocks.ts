@@ -25,6 +25,11 @@ import {
   fetchChatMessages,
   fetchSession,
   createBooking,
+  fetchTrainingPlan,
+  fetchCoachPlans,
+  subscribeToPlanReal,
+  addPersonalWorkout,
+  fetchCalendarEventsReal,
   type CoachReview,
   type CreateBookingInput,
 } from "@/hooks/v2/useSupabaseQueries";
@@ -394,45 +399,66 @@ export function useLiveSession(id: string | undefined) {
 }
 
 export function useTrainingPlan(id: string | undefined) {
+  const { user } = useAuth();
   return useQuery<TrainingPlan | null>({
-    queryKey: ["v2", "plan", id],
-    queryFn: () => delay(mockTrainingPlans.find((p) => p.id === id) ?? null),
+    queryKey: ["v2", "plan", id, user ? "live" : "mock"],
+    queryFn: async () => {
+      if (!id) return null;
+      if (!user) return mockTrainingPlans.find((p) => p.id === id) ?? null;
+      const real = await fetchTrainingPlan(id);
+      return real ?? mockTrainingPlans.find((p) => p.id === id) ?? null;
+    },
     enabled: Boolean(id),
   });
 }
 
 export function useCoachPlans(coachId: string | undefined) {
+  const { user } = useAuth();
   return useQuery<TrainingPlan[]>({
-    queryKey: ["v2", "plans", coachId],
-    queryFn: () => delay(mockTrainingPlans.filter((p) => !coachId || p.coachId === coachId)),
+    queryKey: ["v2", "plans", coachId, user ? "live" : "mock"],
+    queryFn: async () => {
+      if (!user) return mockTrainingPlans.filter((p) => !coachId || p.coachId === coachId);
+      const real = await fetchCoachPlans(coachId);
+      return real.length > 0 ? real : mockTrainingPlans.filter((p) => !coachId || p.coachId === coachId);
+    },
   });
 }
 
 export function useCalendarEvents(startDate?: Date, endDate?: Date) {
+  const { user } = useAuth();
   return useQuery<CalendarEvent[]>({
-    queryKey: ["v2", "calendar", startDate?.toISOString(), endDate?.toISOString()],
-    queryFn: () => {
-      if (!startDate || !endDate) return delay(mockCalendarEvents);
-      const s = startDate.getTime();
-      const e = endDate.getTime();
-      return delay(
-        mockCalendarEvents.filter((ev) => {
+    queryKey: ["v2", "calendar", startDate?.toISOString(), endDate?.toISOString(), user?.id ?? "guest"],
+    queryFn: async () => {
+      if (!user) {
+        if (!startDate || !endDate) return delay(mockCalendarEvents);
+        const s = startDate.getTime();
+        const e = endDate.getTime();
+        return delay(mockCalendarEvents.filter((ev) => {
           const t = new Date(ev.startsAt).getTime();
           return t >= s && t <= e;
-        })
-      );
+        }));
+      }
+      return fetchCalendarEventsReal(user.id, startDate, endDate);
     },
   });
 }
 
 export function useDayEvents(date: Date | undefined) {
+  const { user } = useAuth();
   return useQuery<CalendarEvent[]>({
-    queryKey: ["v2", "day-events", date?.toDateString()],
-    queryFn: () => {
-      if (!date) return delay([]);
-      return delay(
-        mockCalendarEvents.filter((ev) => new Date(ev.startsAt).toDateString() === date.toDateString())
-      );
+    queryKey: ["v2", "day-events", date?.toDateString(), user?.id ?? "guest"],
+    queryFn: async () => {
+      if (!date) return [];
+      if (!user) {
+        return delay(
+          mockCalendarEvents.filter((ev) => new Date(ev.startsAt).toDateString() === date.toDateString())
+        );
+      }
+      const dayStart = new Date(date);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(date);
+      dayEnd.setHours(23, 59, 59, 999);
+      return fetchCalendarEventsReal(user.id, dayStart, dayEnd);
     },
     enabled: Boolean(date),
   });
@@ -440,39 +466,64 @@ export function useDayEvents(date: Date | undefined) {
 
 export function useAddWorkout() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   return useMutation({
     mutationFn: async (workout: Omit<CalendarEvent, "id"> & { id?: string }) => {
-      const event: CalendarEvent = { id: `ce-${Date.now()}`, ...workout };
-      mockCalendarEvents.push(event);
-      return delay(event);
+      if (!user) {
+        // Guest preview — push into mock.
+        const event: CalendarEvent = { id: `ce-${Date.now()}`, ...workout };
+        mockCalendarEvents.push(event);
+        return delay(event);
+      }
+      const id = await addPersonalWorkout({
+        userId: user.id,
+        title: workout.title,
+        type: (workout.workoutType ?? "strength") as "strength" | "cardio" | "mobility" | "sport" | "recovery",
+        startsAt: new Date(workout.startsAt),
+        durationMin: workout.durationMin,
+        notes: workout.notes,
+      });
+      return { ...workout, id } as CalendarEvent;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["v2", "calendar"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["v2", "calendar"] });
+      qc.invalidateQueries({ queryKey: ["v2", "day-events"] });
+    },
   });
 }
 
 export function useSubscribeToPlan() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   return useMutation({
     mutationFn: async ({ planId, startDate }: { planId: string; startDate: Date }) => {
-      const plan = mockTrainingPlans.find((p) => p.id === planId);
-      if (!plan) throw new Error("Plan not found");
-      plan.workouts.forEach((w) => {
-        const start = new Date(startDate);
-        start.setDate(start.getDate() + w.dayNumber - 1);
-        start.setHours(17, 0, 0, 0);
-        mockCalendarEvents.push({
-          id: `ce-plan-${plan.id}-${w.dayNumber}-${Date.now()}`,
-          type: "plan-item",
-          title: `${plan.title} · Day ${w.dayNumber}`,
-          startsAt: start.toISOString(),
-          durationMin: w.durationMin,
-          planId: plan.id,
-          planDayNumber: w.dayNumber,
-          workoutType: w.type,
+      if (!user) {
+        // Guest preview path — write into mock array.
+        const plan = mockTrainingPlans.find((p) => p.id === planId);
+        if (!plan) throw new Error("Plan not found");
+        plan.workouts.forEach((w) => {
+          const start = new Date(startDate);
+          start.setDate(start.getDate() + w.dayNumber - 1);
+          start.setHours(17, 0, 0, 0);
+          mockCalendarEvents.push({
+            id: `ce-plan-${plan.id}-${w.dayNumber}-${Date.now()}`,
+            type: "plan-item",
+            title: `${plan.title} · Day ${w.dayNumber}`,
+            startsAt: start.toISOString(),
+            durationMin: w.durationMin,
+            planId: plan.id,
+            planDayNumber: w.dayNumber,
+            workoutType: w.type,
+          });
         });
-      });
-      return delay({ ok: true });
+        return delay({ ok: true });
+      }
+      await subscribeToPlanReal({ userId: user.id, planId, startDate });
+      return { ok: true };
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["v2", "calendar"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["v2", "calendar"] });
+      qc.invalidateQueries({ queryKey: ["v2", "day-events"] });
+    },
   });
 }
