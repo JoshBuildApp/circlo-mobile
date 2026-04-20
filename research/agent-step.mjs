@@ -14,12 +14,20 @@ import { join } from "node:path";
 /**
  * Invoke `claude -p` in the worktree. Returns { stdout, stderr, exitCode }.
  *
- * The permission mode is "acceptEdits" so Claude can apply Edit/Write without
- * interactive approval — essential for autonomous loops. Bash is NOT
- * auto-approved; the agent can still ask to run commands but the loop will
- * interrupt. For now we're only editing files, so this is fine. If you need
- * the agent to run bash, flip to "bypassPermissions" and review the guardrails
- * in the goal spec very carefully.
+ * Permission mode is "bypassPermissions" so the agent can run bash itself —
+ * critical for goals like tsc-cleanup where the agent must re-run the
+ * compiler between edits to self-validate. This expands the blast radius to
+ * the entire worktree (not just file edits), so:
+ *
+ *   - The worktree is the ONLY thing the agent can touch; `main` is isolated.
+ *   - The coordinator's regression guard auto-reverts iterations that make
+ *     the metric worse, so agent mistakes get wiped automatically.
+ *   - Goal specs MUST enumerate forbidden bash patterns (see e.g.
+ *     goals/01-tsc-cleanup.md's "Forbidden bash" section) — these ride with
+ *     the prompt so the agent reads them before acting.
+ *
+ * Reviewed by a human. If you're adding a new goal, copy the forbidden-bash
+ * list from an existing goal spec as your starting point.
  */
 export async function runAgent({ prompt, cwd, dryRun, iterIdx, logDir }) {
   const promptPath = join(logDir, `iter-${pad(iterIdx)}-prompt.md`);
@@ -41,7 +49,7 @@ export async function runAgent({ prompt, cwd, dryRun, iterIdx, logDir }) {
         "-p",
         prompt,
         "--permission-mode",
-        "acceptEdits",
+        "bypassPermissions",
         "--output-format",
         "text",
       ],
