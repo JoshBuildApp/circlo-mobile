@@ -3,7 +3,7 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
-const mockUser = { id: "user-1" };
+const mockUser = { id: "11111111-1111-1111-1111-111111111111" };
 
 vi.mock("@/contexts/AuthContext", () => ({
   useAuth: vi.fn(() => ({ user: mockUser })),
@@ -13,7 +13,7 @@ function createQueryMock(resolveWith: { data?: any; error?: any; count?: number 
   const chain: any = {};
   for (const method of [
     "select", "eq", "in", "or", "order", "maybeSingle", "single",
-    "insert", "update", "range",
+    "insert", "update", "range", "is",
   ]) {
     chain[method] = vi.fn(() => chain);
   }
@@ -59,8 +59,8 @@ beforeEach(() => {
 describe("useMessages", () => {
   it("loads initial messages and sets loading=false", async () => {
     const msgs = [
-      { id: "m1", sender_id: "user-1", receiver_id: "partner-1", content: "Hi", is_read: false, created_at: "2026-01-01T00:00:00Z" },
-      { id: "m2", sender_id: "partner-1", receiver_id: "user-1", content: "Hello", is_read: false, created_at: "2026-01-01T00:01:00Z" },
+      { id: "m1", sender_id: "11111111-1111-1111-1111-111111111111", receiver_id: "22222222-2222-2222-2222-222222222222", content: "Hi", is_read: false, created_at: "2026-01-01T00:00:00Z" },
+      { id: "m2", sender_id: "22222222-2222-2222-2222-222222222222", receiver_id: "11111111-1111-1111-1111-111111111111", content: "Hello", is_read: false, created_at: "2026-01-01T00:01:00Z" },
     ];
 
     // The hook calls from("messages") multiple times (count query, data query, mark-read)
@@ -80,7 +80,7 @@ describe("useMessages", () => {
       return createQueryMock({ data: null });
     };
 
-    const { result } = renderHook(() => useMessages("partner-1"));
+    const { result } = renderHook(() => useMessages("22222222-2222-2222-2222-222222222222"));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.messages).toHaveLength(2);
@@ -97,14 +97,14 @@ describe("useMessages", () => {
       return createQueryMock({ data: null });
     };
 
-    const { result } = renderHook(() => useMessages("partner-1"));
+    const { result } = renderHook(() => useMessages("22222222-2222-2222-2222-222222222222"));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     // Mock insert for sendMessage — returns a real message
     const realMsg = {
       id: "real-1",
-      sender_id: "user-1",
-      receiver_id: "partner-1",
+      sender_id: "11111111-1111-1111-1111-111111111111",
+      receiver_id: "22222222-2222-2222-2222-222222222222",
       content: "Test message",
       is_read: false,
       created_at: "2026-01-01T00:05:00Z",
@@ -130,7 +130,7 @@ describe("useMessages", () => {
       return createQueryMock({ data: null });
     };
 
-    const { result } = renderHook(() => useMessages("partner-1"));
+    const { result } = renderHook(() => useMessages("22222222-2222-2222-2222-222222222222"));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     // Mock insert to fail
@@ -151,10 +151,10 @@ describe("useMessages", () => {
       return createQueryMock({ data: callCount === 1 ? null : [], count: 0 });
     };
 
-    const { unmount } = renderHook(() => useMessages("partner-1"));
+    const { unmount } = renderHook(() => useMessages("22222222-2222-2222-2222-222222222222"));
 
     await waitFor(() => {
-      expect(supabase.channel).toHaveBeenCalledWith("chat-user-1-partner-1");
+      expect(supabase.channel).toHaveBeenCalledWith("chat-11111111-1111-1111-1111-111111111111-22222222-2222-2222-2222-222222222222");
     });
 
     unmount();

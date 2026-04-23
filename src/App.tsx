@@ -63,6 +63,9 @@ const PrivacyPolicy = lazy(() => import("@/pages/legal/PrivacyPolicy"));
 const CoachAgreement = lazy(() => import("@/pages/legal/CoachAgreement"));
 const TraineeWaiver = lazy(() => import("@/pages/legal/TraineeWaiver"));
 const CookiePolicy = lazy(() => import("@/pages/legal/CookiePolicy"));
+const AcceptableUsePolicy = lazy(() => import("@/pages/legal/AcceptableUsePolicy"));
+const RefundCancellationPolicy = lazy(() => import("@/pages/legal/RefundCancellationPolicy"));
+const AccessibilityStatement = lazy(() => import("@/pages/legal/AccessibilityStatement"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogArticle = lazy(() => import("@/pages/BlogArticle"));
 const CaseStudies = lazy(() => import("@/pages/CaseStudies"));
@@ -291,6 +294,9 @@ function App() {
                       <Route path="/legal/coach-agreement" element={<RouteWrapper routeName="legal-coach-agreement"><CoachAgreement /></RouteWrapper>} />
                       <Route path="/legal/waiver" element={<RouteWrapper routeName="legal-waiver"><TraineeWaiver /></RouteWrapper>} />
                       <Route path="/legal/cookies" element={<RouteWrapper routeName="legal-cookies"><CookiePolicy /></RouteWrapper>} />
+                      <Route path="/legal/acceptable-use" element={<RouteWrapper routeName="legal-acceptable-use"><AcceptableUsePolicy /></RouteWrapper>} />
+                      <Route path="/legal/refund" element={<RouteWrapper routeName="legal-refund"><RefundCancellationPolicy /></RouteWrapper>} />
+                      <Route path="/legal/accessibility" element={<RouteWrapper routeName="legal-accessibility"><AccessibilityStatement /></RouteWrapper>} />
 
                       <Route path="*" element={<RouteWrapper routeName="not-found"><NotFound /></RouteWrapper>} />
 

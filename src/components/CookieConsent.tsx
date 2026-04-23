@@ -1,7 +1,7 @@
-// Placeholder cookie consent component. The production banner will land with
-// the Cookie Policy rollout (see src/pages/legal/CookiePolicy.tsx). Rendering
-// nothing is intentional — it keeps App.tsx's Suspense tree valid without
-// surfacing an unfinished banner to users.
-const CookieConsent = () => null;
+// Default export shim so the existing App.tsx lazy import keeps working.
+// Real implementation lives in CookieConsentBanner.tsx.
+import { CookieConsentBanner } from "./CookieConsentBanner";
 
-export default CookieConsent;
+export default function CookieConsent() {
+  return <CookieConsentBanner />;
+}

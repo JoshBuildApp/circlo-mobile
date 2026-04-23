@@ -12,6 +12,7 @@ import {
   FileCheck2,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import { DangerZone } from "@/components/DangerZone";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -695,6 +696,11 @@ const EditProfile = () => {
             </FieldCard>
           </div>
         )}
+      </div>
+
+      {/* Danger Zone — change password / cancel subscription / delete account */}
+      <div className="px-5 pb-32">
+        <DangerZone />
       </div>
 
       {/* Sticky save button */}

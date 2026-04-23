@@ -24,6 +24,34 @@ import {
 import { useCoachPackages, type CoachPackage } from "@/hooks/use-coach-packages";
 import { useUserPackages, type UserPackage } from "@/hooks/use-user-packages";
 import { motion, AnimatePresence } from "framer-motion";
+import { validateIsraeliId, validateIsraeliMobile } from "@/lib/israeli-id";
+import { useTranslation } from "react-i18next";
+
+/**
+ * Trainee Waiver version. Bump when the waiver text materially changes —
+ * users with a stored acceptance of an older version will be re-prompted
+ * on their next booking. Must match the version in
+ * ~/circlo-legal/drafts-en/05-trainee-waiver.md.
+ */
+const WAIVER_VERSION = "1.2";
+
+interface ParentalSignature {
+  parent_full_name: string;
+  parent_id_input: string;
+  parent_id_normalized: string | null;
+  parent_relationship: "parent" | "guardian";
+  parent_emergency_phone_input: string;
+  parent_emergency_phone_canonical: string | null;
+}
+
+const EMPTY_PARENTAL_SIGNATURE: ParentalSignature = {
+  parent_full_name: "",
+  parent_id_input: "",
+  parent_id_normalized: null,
+  parent_relationship: "parent",
+  parent_emergency_phone_input: "",
+  parent_emergency_phone_canonical: null,
+};
 
 type BookingMode = "single" | "buy-package" | "use-package";
 
@@ -87,6 +115,9 @@ export const BookingModal = ({
   const [timeLabel, setTimeLabel] = useState("");
   const [notes, setNotes] = useState("");
   const [waiverAccepted, setWaiverAccepted] = useState(false);
+  const [profileAge, setProfileAge] = useState<number | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [parentalSignature, setParentalSignature] = useState<ParentalSignature>(EMPTY_PARENTAL_SIGNATURE);
   const [isBooking, setIsBooking] = useState(false);
   const [bookingMode, setBookingMode] = useState<BookingMode>("single");
   const [selectedPackage, setSelectedPackage] = useState<CoachPackage | null>(null);
@@ -168,6 +199,64 @@ export const BookingModal = ({
       setSelectedUserPackage(null);
     }
   }, [isOpen, preSelectedDate, preSelectedTime]);
+
+  // Fetch the trainee's age on modal open so we know whether to require a
+  // parental signature on the waiver (under-18 = parent must sign).
+  // See Trainee Waiver §7 + Privacy Policy §11.
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("age")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      setProfileAge((data?.age as number | null) ?? null);
+      setProfileLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, [isOpen]);
+
+  // Reset waiver state on close.
+  useEffect(() => {
+    if (!isOpen) {
+      setWaiverAccepted(false);
+      setParentalSignature(EMPTY_PARENTAL_SIGNATURE);
+    }
+  }, [isOpen]);
+
+  const isMinor = profileLoaded && profileAge !== null && profileAge < 18;
+  const ageUnknown = profileLoaded && profileAge === null;
+
+  // For minors, parental signature must be complete before the waiver
+  // checkbox can be enabled. For 18+, the checkbox is enough.
+  const parentalSignatureValid =
+    !isMinor ||
+    (parentalSignature.parent_full_name.trim().length >= 2 &&
+      parentalSignature.parent_id_normalized !== null &&
+      parentalSignature.parent_emergency_phone_canonical !== null);
+
+  // Helpers to validate-as-typed.
+  const handleParentIdChange = (value: string) => {
+    const result = validateIsraeliId(value);
+    setParentalSignature((p) => ({
+      ...p,
+      parent_id_input: value,
+      parent_id_normalized: result.valid ? result.normalized : null,
+    }));
+  };
+  const handleParentPhoneChange = (value: string) => {
+    const result = validateIsraeliMobile(value);
+    setParentalSignature((p) => ({
+      ...p,
+      parent_emergency_phone_input: value,
+      parent_emergency_phone_canonical: result.valid ? result.canonical : null,
+    }));
+  };
 
   const goTo = (nextStep: Step) => {
     setDirection(nextStep > step ? 1 : -1);
@@ -288,6 +377,35 @@ export const BookingModal = ({
           ? selectedPackage.price / selectedPackage.session_count
           : price;
 
+      // Record waiver acceptance to the immutable audit trail BEFORE creating
+      // the booking, so the legal evidence exists even if the booking insert
+      // later fails. We re-record on every booking — old rows are kept for
+      // version-bump tracking.
+      const waiverAcceptedAtIso = new Date().toISOString();
+      const parentSignaturePayload = isMinor
+        ? {
+            parent_full_name: parentalSignature.parent_full_name.trim(),
+            parent_id_normalized: parentalSignature.parent_id_normalized,
+            parent_relationship: parentalSignature.parent_relationship,
+            parent_emergency_phone: parentalSignature.parent_emergency_phone_canonical,
+            minor_age_at_acceptance: profileAge,
+          }
+        : null;
+
+      const { error: waiverInsertError } = await supabase
+        .from("waiver_acceptances")
+        .insert({
+          user_id: user.id,
+          waiver_version: WAIVER_VERSION,
+          accepted_at: waiverAcceptedAtIso,
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+          parent_signature: parentSignaturePayload,
+        } as any);
+
+      if (waiverInsertError) {
+        console.error("[booking] waiver_acceptances insert failed", waiverInsertError);
+      }
+
       const bookingInsert: Record<string, unknown> = {
         user_id: user.id,
         coach_id: coachId,
@@ -299,7 +417,7 @@ export const BookingModal = ({
         training_type: sessionType,
         price: bookingPrice,
         payment_method: bookingMode === "use-package" ? "package" : "bit",
-        waiver_accepted_at: new Date().toISOString(),
+        waiver_accepted_at: waiverAcceptedAtIso,
       };
       if (userPackageId) {
         bookingInsert.package_id = userPackageId;
@@ -759,15 +877,93 @@ export const BookingModal = ({
                   </div>
                 )}
 
+                {/* Parental signature panel (under-18 trainees only) */}
+                {(isMinor || ageUnknown) && (
+                  <div className={cn(
+                    "w-full p-3 rounded-xl border mb-3 space-y-2",
+                    parentalSignatureValid
+                      ? "border-primary/60 bg-primary/5"
+                      : "border-amber-500/40 bg-amber-500/5"
+                  )}>
+                    <div className="flex items-center gap-1.5">
+                      <ShieldAlert className="h-3 w-3 text-amber-500" />
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                        Parental signature required
+                      </p>
+                    </div>
+                    <p className="text-[11px] leading-snug text-muted-foreground">
+                      {ageUnknown
+                        ? "We don't have your age on file. If you are under 18, a parent or legal guardian must complete the fields below before booking."
+                        : "Trainee is under 18 — Hebrew law requires a parent or legal guardian to sign the waiver."}
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="Parent / guardian full name"
+                      value={parentalSignature.parent_full_name}
+                      onChange={(e) => setParentalSignature((p) => ({ ...p, parent_full_name: e.target.value }))}
+                      className="w-full h-9 rounded-md border border-border bg-background px-2 text-[12px]"
+                      aria-label="Parent or guardian full name"
+                    />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      dir="ltr"
+                      placeholder="Teudat Zehut (9 digits)"
+                      maxLength={9}
+                      value={parentalSignature.parent_id_input}
+                      onChange={(e) => handleParentIdChange(e.target.value)}
+                      className={cn(
+                        "w-full h-9 rounded-md border bg-background px-2 text-[12px] font-mono",
+                        parentalSignature.parent_id_input.length > 0 && parentalSignature.parent_id_normalized === null
+                          ? "border-destructive"
+                          : "border-border"
+                      )}
+                      aria-label="Israeli ID (Teudat Zehut), 9 digits"
+                      aria-invalid={parentalSignature.parent_id_input.length > 0 && parentalSignature.parent_id_normalized === null}
+                    />
+                    <select
+                      value={parentalSignature.parent_relationship}
+                      onChange={(e) => setParentalSignature((p) => ({ ...p, parent_relationship: e.target.value as "parent" | "guardian" }))}
+                      className="w-full h-9 rounded-md border border-border bg-background px-2 text-[12px]"
+                      aria-label="Relationship to minor"
+                    >
+                      <option value="parent">Parent</option>
+                      <option value="guardian">Legal Guardian</option>
+                    </select>
+                    <input
+                      type="tel"
+                      inputMode="tel"
+                      dir="ltr"
+                      placeholder="Emergency contact phone (e.g. 054-551-6974)"
+                      value={parentalSignature.parent_emergency_phone_input}
+                      onChange={(e) => handleParentPhoneChange(e.target.value)}
+                      className={cn(
+                        "w-full h-9 rounded-md border bg-background px-2 text-[12px]",
+                        parentalSignature.parent_emergency_phone_input.length > 0 && parentalSignature.parent_emergency_phone_canonical === null
+                          ? "border-destructive"
+                          : "border-border"
+                      )}
+                      aria-label="Israeli mobile phone for emergency contact"
+                      aria-invalid={parentalSignature.parent_emergency_phone_input.length > 0 && parentalSignature.parent_emergency_phone_canonical === null}
+                    />
+                    <p className="text-[10px] text-muted-foreground/70 leading-snug">
+                      Your ID is stored encrypted, used only as evidence of this signature, and never shared with anyone.
+                    </p>
+                  </div>
+                )}
+
                 {/* Activity-risk waiver — required */}
                 <button
                   type="button"
-                  onClick={() => setWaiverAccepted((v) => !v)}
+                  onClick={() => parentalSignatureValid && setWaiverAccepted((v) => !v)}
+                  disabled={!parentalSignatureValid}
                   className={cn(
                     "w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all mb-3",
                     waiverAccepted
                       ? "border-primary/60 bg-primary/5"
-                      : "border-amber-500/40 bg-amber-500/5 hover:border-amber-500/60"
+                      : parentalSignatureValid
+                        ? "border-amber-500/40 bg-amber-500/5 hover:border-amber-500/60"
+                        : "border-border/40 bg-muted/30 cursor-not-allowed opacity-60"
                   )}
                 >
                   <div
@@ -799,7 +995,7 @@ export const BookingModal = ({
                 {/* Confirm booking — kinetic pill */}
                 <button
                   onClick={handleConfirmAndPay}
-                  disabled={isProcessing || !bookingLimits.canBook || !waiverAccepted}
+                  disabled={isProcessing || !bookingLimits.canBook || !waiverAccepted || !parentalSignatureValid}
                   className="w-full h-14 rounded-full bg-gradient-kinetic text-white font-black text-sm tracking-[0.15em] uppercase shadow-[0_15px_30px_rgba(0,212,170,0.3)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none inline-flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (

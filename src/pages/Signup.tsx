@@ -50,6 +50,7 @@ const Signup = () => {
   const [coachName, setCoachName] = useState("");
   const [sport, setSport] = useState("");
   const [bio, setBio] = useState("");
+  const [coachAgreementAccepted, setCoachAgreementAccepted] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
@@ -122,6 +123,10 @@ const Signup = () => {
         toast.error(t("signup.selectSport"));
         return;
       }
+      if (!coachAgreementAccepted) {
+        toast.error(t("signup.coachAgreementRequired", { defaultValue: "You must accept the Coach Agreement to continue." }));
+        return;
+      }
     }
 
     setLoading(true);
@@ -155,14 +160,30 @@ const Signup = () => {
       return;
     }
 
-    // If coach, insert coach_profiles row
+    // If coach, insert coach_profiles row + record Coach Agreement acceptance
     if (role === "coach" && data.user) {
+      const acceptedAtIso = new Date().toISOString();
+      const COACH_AGREEMENT_VERSION = "1.2"; // matches drafts-en/04-coach-agreement.md
+
       const { error: coachError } = await supabase.from("coach_profiles").insert({
         user_id: data.user.id,
         coach_name: coachName.trim(),
         sport,
         bio: bio.trim(),
-      });
+        coach_agreement_accepted_version: COACH_AGREEMENT_VERSION,
+        coach_agreement_accepted_at: acceptedAtIso,
+      } as any);
+
+      // Append-only audit-trail row.
+      const { error: agreementError } = await supabase.from("coach_agreement_acceptances").insert({
+        user_id: data.user.id,
+        agreement_version: COACH_AGREEMENT_VERSION,
+        accepted_at: acceptedAtIso,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      } as any);
+      if (agreementError) {
+        console.error("Coach agreement audit insert failed:", agreementError);
+      }
       if (coachError) {
         console.error("Coach profile error:", coachError);
       }
@@ -515,10 +536,39 @@ const Signup = () => {
               />
             </div>
 
+            <label
+              className={`flex items-start gap-3 p-3 rounded-xl border text-left mb-3 cursor-pointer transition-all ${
+                coachAgreementAccepted
+                  ? "border-primary/60 bg-primary/5"
+                  : "border-amber-500/40 bg-amber-500/5 hover:border-amber-500/60"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={coachAgreementAccepted}
+                onChange={(e) => setCoachAgreementAccepted(e.target.checked)}
+                className="mt-1 h-4 w-4 accent-primary"
+                aria-label={t("signup.coachAgreementCheckboxLabel", { defaultValue: "I accept the Coach Agreement" })}
+              />
+              <span className="text-[12px] leading-snug text-foreground/90">
+                {t("signup.coachAgreementText", { defaultValue: "I have read and accept the " })}
+                <Link
+                  to="/legal/coach-agreement"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline font-medium"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {t("signup.coachAgreementLink", { defaultValue: "Coach Agreement" })}
+                </Link>
+                {t("signup.coachAgreementSuffix", { defaultValue: " — including the 5% Circlo platform fee, independent-contractor status, and Israeli-law jurisdiction." })}
+              </span>
+            </label>
+
             <button
               type="button"
               onClick={handleSignup}
-              disabled={loading}
+              disabled={loading || !coachAgreementAccepted}
               className="w-full h-12 bg-accent text-accent-foreground rounded-xl font-heading font-semibold text-sm tracking-wide transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-95 glow-accent disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
