@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { authRedirect } from "@/lib/platform";
@@ -8,22 +10,53 @@ interface SocialLoginButtonsProps {
   variant?: "light" | "dark";
 }
 
+const isNative = Capacitor.isNativePlatform();
+
 const SocialLoginButtons = ({ variant = "light" }: SocialLoginButtonsProps) => {
   const [loading, setLoading] = useState<"google" | "apple" | null>(null);
 
   const handleSocialLogin = async (provider: "google" | "apple") => {
     setLoading(provider);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: authRedirect("/home"),
-      },
-    });
-    if (error) {
-      toast.error(error.message);
+    try {
+      // On native (iOS Capacitor): we ask Supabase NOT to redirect the
+      // WebView (which would navigate the app away to appleid.apple.com
+      // and break the round-trip). We get the OAuth URL back, open it in
+      // the system browser via the Capacitor Browser plugin, and Apple
+      // redirects to `circlo://home?code=...`. The deep-link handler in
+      // src/native/capacitor.ts pushes that into React Router, and
+      // Supabase's `detectSessionInUrl` (on by default) exchanges the
+      // code for a session.
+      //
+      // On web: the default redirect-the-browser behaviour is correct.
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: authRedirect("/home"),
+          skipBrowserRedirect: isNative,
+        },
+      });
+      if (error) {
+        toast.error(error.message);
+        setLoading(null);
+        return;
+      }
+      if (isNative && data?.url) {
+        await Browser.open({
+          url: data.url,
+          presentationStyle: "popover",
+        });
+        // After the user finishes auth, Apple redirects to circlo://home?code=...
+        // The native deep-link listener (capacitor.ts → appUrlOpen) handles
+        // routing back into the SPA. We DON'T close Browser here — iOS
+        // closes the SFSafariViewController automatically when the deep
+        // link fires.
+      }
+      // No need to reset loading on success — page will redirect.
+    } catch (err) {
+      console.error("[SocialLoginButtons]", err);
+      toast.error(err instanceof Error ? err.message : "Sign-in failed");
       setLoading(null);
     }
-    // No need to reset loading on success — page will redirect
   };
 
   const isDark = variant === "dark";
