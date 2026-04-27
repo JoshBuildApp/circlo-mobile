@@ -104,10 +104,32 @@ export default function Login() {
         </div>
 
         <div className="circlo-btn-stack">
-          <button type="button" className="circlo-btn circlo-btn-apple">
+          <button
+            type="button"
+            className="circlo-btn circlo-btn-apple"
+            onClick={async () => {
+              const { signInWithProvider } = await import("@/lib/oauth");
+              const r = await signInWithProvider("apple", "/home");
+              if (!r.ok) {
+                const { toast } = await import("sonner");
+                toast.error(r.reason);
+              }
+            }}
+          >
             <AppleGlyph /> Continue with Apple
           </button>
-          <button type="button" className="circlo-btn circlo-btn-google">
+          <button
+            type="button"
+            className="circlo-btn circlo-btn-google"
+            onClick={async () => {
+              const { signInWithProvider } = await import("@/lib/oauth");
+              const r = await signInWithProvider("google", "/home");
+              if (!r.ok) {
+                const { toast } = await import("sonner");
+                toast.error(r.reason);
+              }
+            }}
+          >
             <GoogleGlyph /> Continue with Google
           </button>
         </div>

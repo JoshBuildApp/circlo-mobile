@@ -69,7 +69,10 @@ export default function Credentials() {
           role,
           sports: sportsList,
         },
-        emailRedirectTo: `${window.location.origin}/v2/auth/login`,
+        // Use authRedirect() so iOS native gets circlo://v2/auth/login —
+        // window.location.origin on Capacitor is capacitor://localhost,
+        // which Supabase rejects as a redirect target.
+        emailRedirectTo: (await import("@/lib/platform")).authRedirect("/v2/auth/login"),
       },
     });
 

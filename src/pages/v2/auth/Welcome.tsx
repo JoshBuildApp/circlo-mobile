@@ -139,6 +139,14 @@ export default function Welcome() {
             type="button"
             className="circlo-btn circlo-btn-apple circlo-btn-icon-only"
             aria-label="Continue with Apple"
+            onClick={async () => {
+              const { signInWithProvider } = await import("@/lib/oauth");
+              const r = await signInWithProvider("apple", "/home");
+              if (!r.ok) {
+                const { toast } = await import("sonner");
+                toast.error(r.reason);
+              }
+            }}
           >
             <AppleIcon />
           </button>
@@ -146,6 +154,14 @@ export default function Welcome() {
             type="button"
             className="circlo-btn circlo-btn-google circlo-btn-icon-only"
             aria-label="Continue with Google"
+            onClick={async () => {
+              const { signInWithProvider } = await import("@/lib/oauth");
+              const r = await signInWithProvider("google", "/home");
+              if (!r.ok) {
+                const { toast } = await import("sonner");
+                toast.error(r.reason);
+              }
+            }}
           >
             <GoogleIcon />
           </button>
