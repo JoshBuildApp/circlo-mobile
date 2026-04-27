@@ -27,6 +27,27 @@
   font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--circlo-text);
   -webkit-font-smoothing: antialiased;
+
+  /* Lock the auth surface to the viewport — these screens are designed as
+   * single-screen experiences (ring + content + CTAs), not scrollable pages.
+   * Without this, the iOS WebView lets the page scroll vertically on smaller
+   * devices, leaving content stranded at odd offsets after the user lifts
+   * their finger. dvh handles the iOS dynamic toolbar. */
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The phone-frame inside the surface inherits the lock so its flex children
+ * (the auth screens) get a real bounded height to use flex:1 against. */
+.circlo-auth-surface > .v2-root {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* The form-screen container: padding matching the prototype's .screen block
