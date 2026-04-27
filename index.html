@@ -50,13 +50,12 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Orange app-icon variant as the favicon — matches the iOS + Android build. -->
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Crect width='56' height='56' rx='12' fill='%23FF6B2C'/%3E%3Ccircle cx='28' cy='28' r='18' fill='none' stroke='%23FFFFFF' stroke-width='5.5' stroke-linecap='round' stroke-dasharray='94 19'/%3E%3Ccircle cx='42' cy='15' r='3.5' fill='%23FFFFFF'/%3E%3C/svg%3E"
-    />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- Orange app-icon — matches the iOS + Android native AppIcon assets.
+         The inline SVG that used to live here was a placeholder that overrode
+         every PNG/ICO downstream. Removed so the brand "C" actually renders
+         in tabs, taskbars, and pinned shortcuts. -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <style>
       html,
       body,

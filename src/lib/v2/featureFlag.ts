@@ -1,9 +1,13 @@
 /**
  * v2 feature flag — gates access to /v2/* routes.
  *
+ * v2 currently runs on mock data — it must NOT be reachable in App Store
+ * builds, otherwise Apple reviewers will see fake content (Bob threads,
+ * mock coaches, etc.) and reject under guideline 2.1 (App Completeness).
+ *
  * Enable by:
- *   - Setting `VITE_V2_FORCE=true` in env (dev/preview builds)
- *   - Calling `setV2Enabled(true)` (persists to localStorage)
+ *   - Setting `VITE_V2_FORCE=true` at build time (preview / internal only)
+ *   - Calling `setV2Enabled(true)` from /v2/enable (persists to localStorage)
  *   - Visiting `/v2?flag=on` which is wired by V2Guard
  */
 export const V2_ENABLED_KEY = "circlo:v2_enabled";
@@ -11,13 +15,14 @@ export const V2_ENABLED_KEY = "circlo:v2_enabled";
 export function isV2Enabled(): boolean {
   if (typeof window === "undefined") return false;
   // Build-time override: use `VITE_V2_FORCE=true npm run build` (or the
-  // `npm run preview:ios` shortcut) for Xcode preview builds.
+  // `npm run preview:ios` shortcut) for internal preview / Xcode builds.
   if (import.meta.env.VITE_V2_FORCE === "true") return true;
-  // Default to v2 unless explicitly disabled via /v2/enable.
+  // Default OFF for release. v2 must be opt-in until real backend wiring
+  // (Supabase, push, payments) is plumbed end-to-end.
   try {
-    return window.localStorage.getItem(V2_ENABLED_KEY) !== "false";
+    return window.localStorage.getItem(V2_ENABLED_KEY) === "true";
   } catch {
-    return true;
+    return false;
   }
 }
 
