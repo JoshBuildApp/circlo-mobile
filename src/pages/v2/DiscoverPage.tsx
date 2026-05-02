@@ -13,6 +13,7 @@ import {
 import { useCoaches } from "@/hooks/v2/useMocks";
 import { formatPrice, formatCompactNumber } from "@/lib/v2/currency";
 import { cn } from "@/lib/utils";
+import { useHaptics } from "@/native/useNative";
 
 const SPORTS: { key: string; label: string; emoji: string; tone: "teal" | "orange" | "dark" }[] = [
   { key: "padel", label: "Padel", emoji: "🎾", tone: "teal" },
@@ -31,6 +32,7 @@ export default function DiscoverPage() {
     query: searchQuery,
     sport: activeSport as never,
   });
+  const { tap } = useHaptics();
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-28">
@@ -43,9 +45,9 @@ export default function DiscoverPage() {
         {(["coaches", "communities"] as const).map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => { tap("light"); setTab(t); }}
             className={cn(
-              "flex-1 py-2.5 rounded-[10px] capitalize text-[13px] font-bold transition-colors",
+              "flex-1 py-2.5 rounded-[10px] capitalize text-[13px] font-bold transition-colors min-h-[44px]",
               tab === t ? "bg-navy-card-2 text-offwhite" : "text-v2-muted"
             )}
           >
@@ -64,9 +66,9 @@ export default function DiscoverPage() {
         />
         {searchQuery && (
           <button
-            onClick={() => setSearchQuery("")}
+            onClick={() => { tap("light"); setSearchQuery(""); }}
             aria-label="Clear search"
-            className="text-v2-muted text-xs"
+            className="text-v2-muted text-xs min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
           >
             ✕
           </button>
@@ -79,17 +81,17 @@ export default function DiscoverPage() {
           promise what it can't deliver. */}
       <HScroll className="mt-3.5 px-5">
         <button
-          onClick={() => setActiveSport(activeSport === "padel" ? null : "padel")}
+          onClick={() => { tap("light"); setActiveSport(activeSport === "padel" ? null : "padel"); }}
           className={cn(
-            "px-3.5 py-2 rounded-full text-[13px] font-semibold whitespace-nowrap",
+            "px-3.5 py-2 min-h-[44px] rounded-full text-[13px] font-semibold whitespace-nowrap",
             activeSport === "padel" ? "bg-teal text-navy-deep" : "bg-navy-card text-offwhite"
           )}
         >
           ● Padel
         </button>
-        <button disabled aria-disabled className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-v2-muted-2 whitespace-nowrap flex items-center gap-1.5 opacity-50 cursor-not-allowed"><MapPin size={12} /> Tel Aviv</button>
-        <button disabled aria-disabled className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-v2-muted-2 whitespace-nowrap opacity-50 cursor-not-allowed">Price</button>
-        <button disabled aria-disabled aria-label="More filters (coming soon)" className="px-3.5 py-2 rounded-full text-[13px] font-semibold bg-navy-card text-v2-muted-2 whitespace-nowrap opacity-50 cursor-not-allowed"><SlidersHorizontal size={12} /></button>
+        <button disabled aria-disabled className="px-3.5 py-2 min-h-[44px] rounded-full text-[13px] font-semibold bg-navy-card text-v2-muted-2 whitespace-nowrap flex items-center gap-1.5 opacity-50 cursor-not-allowed"><MapPin size={12} /> Tel Aviv</button>
+        <button disabled aria-disabled className="px-3.5 py-2 min-h-[44px] rounded-full text-[13px] font-semibold bg-navy-card text-v2-muted-2 whitespace-nowrap opacity-50 cursor-not-allowed">Price</button>
+        <button disabled aria-disabled aria-label="More filters (coming soon)" className="px-3.5 py-2 min-h-[44px] rounded-full text-[13px] font-semibold bg-navy-card text-v2-muted-2 whitespace-nowrap opacity-50 cursor-not-allowed"><SlidersHorizontal size={12} /></button>
       </HScroll>
 
       {tab === "coaches" ? (
@@ -101,7 +103,7 @@ export default function DiscoverPage() {
           return (
             <button
               key={s.key}
-              onClick={() => setActiveSport(selected ? null : s.key)}
+              onClick={() => { tap("light"); setActiveSport(selected ? null : s.key); }}
               className={cn(
                 "min-w-[88px] h-[88px] rounded-[16px] p-3 flex flex-col justify-between font-bold text-[13px] text-left transition-transform active:scale-95",
                 selected ? "ring-2 ring-offwhite" : "",
@@ -125,7 +127,7 @@ export default function DiscoverPage() {
         {coaches.slice(0, 3).map((c) => (
           <button
             key={c.id}
-            onClick={() => navigate(`/v2/coach/${c.id}`)}
+            onClick={() => { tap("light"); navigate(`/v2/coach/${c.id}`); }}
             className={cn(
               "min-w-[180px] h-[140px] rounded-card p-3.5 flex flex-col justify-between text-left",
               c.avatarGradient === "orange-peach" ? "bg-orange text-white" : "bg-teal text-navy-deep"
@@ -148,8 +150,8 @@ export default function DiscoverPage() {
         {coaches.slice(0, 3).map((c, i) => (
           <button
             key={c.id}
-            onClick={() => navigate(`/v2/coach/${c.id}`)}
-            className="flex items-center gap-3 px-4 py-3 bg-navy-card rounded-[16px] text-left"
+            onClick={() => { tap("light"); navigate(`/v2/coach/${c.id}`); }}
+            className="flex items-center gap-3 px-4 py-3 bg-navy-card rounded-[16px] text-left min-h-[64px]"
           >
             <div className="text-[22px] font-extrabold text-v2-muted min-w-[22px] tnum">{i + 1}</div>
             <Avatar size={40} src={c.avatarUrl} alt={c.name} gradient={c.avatarGradient} />
@@ -167,7 +169,7 @@ export default function DiscoverPage() {
         {coaches.filter((c) => c.badges.includes("new")).slice(0, 3).map((c) => (
           <button
             key={c.id}
-            onClick={() => navigate(`/v2/coach/${c.id}`)}
+            onClick={() => { tap("light"); navigate(`/v2/coach/${c.id}`); }}
             className="min-w-[155px] h-[170px] rounded-card p-3.5 bg-navy-card flex flex-col justify-between relative text-left"
           >
             <span className="absolute top-2.5 right-2.5 bg-navy-card-2 text-offwhite px-2.5 py-1 rounded-full text-[10px] font-bold">3d new</span>
@@ -183,7 +185,7 @@ export default function DiscoverPage() {
       <SectionHeader title="Communities" action="All" />
       <HScroll className="pb-2">
         <button
-          onClick={() => navigate(`/v2/coach/maya/community`)}
+          onClick={() => { tap("light"); navigate(`/v2/coach/maya/community`); }}
           className="min-w-[220px] rounded-card p-4 bg-teal text-navy-deep flex flex-col gap-2.5 text-left"
         >
           <Chip className="!bg-black/20 !text-navy-deep">24 ACTIVE</Chip>
@@ -239,8 +241,8 @@ function CommunitiesView({ coaches, navigate }: CommunitiesViewProps) {
       <div className="px-5 flex flex-col gap-2 mb-2">
         {myCoach && (
           <button
-            onClick={() => navigate(`/v2/coach/${myCoach.id}/community`)}
-            className="p-3.5 rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
+            onClick={() => { tap("light"); navigate(`/v2/coach/${myCoach.id}/community`); }}
+            className="p-3.5 min-h-[64px] rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
           >
             <Avatar size={40} gradient={myCoach.avatarGradient} />
             <div className="flex-1">
@@ -256,8 +258,8 @@ function CommunitiesView({ coaches, navigate }: CommunitiesViewProps) {
           </button>
         )}
         <button
-          onClick={() => navigate("/v2/coach/maya/community")}
-          className="p-3.5 rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
+          onClick={() => { tap("light"); navigate("/v2/coach/maya/community"); }}
+          className="p-3.5 min-h-[64px] rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
         >
           <Avatar size={40} gradient="orange-peach" />
           <div className="flex-1">
@@ -276,7 +278,7 @@ function CommunitiesView({ coaches, navigate }: CommunitiesViewProps) {
         {FEATURED_COMMUNITIES.map((c) => (
           <button
             key={c.id}
-            onClick={() => navigate(`/v2/coach/${myCoach?.id ?? "maya"}/community`)}
+            onClick={() => { tap("light"); navigate(`/v2/coach/${myCoach?.id ?? "maya"}/community`); }}
             className={cn(
               "min-w-[220px] rounded-card p-4 flex flex-col gap-2.5 text-left",
               c.tone === "teal" && "bg-teal text-navy-deep",
@@ -334,8 +336,8 @@ function CommunitiesView({ coaches, navigate }: CommunitiesViewProps) {
         {FEATURED_COMMUNITIES.slice(2).map((c) => (
           <button
             key={c.id + "-row"}
-            onClick={() => navigate(`/v2/coach/${myCoach?.id ?? "maya"}/community`)}
-            className="p-3.5 rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
+            onClick={() => { tap("light"); navigate(`/v2/coach/${myCoach?.id ?? "maya"}/community`); }}
+            className="p-3.5 min-h-[64px] rounded-[14px] bg-navy-card flex gap-3 items-center text-left"
           >
             <div
               className={cn(

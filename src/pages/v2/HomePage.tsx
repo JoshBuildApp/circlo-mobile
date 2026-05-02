@@ -14,6 +14,7 @@ import { CoachCard } from "@/components/v2/home/CoachCard";
 import { PostRow } from "@/components/v2/home/PostRow";
 import { useCoaches, useCirclePosts, useMyPlayerProfile } from "@/hooks/v2/useMocks";
 import { isLiveEnabled } from "@/lib/v2/featureFlag";
+import { useHaptics } from "@/native/useNative";
 
 export default function HomePageV2() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function HomePageV2() {
   const { data: coaches = [] } = useCoaches();
   const { data: posts = [] } = useCirclePosts();
   const greeting = greetingFor(new Date());
+  const { tap } = useHaptics();
 
   return (
     <PhoneFrame className="min-h-[100dvh] pb-28">
@@ -37,20 +39,20 @@ export default function HomePageV2() {
             size="sm"
             variant="solid-navy"
             ariaLabel="Messages"
-            onClick={() => navigate("/v2/messages")}
-            className="relative"
+            onClick={() => { tap("light"); navigate("/v2/messages"); }}
+            className="relative min-w-[44px] min-h-[44px]"
           >
             <MessageSquare size={16} />
-            <span className="absolute -top-0.5 -right-0.5 bg-teal text-navy-deep text-[10px] font-bold px-1.5 rounded-full min-w-[16px] text-center tnum">
+            <span className="absolute top-0 right-0 bg-teal text-navy-deep text-[10px] font-bold px-1.5 rounded-full min-w-[16px] text-center tnum">
               3
             </span>
           </RoundButton>
-          <Avatar size={36} gradient="teal-mint" onClick={() => navigate("/v2/profile")} />
+          <Avatar size={36} gradient="teal-mint" onClick={() => { tap("light"); navigate("/v2/profile"); }} />
         </div>
       </header>
 
       <button
-        onClick={() => navigate("/v2/profile/bookings")}
+        onClick={() => { tap("light"); navigate("/v2/profile/bookings"); }}
         className="mx-5 mt-5 mb-6 p-4 rounded-[18px] flex items-center gap-3.5 text-left"
         data-grad="teal-card"
       >
@@ -66,27 +68,27 @@ export default function HomePageV2() {
 
       {isLiveEnabled() && (
         <>
-          <SectionHeader title={<span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-orange v2-pulse-dot" />Live now</span>} action="See all" onAction={() => navigate("/v2/discover")} />
+          <SectionHeader title={<span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-orange v2-pulse-dot" />Live now</span>} action="See all" onAction={() => { tap("light"); navigate("/v2/discover"); }} />
           <HScroll>
-            <LiveCard title="Padel clinic" coach="Daniel" viewers={12} variant="orange" onClick={() => navigate("/v2/live/live-1")} />
-            <LiveCard title="Serve drills" coach="Maya" viewers={8} variant="teal" onClick={() => navigate("/v2/live/live-1")} />
-            <LiveCard title="Mindset" coach="Amir" viewers={5} variant="orange" onClick={() => navigate("/v2/live/live-1")} />
+            <LiveCard title="Padel clinic" coach="Daniel" viewers={12} variant="orange" onClick={() => { tap("light"); navigate("/v2/live/live-1"); }} />
+            <LiveCard title="Serve drills" coach="Maya" viewers={8} variant="teal" onClick={() => { tap("light"); navigate("/v2/live/live-1"); }} />
+            <LiveCard title="Mindset" coach="Amir" viewers={5} variant="orange" onClick={() => { tap("light"); navigate("/v2/live/live-1"); }} />
           </HScroll>
         </>
       )}
 
-      <SectionHeader title="Coaches for you" action="Discover" onAction={() => navigate("/v2/discover")} />
+      <SectionHeader title="Coaches for you" action="Discover" onAction={() => { tap("light"); navigate("/v2/discover"); }} />
       <HScroll>
         {coaches.slice(0, 4).map((c) => (
-          <CoachCard key={c.id} coach={c} onClick={() => navigate(`/v2/coach/${c.id}`)} />
+          <CoachCard key={c.id} coach={c} onClick={() => { tap("light"); navigate(`/v2/coach/${c.id}`); }} />
         ))}
       </HScroll>
 
-      <SectionHeader title="From your circle" action="More" onAction={() => navigate(`/v2/coach/${coaches[0]?.id ?? "maya"}/community`)} />
+      <SectionHeader title="From your circle" action="More" onAction={() => { tap("light"); navigate(`/v2/coach/${coaches[0]?.id ?? "maya"}/community`); }} />
       <div className="flex flex-col gap-3 px-5">
         {posts.map((p) => (
           <div key={p.id} className="-mx-5">
-            <PostRow post={p} onClick={() => navigate(`/v2/coach/${coaches[0]?.id ?? "maya"}/community`)} />
+            <PostRow post={p} onClick={() => { tap("light"); navigate(`/v2/coach/${coaches[0]?.id ?? "maya"}/community`); }} />
           </div>
         ))}
       </div>

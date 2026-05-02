@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/contexts/v2/RoleContext";
+import { useHaptics } from "@/native/useNative";
 
 export type PlayerTab = "home" | "discover" | "book" | "messages" | "profile";
 export type CoachTab = "dashboard" | "messages" | "bob" | "content" | "profile";
@@ -94,13 +95,14 @@ export function TabBar({ mode, active, className }: TabBarProps) {
 function CoachRow({ active }: { active: AnyTab }) {
   const ctx = useRole();
   const navigate = useNavigate();
+  const { tap } = useHaptics();
   return (
     <div className="flex justify-around items-center px-4 pt-2.5 pb-3">
       {COACH_TABS.map((t) => {
         const Icon = t.icon;
         const isActive = t.key === active;
         const itemClass = cn(
-          "flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-[10px] text-[10px] font-medium transition-colors",
+          "flex flex-col items-center justify-center gap-0.5 px-2.5 py-1 min-h-[44px] min-w-[44px] rounded-[10px] text-[10px] font-medium transition-colors",
           isActive ? "text-teal" : "text-v2-muted-2",
         );
         if (t.switchToPlayer) {
@@ -109,6 +111,7 @@ function CoachRow({ active }: { active: AnyTab }) {
               key={t.key}
               type="button"
               onClick={() => {
+                tap("light");
                 ctx.setRole("player");
                 navigate(t.to);
               }}
@@ -124,6 +127,7 @@ function CoachRow({ active }: { active: AnyTab }) {
           <Link
             key={t.key}
             to={t.to}
+            onClick={() => tap("light")}
             className={itemClass}
             aria-current={isActive ? "page" : undefined}
           >
@@ -162,11 +166,13 @@ function PlayerRow({ active }: { active: AnyTab }) {
 
 function PlayerTabItem({ spec, active }: { spec: TabSpec; active: boolean }) {
   const Icon = spec.icon;
+  const { tap } = useHaptics();
   return (
     <Link
       to={spec.to}
+      onClick={() => tap("light")}
       className={cn(
-        "flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-[10px] text-[10px] font-medium transition-colors",
+        "flex flex-col items-center justify-center gap-0.5 px-2.5 py-1 min-h-[44px] min-w-[44px] rounded-[10px] text-[10px] font-medium transition-colors",
         active ? "text-teal" : "text-v2-muted-2",
       )}
       aria-current={active ? "page" : undefined}
@@ -183,6 +189,7 @@ function PlayerTabItem({ spec, active }: { spec: TabSpec; active: boolean }) {
  * row never renders this — coaches have their own dashboard layout.
  */
 function BookCenterButton({ active }: { active: boolean }) {
+  const { tap } = useHaptics();
   return (
     <div
       className="relative flex justify-center"
@@ -190,6 +197,7 @@ function BookCenterButton({ active }: { active: boolean }) {
     >
       <Link
         to="/v2/book"
+        onClick={() => tap("medium")}
         aria-label="Book a session"
         aria-current={active ? "page" : undefined}
         className="circlo-book-fab absolute flex items-center justify-center text-white"

@@ -8,6 +8,7 @@ import { useChat, useMessageThreads } from "@/hooks/v2/useMocks";
 import { useAuth } from "@/contexts/AuthContext";
 import { sendChatMessage } from "@/hooks/v2/useSupabaseQueries";
 import { formatPrice } from "@/lib/v2/currency";
+import { useHaptics } from "@/native/useNative";
 import type { Message } from "@/types/v2";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +79,7 @@ export default function ChatPage() {
   const thread = threads.find((t) => t.id === threadId);
   const [val, setVal] = useState("");
   const [sending, setSending] = useState(false);
+  const { tap } = useHaptics();
 
   // Resolve who we're sending to. Threads from useMessageThreads carry peerId.
   // If we're in a "th-{coachId}" pattern from a deep link, strip the prefix.
@@ -122,7 +124,7 @@ export default function ChatPage() {
     <PhoneFrame className="min-h-[100dvh] pb-24">
       <StatusBar />
       <header className="px-5 pt-2.5 pb-3 flex items-center justify-between border-b border-navy-line">
-        <RoundButton ariaLabel="Back" variant="solid-navy" size="sm" onClick={() => navigate("/v2/messages")}>
+        <RoundButton ariaLabel="Back" variant="solid-navy" size="sm" onClick={() => { tap("light"); navigate("/v2/messages"); }}>
           <ChevronLeft size={14} />
         </RoundButton>
         <button className="flex-1 flex items-center justify-center gap-2.5">
@@ -149,10 +151,10 @@ export default function ChatPage() {
       </main>
 
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 px-3.5 pb-6 pt-2.5 bg-[rgba(10,10,15,0.96)] backdrop-blur-xl border-t border-navy-line v2-safe-bottom flex gap-2 items-end">
-        <button aria-label="Attach" className="w-9 h-9 rounded-full bg-navy-card flex items-center justify-center shrink-0">
+        <button aria-label="Attach" onClick={() => tap("light")} className="w-11 h-11 rounded-full bg-navy-card flex items-center justify-center shrink-0">
           <Plus size={16} />
         </button>
-        <div className="flex-1 bg-navy-card rounded-[20px] px-3.5 py-2 flex gap-2 items-center min-h-[40px]">
+        <div className="flex-1 bg-navy-card rounded-[20px] px-3.5 py-2 flex gap-2 items-center min-h-[44px]">
           <input
             value={val}
             onChange={(e) => setVal(e.target.value)}
@@ -165,14 +167,14 @@ export default function ChatPage() {
             placeholder={`Message ${thread?.peerName?.split(" ")[0] ?? "…"}`}
             className="flex-1 bg-transparent border-none outline-none text-offwhite text-sm py-0.5"
           />
-          <button aria-label="Emoji"><Smile size={18} className="text-v2-muted" /></button>
-          <button aria-label="Voice"><Mic size={18} className="text-v2-muted" /></button>
+          <button aria-label="Emoji" onClick={() => tap("light")} className="min-w-[32px] min-h-[32px] flex items-center justify-center"><Smile size={18} className="text-v2-muted" /></button>
+          <button aria-label="Voice" onClick={() => tap("light")} className="min-w-[32px] min-h-[32px] flex items-center justify-center"><Mic size={18} className="text-v2-muted" /></button>
         </div>
         <button
           aria-label="Send"
-          onClick={() => void handleSend()}
+          onClick={() => { tap("light"); void handleSend(); }}
           disabled={!val.trim() || sending}
-          className={cn("w-9 h-9 rounded-full flex items-center justify-center shrink-0 disabled:opacity-60", val.trim() ? "bg-teal text-navy-deep" : "bg-navy-card text-v2-muted")}
+          className={cn("w-11 h-11 rounded-full flex items-center justify-center shrink-0 disabled:opacity-60", val.trim() ? "bg-teal text-navy-deep" : "bg-navy-card text-v2-muted")}
         >
           <Send size={16} fill={val.trim() ? "currentColor" : "none"} />
         </button>

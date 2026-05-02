@@ -7,6 +7,7 @@ import { ShopTab } from "@/components/v2/coach/ShopTab";
 import { BookingBar } from "@/components/v2/coach/BookingBar";
 import { useCoach, useCirclePosts, useShopItems } from "@/hooks/v2/useMocks";
 import { isShopEnabled } from "@/lib/v2/featureFlag";
+import { useHaptics } from "@/native/useNative";
 
 type TabKey = "about" | "community" | "content" | "shop";
 
@@ -22,12 +23,14 @@ export default function CoachProfilePage() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const tab = tabFromPath(location.pathname);
+  const { tap } = useHaptics();
 
   const { data: coach, isLoading } = useCoach(id);
   const { data: posts = [] } = useCirclePosts(id);
   const { data: items = [] } = useShopItems(id);
 
   const setTab = (next: TabKey) => {
+    tap("light");
     if (next === "content") {
       navigate(`/v2/coach/${id}/content`);
       return;
@@ -58,8 +61,8 @@ export default function CoachProfilePage() {
             <h2 className="text-[18px] font-bold mb-2">Coach not found</h2>
             <p className="text-[13px] text-v2-muted mb-4">This coach is unavailable or moved.</p>
             <button
-              onClick={() => navigate("/v2/discover")}
-              className="px-4 py-2.5 rounded-[12px] bg-teal text-navy-deep font-bold text-[13px]"
+              onClick={() => { tap("light"); navigate("/v2/discover"); }}
+              className="px-4 py-2.5 min-h-[44px] rounded-[12px] bg-teal text-navy-deep font-bold text-[13px]"
             >
               Discover coaches
             </button>
@@ -72,19 +75,19 @@ export default function CoachProfilePage() {
   return (
     <PhoneFrame className="min-h-[100dvh] pb-32">
       <StatusBar />
-      <CoachProfileHero coach={coach} activeTab={tab} onTab={setTab} onBack={() => navigate(-1)} />
+      <CoachProfileHero coach={coach} activeTab={tab} onTab={setTab} onBack={() => { tap("light"); navigate(-1); }} />
       {tab === "about" && (
         <AboutBuilderTab
           coach={coach}
-          onFollow={() => navigate(`/v2/coach/${coach.id}/join`)}
-          onMessage={() => navigate(`/v2/messages/th-${coach.id}`)}
+          onFollow={() => { tap("light"); navigate(`/v2/coach/${coach.id}/join`); }}
+          onMessage={() => { tap("light"); navigate(`/v2/messages/th-${coach.id}`); }}
         />
       )}
       {tab === "community" && (
-        <CommunityTab coach={coach} posts={posts} onJoin={() => navigate(`/v2/coach/${coach.id}/join`)} />
+        <CommunityTab coach={coach} posts={posts} onJoin={() => { tap("light"); navigate(`/v2/coach/${coach.id}/join`); }} />
       )}
       {tab === "shop" && <ShopTab items={items} />}
-      <BookingBar nextLabel="Today · 18:00" onBook={() => navigate(`/v2/book/${coach.id}`)} />
+      <BookingBar nextLabel="Today · 18:00" onBook={() => { tap("light"); navigate(`/v2/book/${coach.id}`); }} />
       <TabBar mode="player" active="discover" />
     </PhoneFrame>
   );

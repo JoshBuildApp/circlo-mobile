@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { formatPrice } from "@/lib/v2/currency";
 import { cn } from "@/lib/utils";
 import type { SessionFormat } from "@/types/v2";
+import { useHaptics } from "@/native/useNative";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 type Period = "all" | "morning" | "afternoon" | "evening";
@@ -50,6 +51,7 @@ export default function BookingFlowPage() {
   const [availableSlots, setAvailableSlots] = useState<string[]>(FALLBACK_SLOTS);
   const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const [monthCursor, setMonthCursor] = useState(date);
+  const { tap } = useHaptics();
 
   // Refresh available + taken slots whenever coach or date changes.
   useEffect(() => {
@@ -114,10 +116,12 @@ export default function BookingFlowPage() {
   };
 
   const goNext = () => {
+    tap("light");
     if (step < 5) setStep((s) => (s + 1) as Step);
     else void submitBooking();
   };
   const goBack = () => {
+    tap("light");
     if (step > 1) setStep((s) => (s - 1) as Step);
     else navigate(-1);
   };
@@ -152,10 +156,10 @@ export default function BookingFlowPage() {
               return (
                 <button
                   key={f.key}
-                  onClick={() => setFormat(f)}
+                  onClick={() => { tap("light"); setFormat(f); }}
                   data-grad={selected ? "orange-soft" : undefined}
                   className={cn(
-                    "p-4 rounded-[16px] border flex gap-3.5 text-left transition-colors",
+                    "p-4 min-h-[64px] rounded-[16px] border flex gap-3.5 text-left transition-colors",
                     selected ? "border-orange" : "border-transparent bg-navy-card"
                   )}
                 >
@@ -204,22 +208,24 @@ export default function BookingFlowPage() {
             <div className="flex gap-1.5">
               <button
                 onClick={() => {
+                  tap("light");
                   const d = new Date(monthCursor);
                   d.setDate(d.getDate() - 7);
                   setMonthCursor(d);
                 }}
-                className="w-8 h-8 rounded-md bg-navy-card text-offwhite"
+                className="w-11 h-11 rounded-md bg-navy-card text-offwhite flex items-center justify-center"
                 aria-label="Previous week"
               >
                 ‹
               </button>
               <button
                 onClick={() => {
+                  tap("light");
                   const d = new Date(monthCursor);
                   d.setDate(d.getDate() + 7);
                   setMonthCursor(d);
                 }}
-                className="w-8 h-8 rounded-md bg-navy-card text-offwhite"
+                className="w-11 h-11 rounded-md bg-navy-card text-offwhite flex items-center justify-center"
                 aria-label="Next week"
               >
                 ›
@@ -235,9 +241,9 @@ export default function BookingFlowPage() {
               return (
                 <button
                   key={i}
-                  onClick={() => setDate(d)}
+                  onClick={() => { tap("light"); setDate(d); }}
                   className={cn(
-                    "p-3.5 rounded-[14px] text-center",
+                    "p-3.5 rounded-[14px] text-center min-h-[64px]",
                     selected ? "bg-orange text-white" : "bg-navy-card text-offwhite"
                   )}
                 >
@@ -261,9 +267,9 @@ export default function BookingFlowPage() {
             {(["all", "morning", "afternoon", "evening"] as const).map((p) => (
               <button
                 key={p}
-                onClick={() => setPeriod(p)}
+                onClick={() => { tap("light"); setPeriod(p); }}
                 className={cn(
-                  "px-3.5 py-2 rounded-full font-semibold text-[13px] capitalize",
+                  "px-3.5 py-2 min-h-[44px] rounded-full font-semibold text-[13px] capitalize",
                   period === p ? "bg-teal text-navy-deep" : "bg-navy-card text-offwhite"
                 )}
               >
@@ -285,10 +291,10 @@ export default function BookingFlowPage() {
               return (
                 <button
                   key={t}
-                  onClick={() => !taken && setSlot(t)}
+                  onClick={() => { tap("light"); !taken && setSlot(t); }}
                   disabled={taken}
                   className={cn(
-                    "p-3.5 rounded-[12px] text-center",
+                    "p-3.5 rounded-[12px] text-center min-h-[64px]",
                     sel && "bg-orange text-white",
                     !sel && !taken && "bg-navy-card",
                     taken && "bg-navy-card opacity-40 cursor-not-allowed line-through"
@@ -323,7 +329,7 @@ export default function BookingFlowPage() {
           <div className="px-5 flex flex-col gap-3">
             <LocationOption
               selected={location === "home"}
-              onClick={() => setLocation("home")}
+              onClick={() => { tap("light"); setLocation("home"); }}
               icon={MapPin}
               iconClass="bg-orange text-white"
               title="Jaffa Padel Club"
@@ -335,7 +341,7 @@ export default function BookingFlowPage() {
             />
             <LocationOption
               selected={location === "park"}
-              onClick={() => setLocation("park")}
+              onClick={() => { tap("light"); setLocation("park"); }}
               icon={MapPin}
               iconClass="bg-teal text-navy-deep"
               title="Hayarkon Park Courts"
@@ -347,7 +353,7 @@ export default function BookingFlowPage() {
             />
             <LocationOption
               selected={location === "private"}
-              onClick={() => setLocation("private")}
+              onClick={() => { tap("light"); setLocation("private"); }}
               icon={Home}
               iconClass="bg-navy-card-2 text-offwhite"
               title="Private — your court"
@@ -476,7 +482,7 @@ export default function BookingFlowPage() {
                 <div className="text-[11px] text-v2-muted mt-0.5">Tap to use · no setup</div>
               </div>
             </div>
-            <button className="w-full py-3.5 rounded-[14px] bg-transparent border border-dashed border-navy-line text-v2-muted text-[13px] font-semibold flex items-center justify-center gap-1.5">
+            <button className="w-full py-3.5 min-h-[44px] rounded-[14px] bg-transparent border border-dashed border-navy-line text-v2-muted text-[13px] font-semibold flex items-center justify-center gap-1.5">
               <Plus size={14} /> Add new card
             </button>
           </div>
@@ -550,7 +556,7 @@ function DetailRow({
         {sub && <div className="text-[11px] text-v2-muted mt-0.5">{sub}</div>}
       </div>
       {action && (
-        <button onClick={onAction} className="text-teal text-[12px] font-bold self-center flex items-center gap-1">
+        <button onClick={onAction} className="text-teal text-[12px] font-bold self-center flex items-center gap-1 min-w-[44px] min-h-[44px] justify-end">
           <Edit3 size={12} /> {action}
         </button>
       )}

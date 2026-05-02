@@ -6,6 +6,7 @@ import { PhoneFrame, StatusBar, TabBar, Avatar, Chip, EmptyState } from "@/compo
 import { useMessageThreads } from "@/hooks/v2/useMocks";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useHaptics } from "@/native/useNative";
 import type { MessageThread } from "@/types/v2";
 import { cn } from "@/lib/utils";
 
@@ -48,10 +49,11 @@ function ThreadRow({ thread, onClick }: { thread: MessageThread; onClick: () => 
       : thread.peerGradient === "teal-mint"
       ? "teal-mint"
       : "teal-gold";
+  const { tap } = useHaptics();
   return (
     <button
-      onClick={onClick}
-      className="flex gap-3 px-3.5 py-3 cursor-pointer border-b border-navy-line w-full text-left hover:bg-navy-card/40 transition-colors"
+      onClick={() => { tap("light"); onClick(); }}
+      className="flex gap-3 px-3.5 py-3 cursor-pointer border-b border-navy-line w-full text-left hover:bg-navy-card/40 transition-colors min-h-[64px]"
     >
       <div className="relative shrink-0">
         <Avatar size={44} gradient={grad} initials={thread.isChannel ? initials : undefined} online={thread.peerIsOnline} />
@@ -92,6 +94,7 @@ export default function MessagesInboxPage() {
   const { user } = useAuth();
   const [filter, setFilter] = useState<Filter>("all");
   const { data: threads = [] } = useMessageThreads();
+  const { tap } = useHaptics();
 
   // Realtime: any new message anywhere invalidates the thread list so the
   // inbox re-ranks without the user having to pull-to-refresh. Partitioned
@@ -137,9 +140,9 @@ export default function MessagesInboxPage() {
       <header className="px-5 pt-3 flex justify-between items-center">
         <h1 className="text-[26px] font-extrabold tracking-tight">Messages</h1>
         <button
-          onClick={() => navigate("/v2/messages/new")}
+          onClick={() => { tap("light"); navigate("/v2/messages/new"); }}
           aria-label="New message"
-          className="w-9 h-9 rounded-full bg-navy-card flex items-center justify-center"
+          className="min-w-[44px] min-h-[44px] rounded-full bg-navy-card flex items-center justify-center"
         >
           <Edit3 size={16} />
         </button>
@@ -156,9 +159,9 @@ export default function MessagesInboxPage() {
         {FILTERS.map((f) => (
           <button
             key={f.key}
-            onClick={() => setFilter(f.key)}
+            onClick={() => { tap("light"); setFilter(f.key); }}
             className={cn(
-              "px-3.5 py-2 rounded-full font-semibold text-[13px] whitespace-nowrap",
+              "px-3.5 min-h-[44px] flex items-center rounded-full font-semibold text-[13px] whitespace-nowrap",
               filter === f.key ? "bg-teal text-navy-deep" : "bg-navy-card text-offwhite"
             )}
           >

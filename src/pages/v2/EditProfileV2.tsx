@@ -5,12 +5,14 @@ import { toast } from "sonner";
 import { PhoneFrame, StatusBar, RoundButton } from "@/components/v2/shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useHaptics } from "@/native/useNative";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function EditProfileV2() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { tap } = useHaptics();
 
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
@@ -70,14 +72,14 @@ export default function EditProfileV2() {
     <PhoneFrame className="min-h-[100dvh] pb-12">
       <StatusBar />
       <header className="px-5 pt-3.5 flex items-center justify-between">
-        <RoundButton ariaLabel="Back" variant="solid-navy" size="sm" onClick={() => navigate(-1)}>
+        <RoundButton ariaLabel="Back" variant="solid-navy" size="sm" onClick={() => { tap("light"); navigate(-1); }}>
           <ChevronLeft size={14} />
         </RoundButton>
         <h3 className="text-[17px] font-bold">Edit profile</h3>
         <div className="w-9" />
       </header>
 
-      <main className="px-7 pt-6 pb-8 flex-1">
+      <main className="px-7 pt-6 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] flex-1 overflow-y-auto">
         {!user && (
           <div className="text-center text-v2-muted text-[13px] mt-12">
             Sign in to edit your profile.
@@ -128,7 +130,8 @@ export default function EditProfileV2() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full py-3.5 rounded-[14px] bg-teal text-navy-deep font-extrabold text-[14px] flex items-center justify-center gap-2 disabled:opacity-60"
+              onClick={() => tap("light")}
+              className="mt-2 w-full min-h-[44px] rounded-[14px] bg-teal text-navy-deep font-extrabold text-[14px] flex items-center justify-center gap-2 disabled:opacity-60"
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
               {loading ? "Saving…" : "Save changes"}
