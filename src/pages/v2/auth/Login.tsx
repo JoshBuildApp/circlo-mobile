@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "./components/PageHeader";
 import { FormField } from "./components/FormField";
 import { PasswordField } from "./components/PasswordField";
+import { useHaptics } from "@/native/useNative";
 
 /**
  * Login screen for the v2 auth flow — wired to Supabase via
@@ -15,6 +16,7 @@ import { PasswordField } from "./components/PasswordField";
  */
 export default function Login() {
   const navigate = useNavigate();
+  const { tap } = useHaptics();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export default function Login() {
   };
 
   return (
-    <div className="circlo-screen">
+    <div className="circlo-screen overflow-y-auto">
       <PageHeader onBack={() => navigate("/v2/auth/welcome")} />
 
       <div className="circlo-screen-enter">
@@ -85,16 +87,19 @@ export default function Login() {
         ) : null}
 
         <div className="circlo-link-row">
-          <button type="button" className="circlo-link">
+          <Link to="/v2/forgot-password" onClick={() => tap("light")} className="circlo-link min-h-[44px] inline-flex items-center">
             Forgot password?
-          </button>
+          </Link>
         </div>
 
         <button
           type="button"
           className="circlo-btn circlo-btn-primary"
           disabled={!canSubmit}
-          onClick={submit}
+          onClick={() => {
+            tap("light");
+            submit();
+          }}
         >
           {loading ? "Signing in…" : "Log in"}
         </button>
@@ -108,6 +113,7 @@ export default function Login() {
             type="button"
             className="circlo-btn circlo-btn-apple"
             onClick={async () => {
+              tap("light");
               const { signInWithProvider } = await import("@/lib/oauth");
               const r = await signInWithProvider("apple", "/home");
               if (!r.ok) {
@@ -122,6 +128,7 @@ export default function Login() {
             type="button"
             className="circlo-btn circlo-btn-google"
             onClick={async () => {
+              tap("light");
               const { signInWithProvider } = await import("@/lib/oauth");
               const r = await signInWithProvider("google", "/home");
               if (!r.ok) {
@@ -136,7 +143,7 @@ export default function Login() {
 
         <div className="circlo-footer-link">
           New here?
-          <Link to="/v2/auth/signup/role" className="circlo-link">
+          <Link to="/v2/auth/signup/role" onClick={() => tap("light")} className="circlo-link min-h-[44px] inline-flex items-center ml-1">
             Create an account
           </Link>
         </div>

@@ -33,15 +33,6 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
@@ -64,5 +55,7 @@
 	<string>Circlo saves images you create in the app (e.g. session receipts) to your photo library.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Circlo uses the microphone when you record coaching videos or voice messages.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Circlo uses your location to show you nearby coaches and training sessions.</string>
 </dict>
 </plist>

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "../components/PageHeader";
 import { OTPInput } from "../components/OTPInput";
 import { useSignup } from "../SignupContext";
+import { useHaptics } from "@/native/useNative";
 
 /**
  * Step 4/4 of signup: wait for the user to confirm via the email link that
@@ -16,6 +17,7 @@ import { useSignup } from "../SignupContext";
 export default function Verify() {
   const navigate = useNavigate();
   const { email, otp, setOtp } = useSignup();
+  const { tap } = useHaptics();
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -79,7 +81,7 @@ export default function Verify() {
   };
 
   return (
-    <div className="circlo-screen">
+    <div className="circlo-screen overflow-y-auto">
       <PageHeader step={4} onBack={() => navigate("/v2/auth/signup/credentials")} />
       <div className="circlo-spacer-verify" />
 
@@ -122,7 +124,7 @@ export default function Verify() {
 
         <div className="circlo-resend-row">
           Didn't get it?{" "}
-          <button type="button" className="circlo-link" onClick={handleResend}>
+          <button type="button" className="circlo-link min-h-[44px] inline-flex items-center" onClick={() => { tap("light"); handleResend(); }}>
             Resend code
           </button>
         </div>
@@ -133,7 +135,10 @@ export default function Verify() {
           type="button"
           className="circlo-btn circlo-btn-primary"
           disabled={loading}
-          onClick={handleContinue}
+          onClick={() => {
+            tap("light");
+            handleContinue();
+          }}
         >
           {loading ? "Checking…" : "Verify and continue"}
         </button>

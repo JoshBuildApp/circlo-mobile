@@ -7,6 +7,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { openExternal, openSystemUrl } from "@/lib/platform";
 
 interface SettingRow {
   icon: typeof User;
@@ -68,6 +70,7 @@ export default function SettingsV2Page() {
   const [profileVisible, setProfileVisible] = useState(true);
   const [shareLocation, setShareLocation] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const handleSignOut = async () => {
     if (signingOut) return;
@@ -81,6 +84,26 @@ export default function SettingsV2Page() {
       toast.error(err instanceof Error ? err.message : "Sign out failed.");
       setSigningOut(false);
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleting) return;
+    if (!window.confirm("Permanently delete your account? This cannot be undone.")) return;
+    const confirmText = window.prompt('Type "DELETE" to confirm.');
+    if (confirmText !== "DELETE") {
+      toast.error("Confirmation failed.");
+      return;
+    }
+    setDeleting(true);
+    const { error } = await supabase.rpc("delete_my_account", { reason: "user_initiated" });
+    if (error) {
+      toast.error(`Could not delete account: ${error.message}`);
+      setDeleting(false);
+      return;
+    }
+    await signOut();
+    toast.success("Account deleted.");
+    navigate("/v2/auth/welcome", { replace: true });
   };
 
   return (
@@ -141,20 +164,27 @@ export default function SettingsV2Page() {
       <div className="px-5 mb-5">
         <SettingsList
           rows={[
-            { icon: HelpCircle, title: "Help center", sub: "FAQ · contact support", onClick: () => window.open("mailto:support@circloclub.com", "_blank") },
-            { icon: FileText, title: "Terms & policies", sub: "Terms of service · Privacy", onClick: () => window.open("https://circloclub.com/legal/terms", "_blank") },
+            { icon: HelpCircle, title: "Help center", sub: "FAQ · contact support", onClick: () => openSystemUrl("mailto:support@circloclub.com") },
+            { icon: FileText, title: "Terms & policies", sub: "Terms of service · Privacy", onClick: () => openExternal("https://circloclub.com/legal/terms") },
             { icon: Award, iconClass: "text-orange", title: "Become a coach", sub: "Start coaching on Circlo", onClick: () => navigate("/v2/go-pro") },
           ]}
         />
       </div>
 
-      <div className="px-5 mb-5">
+      <div className="px-5 mb-5 space-y-3">
         <button
           onClick={handleSignOut}
-          disabled={signingOut}
-          className="w-full py-3.5 rounded-[14px] bg-navy-card text-danger border border-danger/30 font-bold text-[14px] disabled:opacity-60"
+          disabled={signingOut || deleting}
+          className="w-full py-3.5 rounded-[14px] bg-navy-card text-offwhite border border-navy-line font-bold text-[14px] disabled:opacity-60"
         >
           {signingOut ? "Signing out…" : "Sign out"}
+        </button>
+        <button
+          onClick={handleDeleteAccount}
+          disabled={signingOut || deleting}
+          className="w-full py-3.5 rounded-[14px] bg-navy-card text-danger border border-danger/30 font-bold text-[14px] disabled:opacity-60"
+        >
+          {deleting ? "Deleting…" : "Delete account"}
         </button>
       </div>
 

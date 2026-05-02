@@ -130,7 +130,7 @@ export default function AuthLayout() {
           data-variant={variant}
           style={{
             minHeight: "100dvh",
-            backgroundColor: "var(--v2-bg, #0A0A0F)",
+            backgroundColor: "var(--circlo-navy-deep)",
           }}
         >
           <CirloRing

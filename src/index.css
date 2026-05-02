@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -659,7 +660,6 @@
    V2 UI — design tokens, fonts, utilities, keyframes
    Scoped so v1 remains untouched. v2 pages opt in via .font-v2
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @layer utilities {
   /* Tabular numerals for all stats / money / time / counts */

@@ -7,6 +7,7 @@ import { PageHeader } from "../components/PageHeader";
 import { FormField } from "../components/FormField";
 import { PasswordField } from "../components/PasswordField";
 import { useSignup } from "../SignupContext";
+import { useHaptics } from "@/native/useNative";
 
 /**
  * Step 3/4 of signup: collect name, email, password, confirm password, and
@@ -27,6 +28,7 @@ export default function Credentials() {
     setEmail,
     setPassword,
   } = useSignup();
+  const { tap } = useHaptics();
 
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -107,7 +109,7 @@ export default function Credentials() {
   };
 
   return (
-    <div className="circlo-screen">
+    <div className="circlo-screen overflow-y-auto">
       <PageHeader step={3} onBack={() => navigate("/v2/auth/signup/sports")} />
 
       <div className="circlo-screen-enter">
@@ -170,17 +172,20 @@ export default function Credentials() {
           type="button"
           className="circlo-btn circlo-btn-primary"
           disabled={!canSubmit}
-          onClick={submit}
+          onClick={() => {
+            tap("light");
+            submit();
+          }}
         >
           {loading ? "Creating account…" : "Continue"}
         </button>
-        <div className="circlo-terms-line">
+        <div className="circlo-terms-line mb-6">
           By continuing you agree to our{" "}
-          <button type="button" className="circlo-link">
+          <button type="button" className="circlo-link min-h-[44px] inline-flex items-center" onClick={() => tap("light")}>
             Terms
           </button>{" "}
           and{" "}
-          <button type="button" className="circlo-link">
+          <button type="button" className="circlo-link min-h-[44px] inline-flex items-center" onClick={() => tap("light")}>
             Privacy Policy
           </button>
           .

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useHaptics } from "@/native/useNative";
 import "./welcome.css";
 
 /**
@@ -22,6 +23,7 @@ import "./welcome.css";
  *   └──────────────────────────────┘
  */
 export default function Welcome() {
+  const { tap } = useHaptics();
   return (
     <div className="circlo-welcome-root">
       <div className="circlo-welcome-glow" />
@@ -123,10 +125,15 @@ export default function Welcome() {
         <Link
           to="/v2/auth/signup/role"
           className="circlo-btn circlo-btn-primary"
+          onClick={() => tap("light")}
         >
           Create account
         </Link>
-        <Link to="/v2/auth/login" className="circlo-btn circlo-btn-glass">
+        <Link 
+          to="/v2/auth/login" 
+          className="circlo-btn circlo-btn-glass"
+          onClick={() => tap("light")}
+        >
           Log in
         </Link>
 
@@ -140,6 +147,7 @@ export default function Welcome() {
             className="circlo-btn circlo-btn-apple circlo-btn-icon-only"
             aria-label="Continue with Apple"
             onClick={async () => {
+              tap("light");
               const { signInWithProvider } = await import("@/lib/oauth");
               const r = await signInWithProvider("apple", "/home");
               if (!r.ok) {
@@ -155,6 +163,7 @@ export default function Welcome() {
             className="circlo-btn circlo-btn-google circlo-btn-icon-only"
             aria-label="Continue with Google"
             onClick={async () => {
+              tap("light");
               const { signInWithProvider } = await import("@/lib/oauth");
               const r = await signInWithProvider("google", "/home");
               if (!r.ok) {
@@ -167,13 +176,13 @@ export default function Welcome() {
           </button>
         </div>
 
-        <div className="circlo-terms-line">
+        <div className="circlo-terms-line mb-6">
           By continuing you agree to our{" "}
-          <button type="button" className="circlo-link">
+          <button type="button" className="circlo-link min-h-[44px] inline-flex items-center" onClick={() => tap("light")}>
             Terms
           </button>{" "}
           and{" "}
-          <button type="button" className="circlo-link">
+          <button type="button" className="circlo-link min-h-[44px] inline-flex items-center" onClick={() => tap("light")}>
             Privacy
           </button>
           .

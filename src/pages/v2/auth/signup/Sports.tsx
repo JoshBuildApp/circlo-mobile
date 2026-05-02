@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader";
 import { SportCard } from "../components/SportCard";
 import { useSignup } from "../SignupContext";
+import { useHaptics } from "@/native/useNative";
 import "./sports.css";
 
 /**
@@ -13,6 +14,7 @@ import "./sports.css";
 export default function Sports() {
   const navigate = useNavigate();
   const { role, sports, toggleSport } = useSignup();
+  const { tap } = useHaptics();
   const count = sports.size;
 
   const isCoach = role === "coach";
@@ -39,15 +41,18 @@ export default function Sports() {
         </div>
       </div>
 
-      <div className="circlo-sport-scroll">
-        <div className="circlo-sport-grid">
+      <div className="circlo-sport-scroll flex-1 min-h-0 overflow-y-auto -mx-6 px-6">
+        <div className="circlo-sport-grid pb-4">
           {SPORTS.map(([emoji, name]) => (
             <SportCard
               key={name}
               emoji={emoji}
               name={name}
               selected={sports.has(name)}
-              onToggle={() => toggleSport(name)}
+              onToggle={() => {
+                tap("light");
+                toggleSport(name);
+              }}
             />
           ))}
         </div>
@@ -58,7 +63,10 @@ export default function Sports() {
           type="button"
           className="circlo-btn circlo-btn-primary"
           disabled={count === 0}
-          onClick={() => navigate("/v2/auth/signup/credentials")}
+          onClick={() => {
+            tap("light");
+            navigate("/v2/auth/signup/credentials");
+          }}
         >
           {count === 0
             ? "Pick at least one"

@@ -3,6 +3,7 @@ import { GraduationCap, Smile } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { RoleCard } from "../components/RoleCard";
 import { useSignup } from "../SignupContext";
+import { useHaptics } from "@/native/useNative";
 import "./role.css";
 
 /**
@@ -16,9 +17,10 @@ import "./role.css";
 export default function Role() {
   const navigate = useNavigate();
   const { role, setRole } = useSignup();
+  const { tap } = useHaptics();
 
   return (
-    <div className="circlo-screen">
+    <div className="circlo-screen overflow-y-auto">
       <PageHeader step={1} onBack={() => navigate("/v2/auth/welcome")} />
       <div className="circlo-spacer-role" />
 
@@ -36,14 +38,20 @@ export default function Role() {
             title="I'm a player"
             description="Find coaches, book sessions, and join circles."
             selected={role === "player"}
-            onSelect={() => setRole("player")}
+            onSelect={() => {
+              tap("light");
+              setRole("player");
+            }}
           />
           <RoleCard
             icon={<GraduationCap size={26} strokeWidth={2} />}
             title="I'm a coach"
             description="Build your circle, sell programs, grow your business."
             selected={role === "coach"}
-            onSelect={() => setRole("coach")}
+            onSelect={() => {
+              tap("light");
+              setRole("coach");
+            }}
           />
         </div>
       </div>
@@ -53,7 +61,10 @@ export default function Role() {
           type="button"
           className="circlo-btn circlo-btn-primary"
           disabled={!role}
-          onClick={() => navigate("/v2/auth/signup/sports")}
+          onClick={() => {
+            tap("light");
+            navigate("/v2/auth/signup/sports");
+          }}
         >
           Continue
         </button>

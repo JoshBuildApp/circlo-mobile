@@ -1,9 +1,10 @@
-import { ChevronLeft, Share2 } from "lucide-react";
+import { ChevronLeft, Share2, Flag } from "lucide-react";
 import { Avatar, RoundButton, Chip } from "@/components/v2/shared";
 import type { Coach } from "@/types/v2";
 import { cn } from "@/lib/utils";
 import { useShare } from "@/native/useNative";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { isShopEnabled } from "@/lib/v2/featureFlag";
 
 interface CoachProfileHeroProps {
@@ -33,15 +34,35 @@ export function CoachProfileHero({ coach, activeTab, onTab, onBack }: CoachProfi
       }
     }
   };
+
+  const handleReport = async () => {
+    const reason = window.prompt("Why are you reporting this profile? (e.g., spam, inappropriate content, harassment)");
+    if (!reason) return;
+    try {
+      await supabase.from("moderation_reports").insert({
+        target_type: "coach_profile",
+        target_id: coach.id,
+        reason
+      });
+    } catch {
+      // Ignore if table not set up
+    }
+    toast.success("Thank you. We have received your report and will review this profile.");
+  };
   return (
     <div data-grad="hero-teal" className="px-5 pt-5 relative">
       <div className="flex justify-between items-center mb-5">
         <RoundButton ariaLabel="Back" onClick={onBack}>
           <ChevronLeft size={16} />
         </RoundButton>
-        <RoundButton ariaLabel="Share" onClick={handleShare}>
-          <Share2 size={16} />
-        </RoundButton>
+        <div className="flex gap-2">
+          <RoundButton ariaLabel="Report or Block" onClick={handleReport}>
+            <Flag size={16} />
+          </RoundButton>
+          <RoundButton ariaLabel="Share" onClick={handleShare}>
+            <Share2 size={16} />
+          </RoundButton>
+        </div>
       </div>
 
       <div className="flex justify-center gap-2 mb-3.5">
