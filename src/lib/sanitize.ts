@@ -10,13 +10,15 @@
  */
 export function stripHtml(input: string): string {
   return input
-    .replace(/<[^>]*>/g, "") // remove all HTML tags
+    // Decode HTML entities first so encoded tags (e.g. "&lt;script&gt;")
+    // can be caught by the tag-strip pass below.
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&")
     .replace(/&quot;/g, '"')
     .replace(/&#x27;/g, "'")
     .replace(/&#x2F;/g, "/")
+    .replace(/<[^>]*>/g, "") // remove all HTML tags
     .trim();
 }
 

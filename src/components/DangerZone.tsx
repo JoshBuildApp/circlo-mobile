@@ -17,6 +17,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { authRedirect } from "@/lib/platform";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,7 +76,9 @@ export function DangerZone() {
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      // authRedirect() — window.location.origin is capacitor://localhost
+      // inside the native shell, which Supabase rejects as a redirect target.
+      redirectTo: authRedirect("/reset-password"),
     });
     if (error) {
       toast.error(error.message);

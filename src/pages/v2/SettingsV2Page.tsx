@@ -6,6 +6,7 @@ import { useV2Theme } from "@/contexts/v2/ThemeContext";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { openExternal, openSystemUrl } from "@/lib/platform";
 import { toast } from "sonner";
 
 interface SettingRow {
@@ -141,8 +142,8 @@ export default function SettingsV2Page() {
       <div className="px-5 mb-5">
         <SettingsList
           rows={[
-            { icon: HelpCircle, title: "Help center", sub: "FAQ · contact support", onClick: () => window.open("mailto:support@circloclub.com", "_blank") },
-            { icon: FileText, title: "Terms & policies", sub: "Terms of service · Privacy", onClick: () => window.open("https://circloclub.com/legal/terms", "_blank") },
+            { icon: HelpCircle, title: "Help center", sub: "FAQ · contact support", onClick: () => openSystemUrl("mailto:support@circloclub.com") },
+            { icon: FileText, title: "Terms & policies", sub: "Terms of service · Privacy", onClick: () => openExternal("https://circloclub.com/legal/terms") },
             { icon: Award, iconClass: "text-orange", title: "Become a coach", sub: "Start coaching on Circlo", onClick: () => navigate("/v2/go-pro") },
           ]}
         />

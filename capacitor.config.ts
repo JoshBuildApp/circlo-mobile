@@ -1,5 +1,23 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
+const isProdBuild = process.env.NODE_ENV === "production";
+
+// Dev-server convention: CAP_SERVER_URL points the native shell at a running
+// Vite server, e.g. CAP_SERVER_URL=http://192.168.1.42:8080 npm run cap:sync.
+// Guard: never bake a remote dev server (with cleartext) into a production
+// build — require an explicit CAP_SERVER_URL_FORCE=true, otherwise warn
+// loudly and ignore the variable.
+let devServerUrl = process.env.CAP_SERVER_URL;
+if (devServerUrl && isProdBuild && process.env.CAP_SERVER_URL_FORCE !== "true") {
+  console.warn(
+    `[capacitor.config] WARNING: ignoring CAP_SERVER_URL=${devServerUrl} for a ` +
+      "production build (NODE_ENV=production). The shipped binary would load its " +
+      "entire UI from that remote URL with cleartext allowed. Set " +
+      "CAP_SERVER_URL_FORCE=true to override — never for store builds.",
+  );
+  devServerUrl = undefined;
+}
+
 const config: CapacitorConfig = {
   appId: "club.circlo.app",
   appName: "Circlo",
@@ -14,15 +32,15 @@ const config: CapacitorConfig = {
     backgroundColor: "#1A1A2E",
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: true,
+    // Debuggable WebView for dev builds only — a release build must never
+    // expose the app (and its persisted session) to chrome://inspect.
+    webContentsDebuggingEnabled: !isProdBuild,
   },
   server: {
     androidScheme: "https",
     iosScheme: "capacitor",
-    // For local dev against the running Vite server, set CAP_SERVER_URL
-    // e.g. CAP_SERVER_URL=http://192.168.1.42:8080 npm run cap:sync
-    url: process.env.CAP_SERVER_URL,
-    cleartext: !!process.env.CAP_SERVER_URL,
+    url: devServerUrl,
+    cleartext: !!devServerUrl,
   },
   plugins: {
     SplashScreen: {
