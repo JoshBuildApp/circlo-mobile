@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
+import { Capacitor } from "@capacitor/core";
+import { PushNotifications } from "@capacitor/push-notifications";
 import { supabase } from "@/integrations/supabase/client";
+import { PUSH_TOKEN_STORAGE_KEY } from "@/hooks/use-push-notifications";
 import { ADMIN_EMAILS } from "@/config/dev";
 
 type AppRole = "admin" | "user" | "coach" | "developer";
@@ -105,6 +108,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = async () => {
+    // Drop this device's push token BEFORE signing out — the delete needs
+    // the still-authenticated session to pass RLS, and a stale row would
+    // keep delivering this user's notifications to whoever holds the
+    // device next. Never let cleanup failures block the sign-out itself.
+    try {
+      const pushToken = localStorage.getItem(PUSH_TOKEN_STORAGE_KEY);
+      if (user && pushToken) {
+        await supabase
+          .from("push_notification_tokens")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("token", pushToken);
+      }
+      localStorage.removeItem(PUSH_TOKEN_STORAGE_KEY);
+      if (Capacitor.isNativePlatform()) {
+        await PushNotifications.removeAllListeners();
+      }
+    } catch (err) {
+      console.warn("[circlo] push token cleanup on sign-out failed", err);
+    }
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);

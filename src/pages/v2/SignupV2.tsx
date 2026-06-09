@@ -4,6 +4,7 @@ import { ChevronLeft, Eye, EyeOff, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame, StatusBar, RoundButton } from "@/components/v2/shared";
 import { supabase } from "@/integrations/supabase/client";
+import { authRedirect } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 
 type SignupRole = "player" | "coach";
@@ -36,7 +37,9 @@ export default function SignupV2() {
       password,
       options: {
         data: { full_name: fullName.trim(), username, role },
-        emailRedirectTo: `${window.location.origin}/v2/login`,
+        // authRedirect() — window.location.origin is capacitor://localhost
+        // inside the native shell, which Supabase rejects as a redirect target.
+        emailRedirectTo: authRedirect("/v2/login"),
       },
     });
     if (err) {

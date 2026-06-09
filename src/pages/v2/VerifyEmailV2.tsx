@@ -4,6 +4,7 @@ import { ChevronLeft, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame, StatusBar, RoundButton } from "@/components/v2/shared";
 import { supabase } from "@/integrations/supabase/client";
+import { authRedirect, openExternal } from "@/lib/platform";
 
 export default function VerifyEmailV2() {
   const navigate = useNavigate();
@@ -21,7 +22,9 @@ export default function VerifyEmailV2() {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email,
-      options: { emailRedirectTo: `${window.location.origin}/v2/login` },
+      // authRedirect() — window.location.origin is capacitor://localhost
+      // inside the native shell, which Supabase rejects as a redirect target.
+      options: { emailRedirectTo: authRedirect("/v2/login") },
     });
     setResending(false);
     if (error) {
@@ -54,13 +57,13 @@ export default function VerifyEmailV2() {
 
         <div className="mt-8 w-full max-w-[300px] flex flex-col gap-3">
           <button
-            onClick={() => window.open("https://mail.google.com", "_blank")}
+            onClick={() => openExternal("https://mail.google.com")}
             className="w-full py-3.5 rounded-[14px] bg-teal text-navy-deep font-bold text-[14px]"
           >
             Open Gmail
           </button>
           <button
-            onClick={() => window.open("https://outlook.live.com", "_blank")}
+            onClick={() => openExternal("https://outlook.live.com")}
             className="w-full py-3.5 rounded-[14px] bg-navy-card text-offwhite font-bold text-[14px]"
           >
             Open Outlook

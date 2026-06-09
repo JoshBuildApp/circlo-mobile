@@ -13,6 +13,7 @@ import { SplashScreen } from "@capacitor/splash-screen";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import { App as CapApp } from "@capacitor/app";
 import { Network } from "@capacitor/network";
+import { supabase } from "@/integrations/supabase/client";
 
 /** True when running inside the iOS or Android native shell. */
 export const isNative = Capacitor.isNativePlatform();
@@ -68,18 +69,39 @@ export async function initNative(): Promise<void> {
   // Deep links — when the OS opens circlo:// URLs (auth callbacks, password
   // reset emails, payment returns), route them into the SPA.
   CapApp.addListener("appUrlOpen", ({ url }) => {
-    try {
-      // Strip scheme → in-app path. "circlo://reset-password?code=abc"
-      // becomes "/reset-password?code=abc".
-      const stripped = url.replace(/^circlo:\/\//i, "/").replace(/^\/\//, "/");
-      if (stripped && typeof window !== "undefined") {
-        window.history.pushState({}, "", stripped);
+    void (async () => {
+      try {
+        // Strip scheme → in-app path. "circlo://reset-password?code=abc"
+        // becomes "/reset-password?code=abc".
+        const stripped = url.replace(/^circlo:\/\//i, "/").replace(/^\/\//, "/");
+        if (!stripped || typeof window === "undefined") return;
+
+        // Auth callbacks (OAuth, password reset, email confirm) arrive as
+        // ?code=... — the client uses flowType "pkce" (see
+        // src/integrations/supabase/client.ts), so exchange the code for a
+        // session BEFORE routing so auth guards see the logged-in user.
+        // (detectSessionInUrl can't help here: a deep link never reloads
+        // the WebView, so the client never re-parses the URL itself.)
+        const parsed = new URL(stripped, "http://localhost"); // base only for parsing
+        const code = parsed.searchParams.get("code");
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.warn("[circlo] auth code exchange failed", error.message);
+          }
+          // Drop the single-use code so it never lands in SPA history.
+          parsed.searchParams.delete("code");
+        }
+
+        const query = parsed.searchParams.toString();
+        const path = `${parsed.pathname}${query ? `?${query}` : ""}${parsed.hash}`;
+        window.history.pushState({}, "", path);
         // Let React Router pick it up.
         window.dispatchEvent(new PopStateEvent("popstate"));
+      } catch (err) {
+        console.warn("[circlo] appUrlOpen handler failed", err);
       }
-    } catch (err) {
-      console.warn("[circlo] appUrlOpen handler failed", err);
-    }
+    })();
   });
 
   // Network — fire a DOM event so hooks can react to offline state.

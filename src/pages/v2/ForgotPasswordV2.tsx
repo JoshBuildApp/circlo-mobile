@@ -4,6 +4,7 @@ import { ChevronLeft, Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { PhoneFrame, StatusBar, RoundButton } from "@/components/v2/shared";
 import { supabase } from "@/integrations/supabase/client";
+import { authRedirect } from "@/lib/platform";
 
 export default function ForgotPasswordV2() {
   const navigate = useNavigate();
@@ -18,7 +19,9 @@ export default function ForgotPasswordV2() {
     setError(null);
     setLoading(true);
     const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/v2/login`,
+      // authRedirect() — window.location.origin is capacitor://localhost
+      // inside the native shell, which Supabase rejects as a redirect target.
+      redirectTo: authRedirect("/v2/login"),
     });
     setLoading(false);
     if (err) return setError(err.message);

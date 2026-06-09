@@ -4,7 +4,9 @@
  * On native (iOS Capacitor): uses skipBrowserRedirect + Capacitor Browser
  * plugin so the system Safari handles the round-trip and the deep-link
  * listener in src/native/capacitor.ts routes circlo://home?code=... back
- * into the SPA. Supabase's detectSessionInUrl exchanges the code.
+ * into the SPA, exchanging the PKCE code for a session via
+ * supabase.auth.exchangeCodeForSession (the client is created with
+ * flowType "pkce" so the code_verifier is persisted across the redirect).
  *
  * On web: default redirect-the-browser behaviour.
  */

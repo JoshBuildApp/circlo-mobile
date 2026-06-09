@@ -8,6 +8,12 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    // PKCE so native OAuth/email callbacks arrive as ?code=... on the
+    // circlo:// deep link; src/native/capacitor.ts exchanges the code for a
+    // session (the implicit #access_token flow can never complete inside the
+    // WebView — deep links don't reload the page, so detectSessionInUrl
+    // never sees the hash).
+    flowType: 'pkce',
   },
 })
 

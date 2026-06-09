@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PhoneFrame, StatusBar, TabBar, RoundButton, Avatar, Chip, EmptyState } from "@/components/v2/shared";
 import { useMySessions } from "@/hooks/v2/useMocks";
 import { cancelBooking } from "@/hooks/v2/useSupabaseQueries";
+import { openExternal } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import type { Session } from "@/types/v2";
 
@@ -62,7 +63,7 @@ function SessionCard({ s, onChat, onCancel }: { s: Session; onChat: () => void; 
         <button
           onClick={() => {
             const q = encodeURIComponent(s.location ?? "");
-            window.open(`https://maps.apple.com/?q=${q}`, "_blank");
+            openExternal(`https://maps.apple.com/?q=${q}`);
           }}
           className="py-2.5 rounded-md bg-navy-card-2 text-offwhite text-[12px] font-semibold"
           disabled={!s.location}

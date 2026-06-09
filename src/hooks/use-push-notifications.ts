@@ -8,14 +8,21 @@
  * Supabase table so server-side senders (edge functions, admin dashboard)
  * can target users across devices.
  */
-import { useCallback, useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Capacitor, type PluginListenerHandle } from "@capacitor/core";
 import { PushNotifications, type Token } from "@capacitor/push-notifications";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 const isSupported = Capacitor.isNativePlatform();
 const platform = Capacitor.getPlatform(); // "ios" | "android" | "web"
+
+/**
+ * localStorage key for the last token registered on this device. Read by
+ * AuthContext.signOut so the row can be deleted BEFORE the session ends
+ * (the delete needs the still-authenticated session to pass RLS).
+ */
+export const PUSH_TOKEN_STORAGE_KEY = "circlo_push_token";
 
 type Permission = "default" | "granted" | "denied";
 
@@ -24,14 +31,26 @@ export function usePushNotifications() {
   const [permission, setPermission] = useState<Permission>("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const listenersRef = useRef<PluginListenerHandle[]>([]);
 
-  // Check current permission at mount.
+  // Remove only the listeners this hook attached (not removeAllListeners —
+  // other parts of the app may listen for received/tapped notifications).
+  const removeListeners = useCallback(async () => {
+    const handles = listenersRef.current;
+    listenersRef.current = [];
+    await Promise.all(handles.map((h) => h.remove().catch(() => {})));
+  }, []);
+
+  // Check current permission at mount; drop listeners on unmount.
   useEffect(() => {
     if (!isSupported) return;
     PushNotifications.checkPermissions()
       .then((res) => setPermission(res.receive as Permission))
       .catch(() => setPermission("default"));
-  }, []);
+    return () => {
+      void removeListeners();
+    };
+  }, [removeListeners]);
 
   const saveToken = useCallback(
     async (newToken: string) => {
@@ -45,6 +64,9 @@ export function usePushNotifications() {
         },
         { onConflict: "user_id,token" },
       );
+      // Remember the device token so sign-out can delete the row even after
+      // this hook is gone (see AuthContext.signOut).
+      localStorage.setItem(PUSH_TOKEN_STORAGE_KEY, newToken);
     },
     [user],
   );
@@ -57,28 +79,28 @@ export function usePushNotifications() {
       setPermission(req.receive as Permission);
       if (req.receive !== "granted") return;
 
-      // Register with APNs/FCM.
-      await PushNotifications.register();
-
-      // Listen once for the registration token.
-      const tokenListener = await PushNotifications.addListener(
-        "registration",
-        async (t: Token) => {
+      // Attach listeners BEFORE register() — when permission was already
+      // granted the cached token can fire immediately, and an event emitted
+      // before the listener exists is silently dropped. Clear any handles
+      // from a previous subscribe() so they don't accumulate.
+      await removeListeners();
+      listenersRef.current.push(
+        await PushNotifications.addListener("registration", async (t: Token) => {
           setToken(t.value);
           await saveToken(t.value);
           setIsSubscribed(true);
-          await tokenListener.remove();
-        },
+        }),
+        await PushNotifications.addListener("registrationError", (err) => {
+          console.error("[PushNotifications] registrationError", err);
+        }),
       );
 
-      // Listen for registration errors.
-      await PushNotifications.addListener("registrationError", (err) => {
-        console.error("[PushNotifications] registrationError", err);
-      });
+      // Register with APNs/FCM.
+      await PushNotifications.register();
     } catch (err) {
       console.error("[PushNotifications] subscribe error:", err);
     }
-  }, [user, saveToken]);
+  }, [user, saveToken, removeListeners]);
 
   const unsubscribe = useCallback(async () => {
     if (!isSupported || !user) return;
@@ -92,13 +114,14 @@ export function usePushNotifications() {
           .eq("user_id", user.id)
           .eq("token", token);
       }
-      await PushNotifications.removeAllListeners();
+      localStorage.removeItem(PUSH_TOKEN_STORAGE_KEY);
+      await removeListeners();
       setIsSubscribed(false);
       setToken(null);
     } catch (err) {
       console.error("[PushNotifications] unsubscribe error:", err);
     }
-  }, [user, token]);
+  }, [user, token, removeListeners]);
 
   return { isSupported, permission, isSubscribed, subscribe, unsubscribe };
 }
